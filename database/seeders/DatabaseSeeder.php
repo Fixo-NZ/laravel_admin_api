@@ -25,12 +25,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("kathcutirpie"),
         ]);
 
-        User::factory()->create([
-            'name' => 'Test',
-            'email' => 'kathrina@fixo.com',
-            'password' => Hash::make("kathcutirpie"),
-        ]);
-
         Homeowner::factory(10)->create();
 
         Tradie::factory(10)->create();
