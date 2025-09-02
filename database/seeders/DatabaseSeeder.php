@@ -24,7 +24,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => Hash::make("admin"),
         ]);
-
+        User::factory()->create([
+            'name' => 'Fixo DM',
+            'email' => 'elpa@gmail.com',
+            'password' => Hash::make("admin"),
+        ]);
         Homeowner::factory(10)->create();
 
         Tradie::factory(10)->create();
