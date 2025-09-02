@@ -65,7 +65,9 @@ class TradieAuthController extends Controller
                 'data' => [
                     'user' => [
                         'id' => $tradie->id,
-                        'name' => $tradie->name,
+                        'first_name' => $tradie->first_name,
+                        'last_name' => $tradie->last_name,
+                        'middle_name' => $tradie->middle_name,
                         'email' => $tradie->email,
                         'phone' => $tradie->phone,
                         'business_name' => $tradie->business_name,
@@ -85,7 +87,6 @@ class TradieAuthController extends Controller
                     'token' => $token,
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -147,7 +148,9 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'name' => $tradie->name,
+                    'first_name' => $tradie->first_name,
+                    'last_name' => $tradie->last_name,
+                    'middle_name' => $tradie->middle_name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
                     'business_name' => $tradie->business_name,
@@ -162,8 +165,8 @@ class TradieAuthController extends Controller
                     'availability_status' => $tradie->availability_status,
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
+                    //'average_rating' => $tradie->average_rating,
+                    //'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                 ],
                 'token' => $token,
@@ -211,8 +214,8 @@ class TradieAuthController extends Controller
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
                     'verified_at' => $tradie->verified_at,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
+                    //'average_rating' => $tradie->average_rating,
+                    //'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                     'created_at' => $tradie->created_at,
                 ]
