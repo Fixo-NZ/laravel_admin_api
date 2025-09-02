@@ -6,10 +6,16 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
+<<<<<<< HEAD
         "php": "^8.0",
         "filament/filament": "^4.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
+=======
+        "php": "^8.2",
+        "filament/filament": "*",
+        "laravel/framework": "^12.0",
+>>>>>>> d3cadb7 (Initial commit)
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
@@ -36,8 +42,12 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+<<<<<<< HEAD
             "@php artisan package:discover --ansi",
             "@php artisan filament:upgrade"
+=======
+            "@php artisan package:discover --ansi"
+>>>>>>> d3cadb7 (Initial commit)
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
