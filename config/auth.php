@@ -40,6 +40,18 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
+        'tradies' => [
+            'driver' => 'sanctum',
+            'provider' => 'tradies',
+        ],
+        'homeowners' => [
+            'driver' => 'sanctum',
+            'provider' => 'homeowners',
+        ],
     ],
 
     /*
@@ -65,10 +77,15 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'tradies' => [
+            'driver' => 'database',
+            'table' => 'tradies',
+        ],
+
+        'homeowners' => [
+            'driver' => 'database',
+            'table' => 'homeowners',
+        ],
     ],
 
     /*
@@ -96,6 +113,16 @@ return [
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,
+        ],
+        'tradies' => [
+            'provider' => 'tradies', // Matches the provider
+            'table' => 'password_reset_tokens', // Or a separate table
+            'expire' => 60,
+        ],
+        'homeowners' => [
+            'provider' => 'homeowners', // Matches the provider
+            'table' => 'password_reset_tokens', // Or a separate table
+            'expire' => 60,
         ],
     ],
 

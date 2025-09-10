@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class ServiceSeeder extends Seeder
 {
@@ -52,7 +53,7 @@ class ServiceSeeder extends Seeder
         ];
 
         foreach ($services as $service) {
-            \DB::table('services')->insert([
+            FacadesDB::table('services')->insert([
                 'name' => $service['name'],
                 'description' => $service['description'],
                 'category' => $service['category'],
