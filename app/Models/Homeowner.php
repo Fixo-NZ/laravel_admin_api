@@ -74,36 +74,6 @@ class Homeowner extends Authenticatable
     }
 
     // Relationships
-    public function jobs()
-    {
-        return $this->hasMany(Job::class);
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
-    }
-
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'receiver_id');
-    }
-
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'reviewer_id');
-    }
-
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'reviewee_id');
-    }
-
     public function favoriteTradies()
     {
         return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
