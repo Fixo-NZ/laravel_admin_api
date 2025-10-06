@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
     Schema::create('tradies', function (Blueprint $table) {
-            $table->id();
+        $table->id();
+        $table->unsignedBigInteger('user_id')->nullable();
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->string('first_name');
             $table->string('last_name');
             $table->string('middle_name');

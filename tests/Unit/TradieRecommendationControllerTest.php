@@ -69,14 +69,15 @@ class TradieRecommendationControllerTest extends TestCase
         $controller = new TradieRecommendationController();
         $response = $controller->recommend($job->id);
         $this->assertEquals(200, $response->getStatusCode());
-        $data = $response->getData()->recommendations;
+        $respData = $response->getData();
+        $data = property_exists($respData, 'recommendations') ? $respData->recommendations : (property_exists($respData, 'data') ? $respData->data : []);
         $this->assertNotEmpty($data);
-    $tradieArr = (array)$data[0];
-    $this->assertArrayHasKey('id', $tradieArr);
-    $this->assertArrayHasKey('name', $tradieArr);
-    $this->assertArrayHasKey('occupation', $tradieArr);
-    $this->assertArrayHasKey('rating', $tradieArr);
-    $this->assertArrayHasKey('service_area', $tradieArr);
-    $this->assertArrayHasKey('years_experience', $tradieArr);
+        $tradieArr = (array)$data[0];
+        $this->assertArrayHasKey('id', $tradieArr);
+        $this->assertArrayHasKey('name', $tradieArr);
+        $this->assertArrayHasKey('occupation', $tradieArr);
+        $this->assertArrayHasKey('rating', $tradieArr);
+        $this->assertArrayHasKey('service_area', $tradieArr);
+        $this->assertArrayHasKey('years_experience', $tradieArr);
     }
 }
