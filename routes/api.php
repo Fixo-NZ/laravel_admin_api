@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\TradieRecommendationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+
+// Create backend API to fetch recommended tradies for a given job request. (G4 - #52)
+Route::get('/jobs/{jobId}/recommend-tradies', [TradieRecommendationController::class, 'recommend']);
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {

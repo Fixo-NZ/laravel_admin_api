@@ -13,12 +13,20 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
-            $table->string('queue')->index();
-            $table->longText('payload');
-            $table->unsignedTinyInteger('attempts');
-            $table->unsignedInteger('reserved_at')->nullable();
-            $table->unsignedInteger('available_at');
-            $table->unsignedInteger('created_at');
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->string('location')->nullable();
+            $table->decimal('latitude', 10, 6)->nullable();
+            $table->decimal('longitude', 10, 6)->nullable();
+            $table->string('status')->default('open');
+            $table->timestamps();
+            // If you need to keep the original job queue columns, add them below:
+            // $table->string('queue')->index();
+            // $table->longText('payload');
+            // $table->unsignedTinyInteger('attempts');
+            // $table->unsignedInteger('reserved_at')->nullable();
+            // $table->unsignedInteger('available_at');
         });
 
         Schema::create('job_batches', function (Blueprint $table) {

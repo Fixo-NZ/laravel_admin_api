@@ -147,6 +147,12 @@ class Tradie extends Authenticatable
             ->withTimestamps();
     }
 
+    // Relationship for skills
+    public function skills()
+    {
+        return $this->hasMany(Skill::class);
+    }
+
     public function jobApplications()
     {
         return $this->hasMany(JobApplication::class);
@@ -174,8 +180,9 @@ class Tradie extends Authenticatable
 
     public function receivedReviews()
     {
-        return $this->hasMany(Review::class, 'reviewee_id');
+        return $this->hasMany(Review::class, 'reviewed_id');
     }
+
 
     public function favoriteHomeowners()
     {
