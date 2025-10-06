@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\JobRequestController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,6 +15,15 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+
+
+Route::prefix('job-requests')->group(function () {
+    Route::get('/', [JobRequestController::class, 'index']);      // Tradies can view
+    Route::get('/{id}', [JobRequestController::class, 'show']);   // View specific
+    Route::post('/', [JobRequestController::class, 'store']);     // Homeowner creates
+});
+
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
