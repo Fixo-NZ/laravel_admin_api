@@ -6,17 +6,6 @@ use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application.
-| These routes are loaded by the RouteServiceProvider and all
-| will be assigned to the "api" middleware group.
-|
-*/
-
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
     Route::post('register', [HomeownerAuthController::class, 'register']);
@@ -39,14 +28,12 @@ Route::prefix('tradie')->group(function () {
     });
 });
 
-// Protected routes for authenticated users
+// ✅ Public payment route
+Route::post('/payment/process', [PaymentController::class, 'processPayment']);
+
+// Protected routes (for authenticated users)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-
-    //Payment processing route
-    Route::post('/payment/process', [PaymentController::class, 'processPayment']);
-    
-
 });
