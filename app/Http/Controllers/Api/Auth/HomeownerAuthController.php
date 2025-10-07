@@ -54,7 +54,7 @@ class HomeownerAuthController extends Controller
 
             return response()->json([
                 'status' => 'existing_user',
-                'message' => 'OTP verification successful, Tradie automatically logged in',
+                'message' => 'OTP verification successful, Homeowner automatically logged in',
                 'user' => $tradie,
                 'authorisation' => [
                     'access_token' => $token,
