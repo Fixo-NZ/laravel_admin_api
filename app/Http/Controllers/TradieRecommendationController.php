@@ -3,28 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Job;
+use App\Models\Service;
 use App\Models\Tradie;
 
 class TradieRecommendationController extends Controller
 {
-    public function recommend($jobId)
+    public function recommend($serviceId)
     {
-        // 1. Get the job request
-        $job = Job::with('category')->find($jobId);
+        // 1. Get the service (job) request
+        $service = Service::with('category')->find($serviceId);
 
-        if (!$job) {
+        if (!$service) {
             return response()->json([
                 'success' => false,
-                'message' => 'Job not found'
+                'message' => 'Service (Job) not found'
             ], 404);
         }
 
-        // Assume job has budget_min and budget_max fields
-        $budgetMin = $job->budget_min ?? null;
-        $budgetMax = $job->budget_max ?? null;
-        $jobLat = $job->latitude;
-        $jobLng = $job->longitude;
+        $jobLat = $service->location_lat ?? null;
+        $jobLng = $service->location_lng ?? null;
 
         // 2. Find tradies that match skills, location, availability, and budget
         $isSqlite = 
@@ -33,14 +30,8 @@ class TradieRecommendationController extends Controller
 
         $queryBuilder = Tradie::where('availability_status', 'available')
             ->where('status', 'active')
-            ->whereHas('skills', function($query) use ($job) {
-                $query->where('skill_name', 'LIKE', '%' . $job->category->category_name . '%');
-            })
-            ->when($budgetMin, function($q) use ($budgetMin) {
-                $q->where('hourly_rate', '>=', $budgetMin);
-            })
-            ->when($budgetMax, function($q) use ($budgetMax) {
-                $q->where('hourly_rate', '<=', $budgetMax);
+            ->whereHas('skills', function($query) use ($service) {
+                $query->where('skill_name', 'LIKE', '%' . $service->category->category_name . '%');
             });
 
         $tradies = $queryBuilder->get()->filter(function($tradie) use ($jobLat, $jobLng, $isSqlite) {
@@ -108,7 +99,7 @@ class TradieRecommendationController extends Controller
         // 5. Return response
         return response()->json([
             'success' => true,
-            'jobId'   => $jobId,
+            'serviceId'   => $serviceId,
             'recommendations' => $recommendations
         ]);
     }
