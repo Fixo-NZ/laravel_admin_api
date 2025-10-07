@@ -55,4 +55,9 @@ class TradieResource extends Resource
             'edit' => EditTradie::route('/{record}/edit'),
         ];
     }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['first_name', 'last_name', 'email', 'business_name'];
+    }
 }

@@ -8,7 +8,7 @@ use App\Models\Tradie;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,8 +25,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("admin"),
         ]);
 
-        Homeowner::factory(10)->create();
+        // Homeowner::factory(10)->create();
 
-        Tradie::factory(10)->create();
+        $this->call([
+            TradieSeeder::class,
+            HomeownerSeeder::class
+        ]);
     }
 }
