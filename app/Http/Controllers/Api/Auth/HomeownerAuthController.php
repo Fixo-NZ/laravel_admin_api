@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Homeowner;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,61 @@ use Illuminate\Validation\ValidationException;
 
 class HomeownerAuthController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
+    public function requestOtp(Request $request)
+    {
+        $fields = $request->validate([
+            'phone' => 'required|digits_between:8,15',
+        ]);
+
+        $otp = $this->otpService->generateOtp($fields['phone']);
+
+        if ($otp) {
+            return response()->json(['message' => 'OTP sent successfully', 'otp_code' => $otp->otp_code], 201);
+        }
+
+        return response()->json(['message' => 'Failed to send OTP'], 500);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $fields = $request->validate([
+            'phone' => 'required|digits_between:8,15',
+            'otp_code' => 'required|digits:6',
+        ]);
+
+        if ($this->otpService->verifyOtp($fields['phone'], $fields['otp_code'])) {
+
+            $tradie = Homeowner::where('phone', $fields['phone'])->first();
+
+            if (! $tradie) {
+                return response()->json(['status' => 'new_user', 'message' => 'OTP verification successful, proceed to registration'], 200);
+            }
+
+            $tradie->tokens()->delete();
+            $token = $tradie->createToken('tradie-token')->plainTextToken;
+
+            return response()->json([
+                'status' => 'existing_user',
+                'message' => 'OTP verification successful, Tradie automatically logged in',
+                'user' => $tradie,
+                'authorisation' => [
+                    'access_token' => $token,
+                    'type' => 'Bearer',
+                ],
+            ], 200);
+
+        }
+
+        return response()->json(['message' => 'Invalid or expired OTP'], 400);
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [

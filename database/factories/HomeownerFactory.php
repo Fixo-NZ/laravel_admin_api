@@ -17,7 +17,8 @@ class HomeownerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'email_verified_at' => now(),
@@ -30,7 +31,7 @@ class HomeownerFactory extends Factory
             'postal_code' => fake()->postcode(),
             'latitude' => fake()->latitude(-47, -34),
             'longitude' => fake()->longitude(166, 179),
-            'status' => 'active',
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended']),
         ];
     }
 }

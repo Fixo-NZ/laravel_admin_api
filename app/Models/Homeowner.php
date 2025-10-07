@@ -12,7 +12,8 @@ class Homeowner extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'phone',
         'password',
@@ -29,7 +30,10 @@ class Homeowner extends Authenticatable
 
     protected $hidden = [
         'password',
+        'email_verified_at',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
