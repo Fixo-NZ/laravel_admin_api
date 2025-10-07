@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\TradieAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TradieRecommendationController;
+use App\Http\Controllers\ServiceController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -48,3 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+// Service API Resource Routes
+Route::apiResource('services', ServiceController::class);
+
+// Job API Resource Routes
+Route::apiResource('jobs', JobController::class);

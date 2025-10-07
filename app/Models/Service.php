@@ -9,34 +9,28 @@ class Service extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'job_id';
+    public $timestamps = false;
+
     protected $fillable = [
-        'name',
-        'description',
-        'category',
-        'is_active',
+        'homeowner_id',
+        'job_categoryid',
+        'job_description',
+        'location',
+        'status',
+        'createdAt',
+        'updatedAt',
+        'rating',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
-
-    // Scopes
-    public function scopeActive($query)
+    public function homeowner()
     {
-        return $query->where('is_active', true);
+        return $this->belongsTo(Homeowner::class, 'homeowner_id');
     }
 
-    public function scopeByCategory($query, $category)
+    public function category()
     {
-        return $query->where('category', $category);
-    }
-
-    // Relationships
-    public function tradies()
-    {
-        return $this->belongsToMany(Tradie::class, 'tradie_services')
-            ->withPivot('base_rate')
-            ->withTimestamps();
+        return $this->belongsTo(Category::class, 'job_categoryid');
     }
 
     public function jobs()

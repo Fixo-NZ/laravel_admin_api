@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Http\Controllers\TradieRecommendationController;
-use App\Models\Job;
+use App\Models\Service;
 use App\Models\Tradie;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +26,7 @@ class TradieRecommendationControllerTest extends TestCase
     }
 
     /** @test */
-    public function recommend_returns_404_if_job_not_found()
+    public function recommend_returns_404_if_service_not_found()
     {
         $controller = new TradieRecommendationController();
         $response = $controller->recommend(9999);
@@ -37,10 +37,9 @@ class TradieRecommendationControllerTest extends TestCase
     /** @test */
     public function recommend_returns_empty_if_no_tradies_found()
     {
-        $category = Category::factory()->create();
-        $job = Job::factory()->create(['category_id' => $category->id]);
-        $controller = new TradieRecommendationController();
-        $response = $controller->recommend($job->id);
+        $service = Service::factory()->create();
+    $controller = new TradieRecommendationController();
+    $response = $controller->recommend($service->job_id);
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals([], $response->getData()->data);
     }
@@ -49,7 +48,7 @@ class TradieRecommendationControllerTest extends TestCase
     public function recommend_returns_tradies_with_expected_fields()
     {
         $category = Category::factory()->create(['category_name' => 'Plumbing']);
-        $job = Job::factory()->create(['category_id' => $category->id]);
+        $service = Service::factory()->create(['job_categoryid' => $category->id]);
         $tradie = Tradie::factory()->create([
             'availability_status' => 'available',
             'status' => 'active',
@@ -67,7 +66,7 @@ class TradieRecommendationControllerTest extends TestCase
         }
 
         $controller = new TradieRecommendationController();
-        $response = $controller->recommend($job->id);
+    $response = $controller->recommend($service->job_id);
         $this->assertEquals(200, $response->getStatusCode());
         $respData = $response->getData();
         $data = property_exists($respData, 'recommendations') ? $respData->recommendations : (property_exists($respData, 'data') ? $respData->data : []);
