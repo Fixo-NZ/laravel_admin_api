@@ -20,11 +20,8 @@ class TradieRecommendationController extends Controller
             ], 404);
         }
 
-        // Assume job has budget_min and budget_max fields
-        $budgetMin = $job->budget_min ?? null;
-        $budgetMax = $job->budget_max ?? null;
-        $jobLat = $job->latitude;
-        $jobLng = $job->longitude;
+        $jobLat = $service->location_lat ?? null;
+        $jobLng = $service->location_lng ?? null;
 
         // 2. Find tradies that match skills, location, availability, and budget
         $isSqlite = 
@@ -33,14 +30,8 @@ class TradieRecommendationController extends Controller
 
         $queryBuilder = Tradie::where('availability_status', 'available')
             ->where('status', 'active')
-            ->whereHas('skills', function($query) use ($job) {
-                $query->where('skill_name', 'LIKE', '%' . $job->category->category_name . '%');
-            })
-            ->when($budgetMin, function($q) use ($budgetMin) {
-                $q->where('hourly_rate', '>=', $budgetMin);
-            })
-            ->when($budgetMax, function($q) use ($budgetMax) {
-                $q->where('hourly_rate', '<=', $budgetMax);
+            ->whereHas('skills', function($query) use ($service) {
+                $query->where('skill_name', 'LIKE', '%' . $service->category->category_name . '%');
             });
 
         $tradies = $queryBuilder->get()->filter(function($tradie) use ($jobLat, $jobLng, $isSqlite) {
@@ -115,7 +106,7 @@ class TradieRecommendationController extends Controller
         // 5. Return response
         return response()->json([
             'success' => true,
-            'jobId'   => $jobId,
+            'serviceId'   => $serviceId,
             'recommendations' => $recommendations
         ]);
     }

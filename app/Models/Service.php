@@ -33,10 +33,17 @@ class Service extends Model
         return $this->belongsTo(Category::class, 'job_categoryid');
     }
 
+<<<<<<< HEAD
     // public function jobs()
     // {
     //     return $this->hasMany(Job::class);
     // }
+=======
+    public function jobs()
+    {
+        return $this->hasMany(Job::class);
+    }
+>>>>>>> bf01661 (Refracted jobs table to service table to be able to accompany with other groups. Adjusted unit testing and passed all.)
 
     // Static methods
     public static function getCategories()
