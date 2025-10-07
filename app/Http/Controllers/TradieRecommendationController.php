@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Job;
+use App\Models\Service as Job;
 use App\Models\Tradie;
 
 class TradieRecommendationController extends Controller
@@ -11,7 +11,7 @@ class TradieRecommendationController extends Controller
     public function recommend($jobId)
     {
         // 1. Get the job request
-        $job = Job::with('category')->find($jobId);
+    $job = Job::with('category')->find($jobId);
 
         if (!$job) {
             return response()->json([
@@ -49,7 +49,7 @@ class TradieRecommendationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'No suitable tradies found',
-                'data'    => []
+                'recommendations'    => []
             ]);
         }
 

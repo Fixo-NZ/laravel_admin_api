@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('middle_name');
+            $table->string('middle_name')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
@@ -38,6 +38,9 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->decimal('rating', 3, 2)->nullable();
+            // Link to users table if you want tradies to be linked to a user account
+            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->rememberToken();
             $table->timestamps();
 

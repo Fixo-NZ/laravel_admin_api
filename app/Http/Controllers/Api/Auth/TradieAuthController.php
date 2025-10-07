@@ -40,8 +40,18 @@ class TradieAuthController extends Controller
         }
 
         try {
+            // Accept a single 'name' field but persist to first_name/last_name columns used in the DB
+            $firstName = $request->input('first_name');
+            $lastName = $request->input('last_name');
+            if (!$firstName && $request->filled('name')) {
+                $parts = preg_split('/\s+/', trim($request->input('name')), 2);
+                $firstName = $parts[0] ?? null;
+                $lastName = $parts[1] ?? null;
+            }
+
             $tradie = Tradie::create([
-                'name' => $request->name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),

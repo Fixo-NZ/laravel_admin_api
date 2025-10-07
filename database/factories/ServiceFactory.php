@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Service as Job;
+use App\Models\Service;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class JobFactory extends Factory
+class ServiceFactory extends Factory
 {
-    protected $model = Job::class;
+    protected $model = Service::class;
 
     public function definition()
     {

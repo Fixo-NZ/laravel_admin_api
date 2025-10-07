@@ -9,29 +9,30 @@ class Service extends Model
 {
     use HasFactory;
 
+    // This Service model now represents records stored in the `jobs` table
+    protected $table = 'jobs';
+
     protected $fillable = [
-        'name',
+        'category_id',
+        'title',
         'description',
-        'category',
-        'is_active',
+        'location',
+        'latitude',
+        'longitude',
+        'status',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeByCategory($query, $category)
-    {
-        return $query->where('category', $category);
-    }
-
     // Relationships
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function tradies()
     {
         return $this->belongsToMany(Tradie::class, 'tradie_services')
@@ -39,18 +40,9 @@ class Service extends Model
             ->withTimestamps();
     }
 
-    public function jobs()
+    // Convenience scope for open jobs/services
+    public function scopeOpen($query)
     {
-        return $this->hasMany(Job::class);
-    }
-
-    // Static methods
-    public static function getCategories()
-    {
-        return self::active()
-            ->distinct()
-            ->pluck('category')
-            ->sort()
-            ->values();
+        return $query->where('status', 'open');
     }
 }

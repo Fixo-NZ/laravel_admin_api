@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Http\Controllers\TradieRecommendationController;
-use App\Models\Job;
+use App\Models\Service as Job;
 use App\Models\Tradie;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,8 +41,8 @@ class TradieRecommendationControllerTest extends TestCase
         $job = Job::factory()->create(['category_id' => $category->id]);
         $controller = new TradieRecommendationController();
         $response = $controller->recommend($job->id);
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals([], $response->getData()->data);
+    $this->assertEquals(200, $response->getStatusCode());
+    $this->assertEquals([], $response->getData()->recommendations);
     }
 
     /** @test */
