@@ -52,3 +52,8 @@ Route::get('/schedules', function () {
 });
 //Send notification to homeowner via email
 Route::post('/schedules', [ScheduleController::class, 'store']);
+
+//Resched for calendar
+Route::post('/schedules/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
+//Cancel for calendar
+Route::post('/schedules/{schedule}/cancel', [ScheduleController::class, 'cancel']);

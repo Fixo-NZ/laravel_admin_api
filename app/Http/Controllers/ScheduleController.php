@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Homeowner;
 use App\Models\Schedule;
 use App\Notifications\ScheduleNotification;
-
+use Symfony\Component\HttpFoundation\Response;
 class ScheduleController extends Controller
 {
     public function store(Request $request)
@@ -32,4 +32,35 @@ class ScheduleController extends Controller
             'schedule' => $schedule,
         ]);
     }
+     public function reschedule(Request $request, Schedule $schedule)
+{
+    $validated = $request->validate([
+        'start_time' => 'required|date',
+        'end_time'   => 'required|date|after:start_time',
+    ]);
+
+    $schedule->update([
+        'start_time' => $validated['start_time'],
+        'end_time'   => $validated['end_time'],
+        'rescheduled_at' => now(),
+    ]);
+
+    return response()->json([
+        'message' => 'Schedule successfully rescheduled',
+        'schedule' => $schedule
+    ], \Symfony\Component\HttpFoundation\Response::HTTP_OK);
+}
+
+
+    public function cancel(Schedule $schedule)
+    {
+         $schedule->update([
+        'status' => 'cancelled'
+    ]);
+
+    return response()->json([
+        'message' => 'Schedule successfully cancelled',
+        'schedule' => $schedule
+    ], Response::HTTP_OK);
+}
 }
