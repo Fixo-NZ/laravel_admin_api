@@ -14,7 +14,9 @@ class HomeownerAuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'email' => 'required|string|email|max:255|unique:homeowners',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
@@ -37,7 +39,9 @@ class HomeownerAuthController extends Controller
 
         try {
             $homeowner = Homeowner::create([
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),

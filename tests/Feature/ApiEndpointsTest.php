@@ -23,7 +23,8 @@ class ApiEndpointsTest extends TestCase
     public function test_homeowner_auth_register_login_logout_and_me()
     {
         $payload = [
-            'name' => 'Alice Smith',
+            'first_name' => 'Alice',
+            'last_name' => 'Smith',
             'email' => 'alice@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',

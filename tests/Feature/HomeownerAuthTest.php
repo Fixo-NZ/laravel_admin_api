@@ -14,7 +14,8 @@ class HomeownerAuthTest extends TestCase
     public function test_homeowner_can_register()
     {
         $response = $this->postJson('/api/homeowner/register', [
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -43,7 +44,8 @@ class HomeownerAuthTest extends TestCase
 
         $this->assertDatabaseHas('homeowners', [
             'email' => 'john@example.com',
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
         ]);
     }
 

@@ -13,7 +13,9 @@ class Homeowner extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'middle_name',
         'email',
         'phone',
         'password',
@@ -72,6 +74,16 @@ class Homeowner extends Authenticatable
         return collect([$this->address, $this->city, $this->region, $this->postal_code])
             ->filter()
             ->implode(', ');
+    }
+
+    public function getNameAttribute()
+    {
+        $parts = [$this->last_name, $this->first_name];
+        if ($this->middle_name) {
+            $parts[] = $this->middle_name;
+        }
+
+        return collect($parts)->filter()->implode(' ');
     }
 
     // Relationships
