@@ -10,22 +10,25 @@ use Illuminate\Support\Facades\Validator;
 
 class TradieAuthController extends Controller
 {
+    // TODO: edit register to match mobile register fields
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:tradies',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8|confirmed',
-            'business_name' => 'nullable|string|max:255',
-            'license_number' => 'nullable|string|max:100',
+       $validator = Validator::make($request->all(), [
+            'first_name'       => 'required|string|max:255',
+            'last_name'        => 'required|string|max:255',
+            'middle_name'      => 'nullable|string|max:255',
+            'email'            => 'required|string|email|max:255|unique:tradies',
+            'phone'            => 'nullable|string|max:20',
+            'password'         => 'required|string|min:8|confirmed',
+            'business_name'    => 'nullable|string|max:255',
+            'license_number'   => 'nullable|string|max:100',
             'years_experience' => 'nullable|integer|min:0|max:50',
-            'hourly_rate' => 'nullable|numeric|min:0|max:999.99',
-            'address' => 'nullable|string|max:500',
-            'city' => 'nullable|string|max:100',
-            'region' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:10',
-            'service_radius' => 'nullable|integer|min:1|max:200',
+            'hourly_rate'      => 'nullable|numeric|min:0|max:999.99',
+            'address'          => 'nullable|string|max:500',
+            'city'             => 'nullable|string|max:100',
+            'region'           => 'nullable|string|max:100',
+            'postal_code'      => 'nullable|string|max:10',
+            'service_radius'   => 'nullable|integer|min:1|max:200',
         ]);
 
         if ($validator->fails()) {
@@ -34,28 +37,28 @@ class TradieAuthController extends Controller
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
-                    'details' => $validator->errors()
-                ]
+                    'details' => $validator->errors(),
+                ],
             ], 422);
         }
 
         try {
             $tradie = Tradie::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'business_name' => $request->business_name,
-                'license_number' => $request->license_number,
+                'first_name'       => $request->first_name,
+                'last_name'        => $request->last_name,
+                'middle_name'      => $request->middle_name,
+                'email'            => $request->email,
+                'phone'            => $request->phone,
+                'password'         => Hash::make($request->password),
+                'business_name'    => $request->business_name,
+                'license_number'   => $request->license_number,
                 'years_experience' => $request->years_experience,
-                'hourly_rate' => $request->hourly_rate,
-                'address' => $request->address,
-                'city' => $request->city,
-                'region' => $request->region,
-                'postal_code' => $request->postal_code,
-                'service_radius' => $request->service_radius ?? 50,
-                'availability_status' => 'available',
-                'status' => 'active',
+                'hourly_rate'      => $request->hourly_rate,
+                'address'          => $request->address,
+                'city'             => $request->city,
+                'region'           => $request->region,
+                'postal_code'      => $request->postal_code,
+                'service_radius'   => $request->service_radius ?? 50,
             ]);
 
             $token = $tradie->createToken('tradie-token')->plainTextToken;
@@ -65,7 +68,9 @@ class TradieAuthController extends Controller
                 'data' => [
                     'user' => [
                         'id' => $tradie->id,
-                        'name' => $tradie->name,
+                        'first_name' => $tradie->first_name,
+                        'last_name' => $tradie->last_name,
+                        'middle_name' => $tradie->middle_name,
                         'email' => $tradie->email,
                         'phone' => $tradie->phone,
                         'business_name' => $tradie->business_name,
@@ -85,7 +90,6 @@ class TradieAuthController extends Controller
                     'token' => $token,
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -142,33 +146,39 @@ class TradieAuthController extends Controller
 
         $token = $tradie->createToken('tradie-token')->plainTextToken;
 
+        // FIXME: debug
         return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => [
+            // 'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => 86400,
+            'user' => [
                     'id' => $tradie->id,
-                    'name' => $tradie->name,
+                    'first_name' => $tradie->first_name,
+                    'middle_name' => $tradie->middle_name,
+                    'last_name' => $tradie->last_name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
-                    'business_name' => $tradie->business_name,
-                    'license_number' => $tradie->license_number,
-                    'years_experience' => $tradie->years_experience,
-                    'hourly_rate' => $tradie->hourly_rate,
+                    'avatar' => $tradie->avatar,
+                    'bio' => $tradie->bio,
                     'address' => $tradie->address,
                     'city' => $tradie->city,
                     'region' => $tradie->region,
                     'postal_code' => $tradie->postal_code,
-                    'service_radius' => $tradie->service_radius,
+                    'latitude' => (float) $tradie->latitude,
+                    'longitude' => (float) $tradie->longitude,
+                    'business_name' => $tradie->business_name,
+                    'license_number' => $tradie->license_number,
+                    'insurance_details' => $tradie->insurance_details,
+                    'years_experience' => $tradie->years_experience,
+                    'hourly_rate' => (float) $tradie->hourly_rate,
                     'availability_status' => $tradie->availability_status,
-                    'status' => $tradie->status,
-                    'is_verified' => $tradie->is_verified,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
-                    'user_type' => 'tradie',
+                    'service_radius' => $tradie->service_radius,
+                    'created_at' => $tradie->created_at,
+                    'updated_at' => $tradie->updated_at
                 ],
-                'token' => $token,
             ]
-        ]);
+        );
     }
 
     public function logout(Request $request)
@@ -211,8 +221,8 @@ class TradieAuthController extends Controller
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
                     'verified_at' => $tradie->verified_at,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
+                    //'average_rating' => $tradie->average_rating,
+                    //'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                     'created_at' => $tradie->created_at,
                 ]
