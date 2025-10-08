@@ -40,7 +40,11 @@ class HomeownerAuthTest extends TestCase
                         'status',
                         'user_type',
                     ],
-                    'token'
+                    'token' => [
+                        'access_token',
+                        'token_type',
+                        'expires_in',
+                    ]
                 ]
             ]);
 
@@ -75,7 +79,11 @@ class HomeownerAuthTest extends TestCase
                         'email',
                         'user_type',
                     ],
-                    'token'
+                    'token' => [
+                        'access_token',
+                        'token_type',
+                        'expires_in',
+                    ]
                 ]
             ]);
     }

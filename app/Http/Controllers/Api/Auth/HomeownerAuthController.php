@@ -71,7 +71,11 @@ class HomeownerAuthController extends Controller
                         'status' => $homeowner->status,
                         'user_type' => 'homeowner',
                     ],
-                    'token' => $token,
+                    'token' => [
+                        'access_token' => $token,
+                        'token_type' => 'Bearer',
+                        'expires_in' => null,
+                    ],
                 ]
             ], 201);
 
@@ -148,7 +152,11 @@ class HomeownerAuthController extends Controller
                     'status' => $homeowner->status,
                     'user_type' => 'homeowner',
                 ],
-                'token' => $token,
+                'token' => [
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_in' => null,
+                ],
             ]
         ]);
     }
