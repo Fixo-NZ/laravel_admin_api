@@ -56,27 +56,17 @@ class HomeownerAuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'user' => [
-                        'id' => $homeowner->id,
-                        'first_name' => $homeowner->first_name,
-                        'middle_name' => $homeowner->middle_name,
-                        'last_name' => $homeowner->last_name,
-                        'email' => $homeowner->email,
-                        'phone' => $homeowner->phone,
-                        'address' => $homeowner->address,
-                        'city' => $homeowner->city,
-                        'region' => $homeowner->region,
-                        'postal_code' => $homeowner->postal_code,
-                        'status' => $homeowner->status,
-                        'user_type' => 'homeowner',
-                    ],
-                    'token' => [
-                        'access_token' => $token,
-                        'token_type' => 'Bearer',
-                        'expires_in' => null,
-                    ],
-                ]
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => 3600,
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'last_name' => $homeowner->last_name,
+                    'email' => $homeowner->email,
+                    'user_type' => 'homeowner',
+                ],
             ], 201);
 
         } catch (\Exception $e) {
@@ -137,27 +127,17 @@ class HomeownerAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $homeowner->id,
-                    'first_name' => $homeowner->first_name,
-                    'middle_name' => $homeowner->middle_name,
-                    'last_name' => $homeowner->last_name,
-                    'email' => $homeowner->email,
-                    'phone' => $homeowner->phone,
-                    'address' => $homeowner->address,
-                    'city' => $homeowner->city,
-                    'region' => $homeowner->region,
-                    'postal_code' => $homeowner->postal_code,
-                    'status' => $homeowner->status,
-                    'user_type' => 'homeowner',
-                ],
-                'token' => [
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                    'expires_in' => null,
-                ],
-            ]
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+            'user' => [
+                'id' => $homeowner->id,
+                'first_name' => $homeowner->first_name,
+                'middle_name' => $homeowner->middle_name,
+                'last_name' => $homeowner->last_name,
+                'email' => $homeowner->email,
+                'user_type' => 'homeowner',
+            ],
         ]);
     }
 

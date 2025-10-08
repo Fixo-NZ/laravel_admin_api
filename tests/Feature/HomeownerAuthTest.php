@@ -27,24 +27,16 @@ class HomeownerAuthTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'user' => [
-                        'id',
-                        'first_name',
-                        'middle_name',
-                        'last_name',
-                        'email',
-                        'phone',
-                        'city',
-                        'region',
-                        'status',
-                        'user_type',
-                    ],
-                    'token' => [
-                        'access_token',
-                        'token_type',
-                        'expires_in',
-                    ]
+                'access_token',
+                'token_type',
+                'expires_in',
+                'user' => [
+                    'id',
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'email',
+                    'user_type',
                 ]
             ]);
 
@@ -70,20 +62,16 @@ class HomeownerAuthTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'user' => [
-                        'id',
-                        'first_name',
-                        'middle_name',
-                        'last_name',
-                        'email',
-                        'user_type',
-                    ],
-                    'token' => [
-                        'access_token',
-                        'token_type',
-                        'expires_in',
-                    ]
+                'access_token',
+                'token_type',
+                'expires_in',
+                'user' => [
+                    'id',
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'email',
+                    'user_type',
                 ]
             ]);
     }
