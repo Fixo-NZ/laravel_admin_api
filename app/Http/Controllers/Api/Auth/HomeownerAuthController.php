@@ -59,7 +59,9 @@ class HomeownerAuthController extends Controller
                 'data' => [
                     'user' => [
                         'id' => $homeowner->id,
-                        'name' => $homeowner->name,
+                        'first_name' => $homeowner->first_name,
+                        'middle_name' => $homeowner->middle_name,
+                        'last_name' => $homeowner->last_name,
                         'email' => $homeowner->email,
                         'phone' => $homeowner->phone,
                         'address' => $homeowner->address,
@@ -134,7 +136,9 @@ class HomeownerAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $homeowner->id,
-                    'name' => $homeowner->name,
+                    'first_name' => $homeowner->first_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'last_name' => $homeowner->last_name,
                     'email' => $homeowner->email,
                     'phone' => $homeowner->phone,
                     'address' => $homeowner->address,
@@ -168,7 +172,9 @@ class HomeownerAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $homeowner->id,
-                    'name' => $homeowner->name,
+                    'first_name' => $homeowner->first_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'last_name' => $homeowner->last_name,
                     'email' => $homeowner->email,
                     'phone' => $homeowner->phone,
                     'avatar' => $homeowner->avatar,

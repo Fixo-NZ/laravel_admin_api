@@ -30,7 +30,9 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'middle_name',
+                        'last_name',
                         'email',
                         'phone',
                         'city',
@@ -67,7 +69,9 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'middle_name',
+                        'last_name',
                         'email',
                         'user_type',
                     ],
@@ -128,7 +132,9 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'middle_name',
+                        'last_name',
                         'email',
                         'user_type',
                     ]
