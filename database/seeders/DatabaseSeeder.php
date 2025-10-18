@@ -8,7 +8,7 @@ use App\Models\Tradie;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,16 +17,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Fixo Admin',
-            'email' => 'mikko@gmail.com',
-            'password' => Hash::make("admindumaguin"),
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
         ]);
-
-        Homeowner::factory(10)->create();
-
-        Tradie::factory(10)->create();
     }
 }

@@ -12,9 +12,8 @@ class Tradie extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'first_name',
-        'last_name',
-        'middle_name',
+        'user_id',
+        'name',
         'email',
         'phone',
         'password',

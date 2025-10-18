@@ -12,6 +12,7 @@ class Homeowner extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'phone',
@@ -44,6 +45,10 @@ class Homeowner extends Authenticatable
     {
         return $query->where('status', 'active');
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function scopeInRegion($query, $region)
     {
@@ -61,8 +66,8 @@ class Homeowner extends Authenticatable
                 )
             ) AS distance
         ", [$latitude, $longitude, $latitude])
-        ->having('distance', '<=', $radiusKm)
-        ->orderBy('distance');
+            ->having('distance', '<=', $radiusKm)
+            ->orderBy('distance');
     }
 
     // Accessors

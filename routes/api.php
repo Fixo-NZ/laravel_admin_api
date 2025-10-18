@@ -28,8 +28,15 @@ Route::prefix('tradie')->group(function () {
     });
 });
 
-// ✅ Public payment route
-Route::post('/payment/process', [PaymentController::class, 'processPayment']);
+// Public payment route
+Route::middleware('auth:sanctum')->group(function() {
+    Route::post('/payment/process', [PaymentController::class, 'processPayment']);
+});
+
+//Pang Decryption ti access logs
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
+});
 
 // Protected routes (for authenticated users)
 Route::middleware('auth:sanctum')->group(function () {

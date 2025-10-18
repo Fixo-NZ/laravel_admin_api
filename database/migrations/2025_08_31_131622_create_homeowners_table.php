@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('homeowners', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone')->nullable();
@@ -29,7 +30,6 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->rememberToken();
             $table->timestamps();
-            
             $table->index(['latitude', 'longitude']);
             $table->index(['city', 'region']);
         });

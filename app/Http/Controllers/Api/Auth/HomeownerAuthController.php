@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Homeowner;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -36,7 +37,19 @@ class HomeownerAuthController extends Controller
         }
 
         try {
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'homeowner',
+            ]);
+
+            $user->role = 'homeowner';
+            $user->save();
+
             $homeowner = Homeowner::create([
+                'user_id' => $user->id,
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -47,11 +60,11 @@ class HomeownerAuthController extends Controller
                 'postal_code' => $request->postal_code,
                 'status' => 'active',
             ]);
-
             $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
+                'user' => $user,
                 'data' => [
                     'user' => [
                         'id' => $homeowner->id,
@@ -68,13 +81,12 @@ class HomeownerAuthController extends Controller
                     'token' => $token,
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => [
                     'code' => 'REGISTRATION_ERROR',
-                    'message' => 'Registration failed. Please try again.',
+                    'message' => $e->getMessage(), // show real error
                 ]
             ], 500);
         }
