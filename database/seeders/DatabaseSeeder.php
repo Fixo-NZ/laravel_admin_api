@@ -24,7 +24,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => Hash::make("admin"),
         ]);
-
+        $this->call([
+        ScheduleSeeder::class,
+        ]);
         Homeowner::factory(10)->create();
 
         Tradie::factory(10)->create();

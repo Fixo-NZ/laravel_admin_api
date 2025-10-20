@@ -4,7 +4,8 @@ use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Models\Schedule;
+use App\Http\Controllers\ScheduleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -44,3 +45,15 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+//Fetch values for calendar
+Route::get('/schedules', function () {
+    return Schedule::all();
+});
+//Send notification to homeowner via email
+Route::post('/schedules', [ScheduleController::class, 'store']);
+
+//Resched for calendar
+Route::post('/schedules/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
+//Cancel for calendar
+Route::post('/schedules/{schedule}/cancel', [ScheduleController::class, 'cancel']);
