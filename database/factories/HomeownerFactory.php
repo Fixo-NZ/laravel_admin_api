@@ -2,35 +2,29 @@
 
 namespace Database\Factories;
 
+use App\Models\Homeowner;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Homeowner>
- */
 class HomeownerFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Homeowner::class;
+
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
-            'email_verified_at' => now(),
-            'password' => bcrypt('password'),
-            'avatar' => null,
-            'bio' => fake()->optional()->paragraph(),
-            'address' => fake()->streetAddress(),
-            'city' => fake()->randomElement(['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga']),
-            'region' => fake()->randomElement(['Auckland', 'Wellington', 'Canterbury', 'Waikato', 'Bay of Plenty']),
+            'first_name'  => fake()->firstName(),
+            'last_name'   => fake()->lastName(),
+            'middle_name' => fake()->firstName(),
+            'email'       => fake()->unique()->safeEmail(),
+            'phone'       => fake()->phoneNumber(),
+            'password'    => Hash::make('password123'), // default test password
+            'address'     => fake()->streetAddress(),
+            'city'        => fake()->city(),
+            'region'      => fake()->state(),
             'postal_code' => fake()->postcode(),
-            'latitude' => fake()->latitude(-47, -34),
-            'longitude' => fake()->longitude(166, 179),
-            'status' => 'active',
+            'status'      => fake()->randomElement(['active', 'inactive', 'suspended']),
         ];
+
     }
 }
