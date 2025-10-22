@@ -275,7 +275,7 @@ class TradieAuthController extends Controller
         ]);
     }
 
-    public function resetPassword(Request $request)
+    public function resetPasswordRequest(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:tradies,email',
@@ -310,6 +310,44 @@ class TradieAuthController extends Controller
                 'error' => [
                     'code' => 'OTP_ERROR',
                     'message' => 'Failed to generate OTP. Please try again.',
+                ]
+            ], 500);
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:tradies,email',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = Tradie::where('email', $request->email)->first();
+            $tradie->password = Hash::make($request->new_password);
+            $tradie->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESET_PASSWORD_ERROR',
+                    'message' => 'Failed to reset password. Please try again.',
                 ]
             ], 500);
         }

@@ -37,8 +37,10 @@ class SendOtp extends Notification
 
         return (new MailMessage)
             ->subject('Your FIXO OTP Code')
-            ->line('This is your One-Time Password (OTP) for ' + $this->otp->phone + '. Please use this code to complete your verification process.')
-            ->line($this->otp->otp_code);
+            ->line('This is your One-Time Password (OTP) for ' . $this->otp->phone . '. Please use this code to complete your verification process.')
+            ->line('**' . $this->otp->otp_code . '**')
+            ->line('For your security, never share this code with anyone.');
+
     }
 
     /**

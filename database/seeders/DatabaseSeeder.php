@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         Tradie::factory()->create([
             'first_name' => 'John',
             'email' => 'john.example@email.com',
+            'phone' => '09987654321',
             'password' => Hash::make("tradie123"),
             'status' => 'active'
         ]);
@@ -42,6 +43,7 @@ class DatabaseSeeder extends Seeder
         Tradie::factory()->create([
             'first_name' => 'Elijah',
             'email' => 'elijahgarrence.delarosa@lorma.edu',
+            'phone' => '09123456789',
             'password' => Hash::make("tradie456"),
             'status' => 'active'
         ]);

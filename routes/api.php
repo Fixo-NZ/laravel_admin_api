@@ -33,11 +33,12 @@ Route::prefix('homeowner')->group(function () {
 Route::prefix('tradie')->group(function () {
     Route::post('register', [TradieAuthController::class, 'register']);
     Route::post('login', [TradieAuthController::class, 'login']);
-    Route::post('resset-password', [TradieAuthController::class, 'resetPassword']);
+    Route::post('reset-password-request', [TradieAuthController::class, 'resetPasswordRequest']);
     Route::post('request-otp', [TradieAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [TradieAuthController::class, 'verifyOtp']);
     
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('reset-password', [TradieAuthController::class, 'resetPassword']);
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
     });
