@@ -38,5 +38,12 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("tradie123"),
             'status' => 'active'
         ]);
+
+        Tradie::factory()->create([
+            'first_name' => 'Elijah',
+            'email' => 'elijahgarrence.delarosa@lorma.edu',
+            'password' => Hash::make("tradie456"),
+            'status' => 'active'
+        ]);
     }
 }
