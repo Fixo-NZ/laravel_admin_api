@@ -19,7 +19,7 @@ class TradieFactory extends Factory
         return [
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
-            'middle_name' => fake()->lastName(),
+            'middle_name' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'email_verified_at' => now(),
@@ -40,7 +40,7 @@ class TradieFactory extends Factory
             'availability_status' => fake()->randomElement(['available', 'busy', 'unavailable']),
             'service_radius' => fake()->numberBetween(10, 100),
             'verified_at' => fake()->optional(0.7)->dateTimeBetween('-1 year', 'now'),
-            'status' => 'active',
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended']), 
         ];
     }
 }
