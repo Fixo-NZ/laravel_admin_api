@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Tradie;
 use App\Services\OtpService;
+use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -20,38 +21,76 @@ class TradieAuthController extends Controller
 
     public function requestOtp(Request $request)
     {
-        $fields = $request->validate([
+
+        $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
         ]);
 
-        $otp = $this->otpService->generateOtp($fields['phone']);
-
-        if ($otp) {
-            return response()->json(['message' => 'OTP sent successfully', 'otp_code' => $otp->otp_code], 201);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
         }
 
-        return response()->json(['message' => 'Failed to send OTP'], 500);
+        $otp = $this->otpService->generateOtp($request->phone);
+
+        if ($otp) {
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully',
+                'otp_code' => $otp->otp_code
+            ], 201);
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'OTP_ERROR',
+                'message' => 'Failed to generate OTP. Please try again.',
+            ]
+        ], 500);
     }
 
     public function verifyOtp(Request $request)
     {
-        $fields = $request->validate([
+        $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
             'otp_code' => 'required|digits:6',
         ]);
 
-        if ($this->otpService->verifyOtp($fields['phone'], $fields['otp_code'])) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
 
-            $tradie = Tradie::where('phone', $fields['phone'])->first();
+        if ($this->otpService->verifyOtp($request->phone, $request->otp_code)) {
+
+            $tradie = Tradie::where('phone', $request->phone)->first();
 
             if (! $tradie) {
-                return response()->json(['status' => 'new_user', 'message' => 'OTP verification successful, proceed to registration'], 200);
+                return response()->json([
+                    'success' => true,
+                    'status' => 'new_user',
+                    'message' => 'OTP verification successful, proceed to registration'
+                ], 200);
             }
 
             $tradie->tokens()->delete();
             $token = $tradie->createToken('tradie-token')->plainTextToken;
 
             return response()->json([
+                'success' => true,
                 'status' => 'existing_user',
                 'message' => 'OTP verification successful, Tradie automatically logged in',
                 'user' => $tradie,
@@ -63,7 +102,13 @@ class TradieAuthController extends Controller
 
         }
 
-        return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'OTP_VERIFICATION_ERROR',
+                'message' => 'Failed to verify OTP. Please try again.',
+            ]
+        ], 400);
     }
 
     public function register(Request $request)
@@ -228,6 +273,46 @@ class TradieAuthController extends Controller
                 'token' => $token,
             ]
         ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:tradies,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given email does not exist as a user.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $tradie = Tradie::where('email', $request->email)->first();
+        
+        $otp = $this->otpService->generateOtp($tradie->phone);
+
+        $tradie->notify(new SendOtp($otp));
+
+        if ($otp) {
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP sent successfully'
+            ], 201);
+        }
+        else {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'OTP_ERROR',
+                    'message' => 'Failed to generate OTP. Please try again.',
+                ]
+            ], 500);
+        }
     }
 
     public function logout(Request $request)

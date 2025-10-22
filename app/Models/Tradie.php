@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 
 class Tradie extends Authenticatable
@@ -52,6 +53,11 @@ class Tradie extends Authenticatable
         'hourly_rate' => 'decimal:2',
         'verified_at' => 'datetime',
     ];
+
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
 
     // Scopes
     public function scopeActive($query)

@@ -31,5 +31,12 @@ class DatabaseSeeder extends Seeder
         Homeowner::factory(10)->create();
 
         Tradie::factory(10)->create();
+
+        Tradie::factory()->create([
+            'first_name' => 'John',
+            'email' => 'john.example@email.com',
+            'password' => Hash::make("tradie123"),
+            'status' => 'active'
+        ]);
     }
 }

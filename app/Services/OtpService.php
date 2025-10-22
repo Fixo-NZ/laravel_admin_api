@@ -18,8 +18,6 @@ class OtpService
             'expires_at' => Carbon::now()->addMinutes(5),
         ]);
 
-        //$this->sendOtp($phone, $otpCode);
-
         return $otp;
     }
 
@@ -49,14 +47,5 @@ class OtpService
             ->first();
 
         return $latestOtp && $latestOtp->is_verified;
-    }
-
-    public function sendOtp($phone, $otp)
-    {
-        $recipient = env('OTP_EMAIL', 'dummy-email@example.com');
-
-        Mail::raw("Your OTP for phone $phone is: $otp", function ($message) use ($recipient) {
-            $message->to($recipient)->subject('Your OTP Code');
-        });
     }
 }

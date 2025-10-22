@@ -33,6 +33,7 @@ Route::prefix('homeowner')->group(function () {
 Route::prefix('tradie')->group(function () {
     Route::post('register', [TradieAuthController::class, 'register']);
     Route::post('login', [TradieAuthController::class, 'login']);
+    Route::post('resset-password', [TradieAuthController::class, 'resetPassword']);
     Route::post('request-otp', [TradieAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [TradieAuthController::class, 'verifyOtp']);
     
