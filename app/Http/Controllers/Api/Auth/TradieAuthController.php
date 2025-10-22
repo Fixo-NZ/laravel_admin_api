@@ -82,7 +82,7 @@ class TradieAuthController extends Controller
                 return response()->json([
                     'success' => true,
                     'status' => 'new_user',
-                    'message' => 'OTP verification successful, proceed to registration'
+                    'message' => 'OTP verification successful. Please proceed to registration.',
                 ], 200);
             }
 
@@ -92,8 +92,17 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 'existing_user',
-                'message' => 'OTP verification successful, Tradie automatically logged in',
-                'user' => $tradie,
+                'message' => 'OTP verification successful.',
+                'data' => [
+                    'user' => [
+                        'first_name' => $tradie->first_name,
+                        'last_name' => $tradie->last_name,
+                        'email' => $tradie->email,
+                        'phone' => $tradie->phone,
+                        'status' => $tradie->status,
+                        'user_type' => 'tradie',
+                    ],
+                ],
                 'authorisation' => [
                     'access_token' => $token,
                     'type' => 'Bearer',
