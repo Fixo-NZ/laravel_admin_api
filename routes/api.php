@@ -47,9 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 //Fetch values for calendar
-Route::get('/schedules', function () {
-    return Schedule::all();
-});
+Route::get('/schedules', [ScheduleController::class, 'index']);
+
 //Send notification to homeowner via email
 Route::post('/schedules', [ScheduleController::class, 'store']);
 

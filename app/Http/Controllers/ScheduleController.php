@@ -9,6 +9,16 @@ use App\Notifications\ScheduleNotification;
 use Symfony\Component\HttpFoundation\Response;
 class ScheduleController extends Controller
 {
+    public function index()
+    {
+        // Get all schedules with homeowner data
+        $schedules = Schedule::with('homeowner:id,first_name,last_name,middle_name,email,address,phone')->get();
+
+        return response()->json([
+            'schedules' => $schedules,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([

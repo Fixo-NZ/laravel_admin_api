@@ -29,13 +29,16 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',                // mark as admin
             'status' => 'active',             // mark as active
         ]);
+       // ✅ Create Homeowners and Tradies first
+        $homeowners = Homeowner::factory(10)->create();
+        $tradies = Tradie::factory(10)->create();
+
+        // ✅ Then run ScheduleSeeder (it can now safely reference homeowner_id)
         $this->call([
-        ScheduleSeeder::class,
+            ScheduleSeeder::class,
         ]);
 
+        // Optionally create more users
         User::factory(10)->create();
-        // Seed other users
-        Homeowner::factory(10)->create();
-        Tradie::factory(10)->create();
     }
 }

@@ -10,13 +10,17 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            $table->string('title');                      // Event title
-            $table->text('description')->nullable();      // Optional description
-            $table->dateTime('start_time');               // Start datetime
-            $table->dateTime('end_time');                 // End datetime
-            $table->string('color')->nullable();          // For frontend calendar color
-            $table->string('status')->default('scheduled'); // scheduled | rescheduled | cancelled
-            $table->timestamp('rescheduled_at')->nullable(); // When the schedule was rescheduled
+            $table->foreignId('homeowner_id')->constrained('homeowners')->onDelete('cascade'); // ✅ Foreign key
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('job_title')->nullable();
+            $table->string('duration')->nullable();
+            $table->date('date')->nullable();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
+            $table->string('color')->nullable();
+            $table->string('status')->default('scheduled');
+            $table->timestamp('rescheduled_at')->nullable();
             $table->timestamps();
         });
     }

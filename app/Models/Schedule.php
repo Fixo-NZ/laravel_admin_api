@@ -8,11 +8,21 @@ use Carbon\Carbon;
 
 class Schedule extends Model
 {
+
+    public function homeowner()
+{
+    return $this->belongsTo(Homeowner::class);
+}
+
+
     use HasFactory;
 
     protected $fillable = [
         'title',
         'description',
+        'job_title',      // Added
+        'duration',       // Added
+        'date',            // Added
         'start_time',
         'end_time',
         'color',
@@ -42,4 +52,6 @@ class Schedule extends Model
             'status' => 'cancelled',
         ]);
     }
+
+    
 }
