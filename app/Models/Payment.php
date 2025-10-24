@@ -8,7 +8,7 @@ class Payment extends Model
 {
     
     protected $fillable = [
-        'homeowner_id',
+        'user_id',
         'payment_method_id',
         'amount',
         'currency',

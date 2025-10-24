@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Stripe\Stripe;
+use App\Models\Payment;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
 
 class PaymentController extends Controller
 {
@@ -37,8 +38,13 @@ class PaymentController extends Controller
             $encExpYear = Crypt::encryptString($charge['exp_year']);
             $encExpMonth = Crypt::encryptString($charge['exp_month']);
 
+            Log::info('User Authenticated?', [
+                'user' => auth('sanctum')->user(),
+                'id' => auth('sanctum')->id()
+            ]);
+
             $payment = Payment::create([
-                'homeowner_id' => auth('sanctum')->id(),
+                'user_id' => auth('sanctum')->id(),
                 'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
                 'amount' => $request->amount,
                 'currency' => $paymentIntent->currency,
@@ -50,7 +56,8 @@ class PaymentController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Payment processed successfully (test mode)',
+                'message' => 'Payment processed successfully',
+                'amount' => $payment->amount,
                 'status' => $paymentIntent->status,
                 'card_brand' => $paymentIntent->payment_method->card->brand ?? null,
                 'card_last4' => $paymentIntent->payment_method->card->last4 ?? null,
@@ -69,11 +76,11 @@ class PaymentController extends Controller
     {
 
         $user = $request->user();
-        
+
 
         $payment = \App\Models\Payment::where('id', $id)
-        ->where('homeowner_id', $user->id)
-        ->first();
+            ->where('user_id', $user->id)
+            ->first();
 
         if (!$payment) {
             return response()->json([
@@ -83,13 +90,15 @@ class PaymentController extends Controller
         }
 
         // Only allow if the user is the owner or an admin (basic security)
-        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
+        if ($user->id !== $payment->user_id && $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
         try {
             // Decrypt fields
             $decrypted = [
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
                 'card_brand' => $payment->card_brand ? Crypt::decryptString($payment->card_brand) : null,
                 'card_last4number' => $payment->card_last4number ? Crypt::decryptString($payment->card_last4number) : null,
                 'exp_month' => $payment->exp_month ? Crypt::decryptString($payment->exp_month) : null,
