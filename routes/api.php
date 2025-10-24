@@ -31,11 +31,9 @@ Route::prefix('tradie')->group(function () {
 // Public payment route
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('/payment/process', [PaymentController::class, 'processPayment']);
-});
-
-//Pang Decryption ti access logs
-Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
+    Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
+    Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);
 });
 
 // Protected routes (for authenticated users)
