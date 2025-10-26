@@ -17,9 +17,11 @@ class Tradie extends Authenticatable
         'middle_name',
         'email',
         'phone',
+        'professional_bio',
         'password',
         'avatar',
         'bio',
+        'portfolio_images',
         'address',
         'city',
         'region',
@@ -32,8 +34,13 @@ class Tradie extends Authenticatable
         'years_experience',
         'hourly_rate',
         'availability_status',
+        'working_hours',
+        'emergency_available',
+        'availability_calendar',
         'service_radius',
         'status',
+        'profile_completed',
+        'profile_completed_at'
     ];
 
     protected $hidden = [
@@ -48,6 +55,12 @@ class Tradie extends Authenticatable
         'longitude' => 'decimal:8',
         'hourly_rate' => 'decimal:2',
         'verified_at' => 'datetime',
+        'portfolio_images' => 'array',
+        'working_hours' => 'array',
+        'availability_calendar' => 'array',
+        'emergency_available' => 'boolean',
+        'profile_completed' => 'boolean',
+        'profile_completed_at' => 'datetime',
     ];
 
     // Scopes

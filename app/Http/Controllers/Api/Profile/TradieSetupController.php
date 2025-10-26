@@ -1,0 +1,291 @@
+<?php
+
+namespace App\Http\Controllers\Api\Profile;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Tradie;
+use Illuminate\Support\Facades\Storage;
+
+class TradieSetupController extends Controller
+{
+    public function updateBasicInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:tradies,email,' . auth()->id(),
+            'phone' => 'required|string|max:20',
+            'business_name' => 'required|string|max:255',
+            'professional_bio' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid basic information',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = auth()->user();
+            $data = $validator->validated();
+
+            $tradie->update([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'middle_name' => $data['middle_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'business_name' => $data['business_name'],
+                'professional_bio' => $data['professional_bio'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Basic information updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => 'Failed to update basic information'
+                ]
+            ], 500);
+        }
+    }
+
+    public function updateSkillsAndService(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'skills' => 'nullable|array',
+            'skills.*' => 'integer|exists:services,id',
+            'service_radius' => 'nullable|integer|min:1|max:200',
+            'service_location' => 'nullable|array',
+            'service_location.address' => 'nullable|string|max:500',
+            'service_location.city' => 'nullable|string|max:100',
+            'service_location.region' => 'nullable|string|max:100',
+            'service_location.postal_code' => 'nullable|string|max:10',
+            'service_location.latitude' => 'nullable|numeric',
+            'service_location.longitude' => 'nullable|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid skills or service area data',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = auth()->user();
+            $data = $validator->validated();
+
+            if (isset($data['service_location'])) {
+                $tradie->update([
+                    'address' => $data['service_location']['address'] ?? null,
+                    'city' => $data['service_location']['city'] ?? null,
+                    'region' => $data['service_location']['region'] ?? null,
+                    'postal_code' => $data['service_location']['postal_code'] ?? null,
+                    'latitude' => $data['service_location']['latitude'] ?? null,
+                    'longitude' => $data['service_location']['longitude'] ?? null,
+                    'service_radius' => $data['service_radius'] ?? null
+                ]);
+            }
+
+            if (isset($data['skills'])) {
+                $tradie->services()->sync($data['skills']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Skills and service area updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => 'Failed to update skills and service area'
+                ]
+            ], 500);
+        }
+    }
+
+    public function updateAvailability(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'working_hours' => 'nullable|array',
+            'working_hours.*.day' => 'required_with:working_hours|integer|min:0|max:6',
+            'working_hours.*.start' => 'required_with:working_hours|date_format:H:i',
+            'working_hours.*.end' => 'required_with:working_hours|date_format:H:i',
+            'emergency_available' => 'nullable|boolean',
+            'availability_calendar' => 'nullable|array',
+            'availability_calendar.*' => 'nullable|date_format:Y-m-d'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid availability data',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = auth()->user();
+            $data = $validator->validated();
+
+            $tradie->update([
+                'working_hours' => $data['working_hours'] ?? null,
+                'emergency_available' => $data['emergency_available'] ?? null,
+                'availability_calendar' => $data['availability_calendar'] ?? null,
+                'availability_status' => 'available'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Availability updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => 'Failed to update availability'
+                ]
+            ], 500);
+        }
+    }
+
+    public function updatePortfolio(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'portfolio_images' => 'sometimes|nullable|array',
+            'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240', // 10MB max
+            'rate_type' => 'nullable|in:hourly,fixed_price,both',
+            'standard_rate' => 'nullable|numeric|min:0',
+            'minimum_hours' => 'nullable|integer|min:1',
+            'standard_rate_description' => 'nullable|string|max:1000',
+            'after_hours_enabled' => 'nullable|boolean',
+            'after_hours_rate' => 'nullable|numeric|min:0',
+            'call_out_fee_enabled' => 'nullable|boolean',
+            'call_out_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid portfolio data',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = auth()->user();
+            $data = $validator->validated();
+
+            $portfolioImages = [];
+            if ($request->hasFile('portfolio_images')) {
+                foreach ($request->file('portfolio_images') as $image) {
+                    $path = $image->store('portfolio', 'public');
+                    $portfolioImages[] = $path;
+                }
+            }
+
+            $updateData = [
+                'rate_type' => $data['rate_type'],
+                'standard_rate' => $data['standard_rate'],
+                'minimum_hours' => $data['minimum_hours'],
+                'standard_rate_description' => $data['standard_rate_description'] ?? null,
+                'after_hours_enabled' => $data['after_hours_enabled'] ?? false,
+                'after_hours_rate' => $data['after_hours_rate'] ?? null,
+                'call_out_fee_enabled' => $data['call_out_fee_enabled'] ?? false,
+                'call_out_fee' => $data['call_out_fee'] ?? null
+            ];
+
+            if (!empty($portfolioImages)) {
+                $updateData['portfolio_images'] = $portfolioImages;
+            }
+
+            $tradie->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Portfolio updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => 'Failed to update portfolio'
+                ]
+            ], 500);
+        }
+    }
+
+    public function completeSetup(Request $request)
+    {
+        try {
+            $tradie = auth()->user();
+            
+            if (!$this->isProfileComplete($tradie)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INCOMPLETE_PROFILE',
+                        'message' => 'Please complete all required sections before finalizing'
+                    ]
+                ], 422);
+            }
+
+            $tradie->update([
+                'profile_completed' => true,
+                'profile_completed_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile setup completed successfully',
+                'data' => [
+                    'user' => $tradie
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'COMPLETION_ERROR',
+                    'message' => 'Failed to complete profile setup'
+                ]
+            ], 500);
+        }
+    }
+
+    private function isProfileComplete(Tradie $tradie)
+    {
+        return $tradie->first_name &&
+            $tradie->last_name &&
+            $tradie->email &&
+            $tradie->phone_number &&
+            $tradie->business_name;
+    }
+}

@@ -35,6 +35,15 @@ Route::prefix('tradie')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
+
+        // Profile Setup Routes
+        Route::prefix('profile-setup')->group(function () {
+            Route::post('basic-info', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateBasicInfo']);
+            Route::post('skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateSkillsAndService']);
+            Route::post('availability', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateAvailability']);
+            Route::post('portfolio', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updatePortfolio']);
+            Route::post('complete', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'completeSetup']);
+        });
     });
 });
 
