@@ -11,13 +11,6 @@ class ScheduleControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-     protected function setUp(): void
-    {
-        parent::setUp();
-
-        dd(config('database.connections.mysql.database'));
-    }
-    
     /** @test */
     public function it_returns_all_schedules()
     {
