@@ -12,4 +12,4 @@ You can **fetch**, **reschedule**, and **cancel** schedule entries directly from
 To generate sample schedule data, run the following:
 
 ```bash
-php artisan db:seed --class=ScheduleSeeder
+php artisan db:seed
