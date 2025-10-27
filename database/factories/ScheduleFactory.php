@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Homeowner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 
@@ -13,6 +14,7 @@ class ScheduleFactory extends Factory
         $end = (clone $start)->modify('+1 hour');
 
         return [
+            'homeowner_id' => Homeowner::factory(), // 👈 ensures relation exists
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->paragraph(),
             'start_time' => $start,

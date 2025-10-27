@@ -63,14 +63,13 @@ class ScheduleController extends Controller
 
 
     public function cancel(Schedule $schedule)
-    {
-         $schedule->update([
-        'status' => 'cancelled'
-    ]);
+{
+
+    $schedule->delete();
 
     return response()->json([
-        'message' => 'Schedule successfully cancelled',
-        'schedule' => $schedule
+        'message' => 'Schedule successfully deleted',
     ], Response::HTTP_OK);
 }
+
 }

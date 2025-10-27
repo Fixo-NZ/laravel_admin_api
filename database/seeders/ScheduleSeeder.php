@@ -4,24 +4,21 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Schedule;
-use Carbon\Carbon;
+use App\Models\Homeowner;
 
 class ScheduleSeeder extends Seeder
 {
     public function run(): void
     {
-        Schedule::create([
-            'homeowner_id'   => 1, // ✅ Assign to a homeowner
-            'title'          => 'Team Meeting',
-            'description'    => 'Discuss project milestones and next sprint goals',
-            'job_title'      => 'Project Manager',
-            'duration'       => '1 hour',
-            'date'           => Carbon::now()->addDays(1)->toDateString(),
-            'start_time'     => Carbon::now()->addDays(1)->setTime(10, 0),
-            'end_time'       => Carbon::now()->addDays(1)->setTime(11, 0),
-            'color'          => '#ff0000',
-            'status'         => 'scheduled',
-            'rescheduled_at' => null,
+        $homeowners = Homeowner::all();
+
+        if ($homeowners->isEmpty()) {
+            $homeowners = collect([Homeowner::factory()->create()]);
+        }
+
+        // Create 10 schedules, each linked to a random homeowner
+        Schedule::factory(10)->create([
+            'homeowner_id' => fn() => $homeowners->random()->id,
         ]);
     }
 }
