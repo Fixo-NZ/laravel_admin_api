@@ -29,7 +29,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
-            $table->rememberToken();
+            $table->rememberToken();    
             $table->timestamps();
             
             $table->index(['latitude', 'longitude']);

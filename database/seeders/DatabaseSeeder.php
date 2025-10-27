@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Seed admin user
         User::factory()->create([
             'first_name' => 'Elijah',
             'email' => 'elijahgarrence.delarosa@lorma.edu',
@@ -26,10 +27,9 @@ class DatabaseSeeder extends Seeder
             'status' => 'active'
         ]);
 
-        User::factory(3)->create();
+        User::factory(10)->create();
 
         Homeowner::factory(10)->create();
-
         Tradie::factory(10)->create();
 
         Tradie::factory()->create([

@@ -2,15 +2,35 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Faker\Factory as FakerFactory;
+
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
 class UserFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = User::class;
+    /**
+     * REQUIRED FIX: Override the default Faker instance to explicitly use the 'en_US' locale.
+     * This guarantees that generators like 'firstName' are available, bypassing environment issues.
+     *
+     * @return \Faker\Generator
+     */
+    protected function withFaker()
+    {
+        return FakerFactory::create('en_US');
+    }
+
     /**
      * The current password being used by the factory.
      */

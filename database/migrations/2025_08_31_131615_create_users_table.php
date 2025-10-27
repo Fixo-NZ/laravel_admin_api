@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('location')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->string('phone')->nullable();
+            $table->string('location')->nullable();
+
         });
     }
 

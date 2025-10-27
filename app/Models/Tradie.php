@@ -156,38 +156,38 @@ class Tradie extends Authenticatable
             ->withTimestamps();
     }
 
-    public function jobApplications()
-    {
-        return $this->hasMany(JobApplication::class);
-    }
+    // public function jobApplications()
+    // {
+    //     return $this->hasMany(JobApplication::class);
+    // }
 
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
 
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
+    // public function sentMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'sender_id');
+    // }
 
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'receiver_id');
-    }
+    // public function receivedMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'receiver_id');
+    // }
 
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'reviewer_id');
-    }
+    // public function reviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewer_id');
+    // }
 
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'reviewee_id');
-    }
+    // public function receivedReviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewee_id');
+    // }
 
-    public function favoriteHomeowners()
-    {
-        return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
-    }
+    // public function favoriteHomeowners()
+    // {
+    //     return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
+    // }
 }
