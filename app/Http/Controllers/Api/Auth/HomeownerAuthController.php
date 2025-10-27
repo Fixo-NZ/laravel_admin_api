@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Homeowner;
 use App\Services\OtpService;
+use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -20,50 +21,102 @@ class HomeownerAuthController extends Controller
 
     public function requestOtp(Request $request)
     {
-        $fields = $request->validate([
+
+        $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
         ]);
 
-        $otp = $this->otpService->generateOtp($fields['phone']);
-
-        if ($otp) {
-            return response()->json(['message' => 'OTP sent successfully', 'otp_code' => $otp->otp_code], 201);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
         }
 
-        return response()->json(['message' => 'Failed to send OTP'], 500);
+        $otp = $this->otpService->generateOtp($request->phone);
+
+        if ($otp) {
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully',
+                'otp_code' => $otp->otp_code
+            ], 201);
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'OTP_ERROR',
+                'message' => 'Failed to generate OTP. Please try again.',
+            ]
+        ], 500);
     }
 
     public function verifyOtp(Request $request)
     {
-        $fields = $request->validate([
+        $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
             'otp_code' => 'required|digits:6',
         ]);
 
-        if ($this->otpService->verifyOtp($fields['phone'], $fields['otp_code'])) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
 
-            $tradie = Homeowner::where('phone', $fields['phone'])->first();
+        if ($this->otpService->verifyOtp($request->phone, $request->otp_code)) {
 
-            if (! $tradie) {
-                return response()->json(['status' => 'new_user', 'message' => 'OTP verification successful, proceed to registration'], 200);
+            $homeowner = Homeowner::where('phone', $request->phone)->first();
+
+            if (! $homeowner) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 'new_user',
+                    'message' => 'OTP verification successful. Please proceed to registration.',
+                ], 200);
             }
 
-            $tradie->tokens()->delete();
-            $token = $tradie->createToken('tradie-token')->plainTextToken;
+            $homeowner->tokens()->delete();
+            $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
             return response()->json([
+                'success' => true,
                 'status' => 'existing_user',
-                'message' => 'OTP verification successful, Homeowner automatically logged in',
-                'user' => $tradie,
+                'message' => 'OTP verification successful.',
+                'data' => [
+                    'user' => [
+                        'first_name' => $homeowner->first_name,
+                        'last_name' => $homeowner->last_name,
+                        'email' => $homeowner->email,
+                        'phone' => $homeowner->phone,
+                        'status' => $homeowner->status,
+                        'user_type' => 'homeowner',
+                    ],
+                ],
                 'authorisation' => [
                     'access_token' => $token,
                     'type' => 'Bearer',
                 ],
             ], 200);
-
         }
 
-        return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'OTP_VERIFICATION_ERROR',
+                'message' => 'Failed to verify OTP. Please try again.',
+            ]
+        ], 400);
     }
 
     /**
@@ -77,10 +130,12 @@ class HomeownerAuthController extends Controller
     {
         // Step 1: Validate incoming request data
         $validator = Validator::make($request->all(), [
-            'name'        => 'required|string|max:255',   // Required, max 255 chars
-            'email'       => 'required|string|email|max:255|unique:homeowners,email', // Must be unique
-            'phone'       => 'nullable|string|max:20',   // Optional, max 20 chars
-            'password'    => 'required|string|min:8|confirmed', // Must match password_confirmation
+            'first_name'  => 'required|string|max:255',
+            'last_name'   => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',   
+            'email'       => 'required|string|email|max:255|unique:homeowners,email',
+            'phone'       => 'nullable|string|max:20',
+            'password'    => 'required|string|min:8|confirmed',
             'address'     => 'nullable|string|max:500',
             'city'        => 'nullable|string|max:100',
             'region'      => 'nullable|string|max:100',
@@ -101,15 +156,17 @@ class HomeownerAuthController extends Controller
 
         // Step 3: Create the homeowner record
         $homeowner = Homeowner::create([
-            'name'        => $request->name,
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'middle_name' => $request->middle_name,
             'email'       => $request->email,
             'phone'       => $request->phone,
-            'password'    => Hash::make($request->password), // Hash password securely
+            'password'    => Hash::make($request->password),
             'address'     => $request->address,
             'city'        => $request->city,
             'region'      => $request->region,
             'postal_code' => $request->postal_code,
-            'status'      => 'active', // Default to active; consider 'pending' for email verification
+            'status'      => 'active', 
         ]);
 
         // Step 4: Generate API token using Laravel Sanctum
@@ -190,6 +247,84 @@ class HomeownerAuthController extends Controller
                 'token' => $token,
             ],
         ]);
+    }
+
+    public function resetPasswordRequest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:homeowners,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given email does not exist as a user.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $homeowner = Homeowner::where('email', $request->email)->first();
+        
+        $otp = $this->otpService->generateOtp($homeowner->phone);
+
+        $homeowner->notify(new SendOtp($otp));
+
+        if ($otp) {
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP sent successfully'
+            ], 201);
+        }
+        else {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'OTP_ERROR',
+                    'message' => 'Failed to generate OTP. Please try again.',
+                ]
+            ], 500);
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:homeowners,email',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $homeowner = Homeowner::where('email', $request->email)->first();
+            $homeowner->password = Hash::make($request->new_password);
+            $homeowner->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESET_PASSWORD_ERROR',
+                    'message' => 'Failed to reset password. Please try again.',
+                ]
+            ], 500);
+        }
     }
 
     /**
