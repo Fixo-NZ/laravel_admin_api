@@ -13,6 +13,7 @@ class ScheduleFactory extends Factory
         $end = (clone $start)->modify('+1 hour');
 
         return [
+            'homeowner_id' => \App\Models\Homeowner::factory(),
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->paragraph(),
             'start_time' => $start,
