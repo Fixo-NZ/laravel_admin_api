@@ -15,7 +15,6 @@ class TradieSetupController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:tradies,email,' . auth()->id(),
             'phone' => 'required|string|max:20',
             'business_name' => 'required|string|max:255',
@@ -40,7 +39,6 @@ class TradieSetupController extends Controller
             $tradie->update([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
-                'middle_name' => $data['middle_name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'business_name' => $data['business_name'],
@@ -176,7 +174,7 @@ class TradieSetupController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'portfolio_images' => 'sometimes|nullable|array',
-            'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240', // 10MB max
+            'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
             'rate_type' => 'nullable|in:hourly,fixed_price,both',
             'standard_rate' => 'nullable|numeric|min:0',
             'minimum_hours' => 'nullable|integer|min:1',
@@ -246,7 +244,7 @@ class TradieSetupController extends Controller
     {
         try {
             $tradie = auth()->user();
-            
+
             if (!$this->isProfileComplete($tradie)) {
                 return response()->json([
                     'success' => false,
@@ -282,10 +280,10 @@ class TradieSetupController extends Controller
 
     private function isProfileComplete(Tradie $tradie)
     {
-        return $tradie->first_name &&
-            $tradie->last_name &&
-            $tradie->email &&
-            $tradie->phone_number &&
-            $tradie->business_name;
+        return $tradie->first_name 
+            && $tradie->last_name
+            && $tradie->email
+            && $tradie->phone  
+            && $tradie->business_name;
     }
 }
