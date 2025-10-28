@@ -192,7 +192,7 @@ class TradieAuthController extends Controller
     public function uploadAvatar(Request $request)
     {
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg|max:2048', // MAX 2MB
+             'avatar' => 'required|image|mimes:jpeg,png,jpg|max:5120', // MAX 2MB
         ]);
 
         $tradie = $request->user();
