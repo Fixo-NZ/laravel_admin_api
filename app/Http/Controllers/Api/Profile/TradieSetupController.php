@@ -61,75 +61,97 @@ class TradieSetupController extends Controller
     }
 
     public function updateSkillsAndService(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'skills' => 'nullable|array',
-        'skills.*' => 'integer',
-        'service_radius' => 'nullable|integer|min:1|max:200',
-        'service_location' => 'nullable|array',
-        'service_location.address' => 'nullable|string|max:500',
-        'service_location.city' => 'nullable|string|max:100',
-        'service_location.region' => 'nullable|string|max:100',
-        'service_location.postal_code' => 'nullable|string|max:10',
-        'service_location.latitude' => 'nullable|numeric',
-        'service_location.longitude' => 'nullable|numeric',
-    ]);
+    {
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'VALIDATION_ERROR',
-                'message' => 'Invalid skills or service area data',
-                'details' => $validator->errors()
-            ]
-        ], 422);
-    }
-
-    try {
-        $tradie = auth()->user();
-        $data = $validator->validated();
-
-        $updateData = [];
-
-        // ✅ Save service location details
-        if (isset($data['service_location'])) {
-            $updateData['address'] = $data['service_location']['address'] ?? null;
-            $updateData['city'] = $data['service_location']['city'] ?? null;
-            $updateData['region'] = $data['service_location']['region'] ?? null;
-            $updateData['postal_code'] = $data['service_location']['postal_code'] ?? null;
-            $updateData['latitude'] = $data['service_location']['latitude'] ?? null;
-            $updateData['longitude'] = $data['service_location']['longitude'] ?? null;
+        if ($request->has('skills') && is_string($request->skills)) {
+            $decodedSkills = json_decode($request->skills, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $request->merge(['skills' => $decodedSkills]);
+            }   
         }
 
-        // ✅ Save radius and skills JSON
-        if (isset($data['service_radius'])) {
-            $updateData['service_radius'] = $data['service_radius'];
+        if ($request->has('service_location') && is_string($request->service_location)) {
+            $decodedLocation = json_decode($request->service_location, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $request->merge(['service_location' => $decodedLocation]);
+            }
         }
-
-        if (isset($data['skills'])) {
-            $updateData['skills'] = json_encode($data['skills']); // stored as JSON
-        }
-
-        \Log::info('🟢 Skills update data:', $updateData);
-
-        $tradie->update($updateData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Skills and service area updated successfully'
+        $validator = Validator::make($request->all(), [
+            'skills' => 'nullable|array',
+            'skills.*' => 'integer',
+            'service_radius' => 'nullable|integer|min:1|max:200',
+            'service_location' => 'nullable|array',
+            'service_location.address' => 'nullable|string|max:500',
+            'service_location.city' => 'nullable|string|max:100',
+            'service_location.region' => 'nullable|string|max:100',
+            'service_location.postal_code' => 'nullable|string|max:10',
+            'service_location.latitude' => 'nullable|numeric',
+            'service_location.longitude' => 'nullable|numeric',
         ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'UPDATE_ERROR',
-                'message' => 'Failed to update skills and service area',
-                'details' => $e->getMessage()
-            ]
-        ], 500);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid skills or service area data',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        try {
+            $tradie = \App\Models\Tradie::first();
+
+            if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => 'Tradie profile not found for this user.'
+                ]
+            ], 404);
+        }
+            $data = $validator->validated();
+
+            $updateData = [];
+
+            if (isset($data['service_location'])) {
+                $updateData['address'] = $data['service_location']['address'] ?? null;
+                $updateData['city'] = $data['service_location']['city'] ?? null;
+                $updateData['region'] = $data['service_location']['region'] ?? null;
+                $updateData['postal_code'] = $data['service_location']['postal_code'] ?? null;
+                $updateData['latitude'] = $data['service_location']['latitude'] ?? null;
+                $updateData['longitude'] = $data['service_location']['longitude'] ?? null;
+            }
+
+            if (isset($data['service_radius'])) {
+                $updateData['service_radius'] = $data['service_radius'];
+            }
+
+            if (isset($data['skills'])) {
+                $updateData['skills'] = json_encode($data['skills']); 
+            }
+
+            \Log::info('Skills update data:', $updateData);
+
+            $tradie->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Skills and service area updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => 'Failed to update skills and service area',
+                    'details' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
-}
 
 
     public function updateAvailability(Request $request)

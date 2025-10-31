@@ -21,6 +21,7 @@ class Tradie extends Authenticatable
         'password',
         'avatar',
         'bio',
+        'skills',
         'portfolio_images',
         'address',
         'city',

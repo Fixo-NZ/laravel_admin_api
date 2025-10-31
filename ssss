@@ -1,0 +1,10 @@
+[33m0e1d8e8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mg7/marzan[m[33m, [m[1;31morigin/g7/marzan[m[33m)[m Added tradie filament
+[33m5cf6ccc[m Added tradie filament
+[33mf51cf37[m Initial commit
+[33mc514358[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/g7/Serrano[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #108 from Fixo-NZ/johnverz22-patch-1
+[33m21f331f[m Added migration guide to readme.md
+[33m9252140[m Fix bugs on Review model not found, disabled attribute
+[33m0041b8d[m[33m ([m[1;31morigin/g6/almodovar[m[33m, [m[1;31morigin/g5/cudal[m[33m)[m downgrade to php8.0
+[33m135ec24[m[33m ([m[1;31morigin/g2/Martin[m[33m, [m[1;31morigin/g2/Bustamante[m[33m, [m[1;31morigin/g2/Bergantin[m[33m, [m[1;31morigin/g1/Trinidad[m[33m, [m[1;31morigin/g1/Mabutas[m[33m)[m Edited Tradie Seeder
+[33ma06a52c[m changed name ot fname, mname, lname
+[33m6d6f057[m Initial commit with starter code

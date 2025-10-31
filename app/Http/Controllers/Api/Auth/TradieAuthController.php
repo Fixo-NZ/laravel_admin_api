@@ -7,6 +7,7 @@ use App\Models\Tradie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class TradieAuthController extends Controller
 {
@@ -188,9 +189,39 @@ class TradieAuthController extends Controller
         ]);
     }
 
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+             'avatar' => 'required|image|mimes:jpeg,png,jpg|max:5120', // MAX 2MB
+        ]);
+
+        $tradie = $request->user();
+
+        // Delete old avatar if exists
+        if ($tradie->avatar) {
+            Storage::disk('public')->delete($tradie->avatar);
+        }
+
+        // Store new avatar in "storage/app/public/avatars"
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // Save path to database
+        $tradie->avatar = $path;
+        $tradie->save();
+
+        return response()->json([
+            'message' => 'Profile picture uploaded successfully!',
+            'avatar_url' => asset('storage/' . $path),
+        ]);
+    }
+
     public function me(Request $request)
     {
         $tradie = $request->user();
+
+        $avatarUrl = $tradie->avatar
+            ? asset('storage/' . $tradie->avatar)
+            : asset('images/default-tradie.png');
 
         return response()->json([
             'success' => true,
@@ -200,7 +231,7 @@ class TradieAuthController extends Controller
                     'name' => $tradie->name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
-                    'avatar' => $tradie->avatar,
+                    'avatar' => $avatarUrl,
                     'bio' => $tradie->bio,
                     'business_name' => $tradie->business_name,
                     'license_number' => $tradie->license_number,
