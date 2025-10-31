@@ -136,13 +136,14 @@ class TradieSetupController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'working_hours' => 'nullable|array',
-            'working_hours.*.day' => 'required_with:working_hours|integer|min:0|max:6',
-            'working_hours.*.start' => 'required_with:working_hours|date_format:H:i',
-            'working_hours.*.end' => 'required_with:working_hours|date_format:H:i',
+            'working_hours.*.day' => 'nullable|integer|min:0|max:6',
+            'working_hours.*.start' => 'nullable|date_format:H:i',
+            'working_hours.*.end' => 'nullable|date_format:H:i',
             'emergency_available' => 'nullable|boolean',
             'availability_calendar' => 'nullable|array',
             'availability_calendar.*' => 'nullable|date_format:Y-m-d'
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
