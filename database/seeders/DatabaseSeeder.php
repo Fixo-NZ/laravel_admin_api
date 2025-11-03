@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'first_name' => 'Elijah',
             'email' => 'elijahgarrence.delarosa@lorma.edu',
-            'password' => Hash::make("lorma3EG"),
+            'password' => Hash::make("password"),
             'status' => 'active'
         ]);
 
