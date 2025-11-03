@@ -101,7 +101,7 @@ class TradieSetupController extends Controller
         }
 
         try {
-            $tradie = \App\Models\Tradie::first();
+            $tradie = auth()->user();
 
             if (!$tradie) {
             return response()->json([
@@ -204,75 +204,85 @@ class TradieSetupController extends Controller
         }
     }
 
-    public function updatePortfolio(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'portfolio_images' => 'sometimes|nullable|array',
-            'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
-            'rate_type' => 'nullable|in:hourly,fixed_price,both',
-            'standard_rate' => 'nullable|numeric|min:0',
-            'minimum_hours' => 'nullable|integer|min:1',
-            'standard_rate_description' => 'nullable|string|max:1000',
-            'after_hours_enabled' => 'nullable|boolean',
-            'after_hours_rate' => 'nullable|numeric|min:0',
-            'call_out_fee_enabled' => 'nullable|boolean',
-            'call_out_fee' => 'nullable|numeric|min:0',
-        ]);
+   public function updatePortfolio(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'portfolio_images' => 'sometimes|nullable|array',
+        'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
+        'rate_type' => 'nullable|in:hourly,fixed_price,both',
+        'standard_rate' => 'nullable|numeric|min:0',
+        'minimum_hours' => 'nullable|integer|min:1',
+        'standard_rate_description' => 'nullable|string|max:1000',
+        'after_hours_enabled' => 'nullable|boolean',
+        'after_hours_rate' => 'nullable|numeric|min:0',
+        'call_out_fee_enabled' => 'nullable|boolean',
+        'call_out_fee' => 'nullable|numeric|min:0',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'VALIDATION_ERROR',
-                    'message' => 'Invalid portfolio data',
-                    'details' => $validator->errors()
-                ]
-            ], 422);
-        }
-
-        try {
-            $tradie = auth()->user();
-            $data = $validator->validated();
-
-            $portfolioImages = [];
-            if ($request->hasFile('portfolio_images')) {
-                foreach ($request->file('portfolio_images') as $image) {
-                    $path = $image->store('portfolio', 'public');
-                    $portfolioImages[] = $path;
-                }
-            }
-
-            $updateData = [
-                'rate_type' => $data['rate_type'],
-                'standard_rate' => $data['standard_rate'],
-                'minimum_hours' => $data['minimum_hours'],
-                'standard_rate_description' => $data['standard_rate_description'] ?? null,
-                'after_hours_enabled' => $data['after_hours_enabled'] ?? false,
-                'after_hours_rate' => $data['after_hours_rate'] ?? null,
-                'call_out_fee_enabled' => $data['call_out_fee_enabled'] ?? false,
-                'call_out_fee' => $data['call_out_fee'] ?? null
-            ];
-
-            if (!empty($portfolioImages)) {
-                $updateData['portfolio_images'] = $portfolioImages;
-            }
-
-            $tradie->update($updateData);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Portfolio updated successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'UPDATE_ERROR',
-                    'message' => 'Failed to update portfolio'
-                ]
-            ], 500);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Invalid portfolio data',
+                'details' => $validator->errors()
+            ]
+        ], 422);
     }
+
+    try {
+        $tradie = auth()->user();
+        $data = $validator->validated();
+
+        $portfolioImages = [];
+        if ($request->hasFile('portfolio_images')) {
+            foreach ($request->file('portfolio_images') as $image) {
+                $path = $image->store('portfolio', 'public');
+                $portfolioImages[] = $path;
+            }
+        }
+
+        // $updateData = [
+        //     'rate_type' => $data['rate_type'],
+        //     'standard_rate' => $data['standard_rate'],
+        //     'minimum_hours' => $data['minimum_hours'],
+        //     'standard_rate_description' => $data['standard_rate_description'] ?? null,
+        //     'after_hours_enabled' => $data['after_hours_enabled'] ?? false,
+        //     'after_hours_rate' => $data['after_hours_rate'] ?? null,
+        //     'call_out_fee_enabled' => $data['call_out_fee_enabled'] ?? false,
+        //     'call_out_fee' => $data['call_out_fee'] ?? null
+        // ];
+        $updateData = [
+            'hourly_rate' => $data['standard_rate'] ?? null,
+            'minimum_hours' => $data['minimum_hours'] ?? null,
+            'description' => $data['standard_rate_description'] ?? null,
+            'after_hours' => $data['after_hours_enabled'] ?? false,
+            'call_out_fee' => $data['call_out_fee_enabled'] ?? false,
+        ];
+
+
+        if (!empty($portfolioImages)) {
+            $updateData['portfolio_images'] = $portfolioImages;
+        }
+
+        $tradie->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Portfolio updated successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'UPDATE_ERROR',
+                'message' => $e->getMessage(), 
+                'trace' => $e->getTraceAsString(), 
+            ]
+        ], 500);
+    }
+}
+
 
     public function completeSetup(Request $request)
     {
@@ -311,6 +321,77 @@ class TradieSetupController extends Controller
             ], 500);
         }
     }
+
+
+public function getProfile(Request $request)
+{
+    try {
+        
+        $tradie = auth()->user();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => 'No tradie profile found.'
+                ]
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $tradie
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'FETCH_ERROR',
+                'message' => 'Failed to retrieve profile.',
+                'details' => $e->getMessage()
+            ]
+        ], 500);
+    }
+}
+
+
+public function getSkills(Request $request)
+{
+    try {
+         $tradie = auth()->user();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => 'No tradie record found.'
+                ]
+            ], 404);
+        }
+
+        $skills = json_decode($tradie->skills, true) ?? [];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'skills' => $skills
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'FETCH_ERROR',
+                'message' => 'Failed to retrieve skills.',
+                'details' => $e->getMessage()
+            ]
+        ], 500);
+    }
+}
+
+
 
     private function isProfileComplete(Tradie $tradie)
     {

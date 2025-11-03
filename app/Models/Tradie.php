@@ -34,6 +34,10 @@ class Tradie extends Authenticatable
         'insurance_details',
         'years_experience',
         'hourly_rate',
+        'minimum_hours',     // ✅ add this
+        'description',       // ✅ add this
+        'after_hours',       // ✅ add this
+        'call_out_fee',      // ✅ add this
         'availability_status',
         'working_hours',
         'emergency_available',
@@ -62,6 +66,8 @@ class Tradie extends Authenticatable
         'emergency_available' => 'boolean',
         'profile_completed' => 'boolean',
         'profile_completed_at' => 'datetime',
+        'after_hours' => 'boolean',
+        'call_out_fee' => 'boolean',
     ];
 
     // Scopes
