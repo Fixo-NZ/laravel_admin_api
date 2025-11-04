@@ -185,7 +185,7 @@ class TradieSetupController extends Controller
             $tradie->update([
                 'working_hours' => $data['working_hours'] ?? null,
                 'emergency_available' => $data['emergency_available'] ?? null,
-                'availability_calendar' => $data['availability_calendar'] ?? null,
+                // 'availability_calendar' => $data['availability_calendar'] ?? null,
                 'availability_status' => 'available'
             ]);
 
@@ -193,15 +193,22 @@ class TradieSetupController extends Controller
                 'success' => true,
                 'message' => 'Availability updated successfully'
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'UPDATE_ERROR',
-                    'message' => 'Failed to update availability'
-                ]
-            ], 500);
-        }
+                    } catch (\Exception $e) {
+                \Log::error('❌ Update availability failed', [
+                    'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'UPDATE_ERROR',
+                        'message' => $e->getMessage(), // show actual message instead of generic
+                    ]
+                ], 500);
+            }
     }
 
    public function updatePortfolio(Request $request)
@@ -211,7 +218,7 @@ class TradieSetupController extends Controller
         'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
         'rate_type' => 'nullable|in:hourly,fixed_price,both',
         'standard_rate' => 'nullable|numeric|min:0',
-        'minimum_hours' => 'nullable|integer|min:1',
+        // 'minimum_hours' => 'nullable|integer|min:1',
         'standard_rate_description' => 'nullable|string|max:1000',
         'after_hours_enabled' => 'nullable|boolean',
         'after_hours_rate' => 'nullable|numeric|min:0',
@@ -254,7 +261,7 @@ class TradieSetupController extends Controller
         // ];
         $updateData = [
             'hourly_rate' => $data['standard_rate'] ?? null,
-            'minimum_hours' => $data['minimum_hours'] ?? null,
+            // 'minimum_hours' => $data['minimum_hours'] ?? null,
             'description' => $data['standard_rate_description'] ?? null,
             'after_hours' => $data['after_hours_enabled'] ?? false,
             'call_out_fee' => $data['call_out_fee_enabled'] ?? false,

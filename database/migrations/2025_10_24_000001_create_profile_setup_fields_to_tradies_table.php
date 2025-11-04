@@ -15,8 +15,8 @@ return new class extends Migration
    {
        Schema::table('tradies', function (Blueprint $table) {
            // Skills & availability
-           $table->json('skills')->nullable()->after('years_experience'); // ["Painting", "Electrical", ...]
-           $table->json('days')->nullable()->after('skills'); // ["Mon", "Tue", "Wed"]
+           $table->json('skills')->nullable()->after('years_experience'); 
+           $table->json('days')->nullable()->after('skills'); 
            $table->time('start_time')->nullable()->after('days');
            $table->time('end_time')->nullable()->after('start_time');
            $table->boolean('emergency_available')->default(false)->after('end_time');
