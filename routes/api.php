@@ -46,6 +46,8 @@ Route::prefix('tradie')->group(function () {
             Route::post('complete', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'completeSetup']);
             Route::get('get-profile', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getProfile']);
             Route::get('get-skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getSkills']);
+            Route::post('upload-avatar', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateAvatar']);
+            
         });
     });
 });

@@ -290,6 +290,76 @@ class TradieSetupController extends Controller
     }
 }
 
+public function updateAvatar(Request $request)
+{
+     \Log::info('📸 Avatar upload received', [
+        'has_file' => $request->hasFile('avatar'),
+        'file' => $request->file('avatar'),
+        'all_inputs' => $request->all(),
+        'auth_user' => auth()->user()?->id,
+    ]);
+    
+    $validator = Validator::make($request->all(), [
+        'avatar' => 'required|image|mimes:jpg,jpeg,png|max:5120', // max 5MB
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Invalid avatar file',
+                'details' => $validator->errors()
+            ]
+        ], 422);
+    }
+
+    try {
+        $tradie = auth()->user();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => 'Tradie not found'
+                ]
+            ], 404);
+        }
+
+        // ✅ Delete old avatar if exists
+        if ($tradie->avatar && Storage::disk('public')->exists($tradie->avatar)) {
+            Storage::disk('public')->delete($tradie->avatar);
+        }
+
+        // ✅ Store new avatar
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // ✅ Update database
+        $tradie->update(['avatar' => $path]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                ...$tradie->toArray(),
+                'avatar_url' => $tradie->avatar 
+                    ? asset('storage/' . $tradie->avatar)
+                    : null,
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'UPDATE_ERROR',
+                'message' => $e->getMessage()
+            ]
+        ], 500);
+    }
+}
+
+
 
     public function completeSetup(Request $request)
     {
@@ -333,7 +403,6 @@ class TradieSetupController extends Controller
 public function getProfile(Request $request)
 {
     try {
-        
         $tradie = auth()->user();
 
         if (!$tradie) {
@@ -346,9 +415,14 @@ public function getProfile(Request $request)
             ], 404);
         }
 
+        $data = $tradie->toArray();
+        $data['avatar_url'] = $tradie->avatar
+            ? asset('storage/' . $tradie->avatar)
+            : null;
+
         return response()->json([
             'success' => true,
-            'data' => $tradie
+            'data' => $data
         ]);
     } catch (\Exception $e) {
         return response()->json([
