@@ -108,4 +108,10 @@ class Homeowner extends Authenticatable
     {
         return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
     }
+
+   public function jobOffers()
+    {
+        return $this->hasMany(HomeownerJobOffer::class);
+    }
+
 }

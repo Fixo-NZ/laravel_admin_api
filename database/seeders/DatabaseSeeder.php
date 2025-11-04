@@ -25,8 +25,19 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("admin"),
         ]);
 
+        Homeowner::factory()->create([
+            'name' => 'John Doe1',
+            'email' => 'homeowner1@gmail.com',
+            'password' => Hash::make("password"),
+        ]);
+
         Homeowner::factory(10)->create();
 
         Tradie::factory(10)->create();
+
+        $this->call([
+            ServiceSeeder::class,
+            HomeownerJobOfferSeeder::class,
+        ]);
     }
 }
