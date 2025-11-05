@@ -14,6 +14,10 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
 
+    public ?Tradie $tradie = null;
+
+    protected $listeners = ['tradieUpdated' => '$refresh'];
+
     // =========================================================================
     // PAGE CONFIGURATION
     // =========================================================================
@@ -42,7 +46,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                             ->orWhere('city', 'like', "%{$search}%")
                             ->orWhere('region', 'like', "%{$search}%")
                             ->orWhere('postal_code', 'like', "%{$search}%")
-                            // ->orWhere('trade_type', 'like', "%{$search}%")
+                            ->orWhere('trade_type', 'like', "%{$search}%")
                             ->orWhere('availability_status', 'like', "%{$search}%");
                     })
             )
@@ -86,7 +90,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     ->extraAttributes(['class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs'])
                     ->sortable(),
 
-                // TextColumn::make('trade_type')->label('Trade Type')->searchable()->sortable(),
+                TextColumn::make('trade_type')->label('Trade Type')->searchable()->sortable(),
 
             ])
             ->filters([
@@ -159,52 +163,35 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                             ->color('info')
                             ->icon('heroicon-o-currency-dollar')
                             ->visible(fn(Tradie $record) => true)
-                            ->form([
-                                \Filament\Forms\Components\Select::make('hourly_rate')
-                                    ->label('Select Fair Hourly Rate')
-                                    ->options(function (Tradie $record) {
-                                        $years = $record->years_experience;
+                            ->form(function (Tradie $record) {
+                                $suggestedRate = \App\Models\Tradie::calculateHourlyRate($record);
 
-                                        // rate logic based on experience
-                                        if ($years >= 15) {
-                                            return [
-                                                1200 => '₱1,200/hr (Expert, 15+ yrs)',
-                                                1500 => '₱1,500/hr (Master Level)',
-                                            ];
-                                        } elseif ($years >= 10) {
-                                            return [
-                                                800 => '₱800/hr (10–14 yrs)',
-                                                1000 => '₱1,000/hr (Senior Level)',
-                                            ];
-                                        } elseif ($years >= 5) {
-                                            return [
-                                                500 => '₱500/hr (5–9 yrs)',
-                                                700 => '₱700/hr (Mid Level)',
-                                            ];
-                                        } elseif ($years >= 2) {
-                                            return [
-                                                300 => '₱300/hr (2–4 yrs)',
-                                                400 => '₱400/hr (Junior Level)',
-                                            ];
-                                        } else {
-                                            return [
-                                                150 => '₱150/hr (Beginner, <2 yrs)',
-                                                200 => '₱200/hr (Entry Level)',
-                                            ];
-                                        }
-                                    })
-                                    ->required(),
-                            ])
+                                return [
+                                    \Filament\Forms\Components\Placeholder::make('auto_rate')
+                                        ->label('Suggested Hourly Rate')
+                                        ->content('NZ$' . number_format($suggestedRate, 2) . ' per hour')
+                                        ->extraAttributes(['class' => 'text-green-700 font-semibold'])
+                                        ->reactive(),
+
+                                    \Filament\Forms\Components\TextInput::make('hourly_rate')
+                                        ->label('Set Hourly Rate (NZD)')
+                                        ->numeric()
+                                        ->default($suggestedRate)
+                                        ->required()
+                                        ->helperText('Auto-suggested based on experience, trade, region, and other factors. You can adjust if needed.'),
+                                ];
+                            })
                             ->action(function (array $data, Tradie $record, $livewire) {
                                 $record->update(['hourly_rate' => $data['hourly_rate']]);
 
                                 \Filament\Notifications\Notification::make()
-                                    ->title("Hourly rate for {$record->first_name} updated to ₱{$data['hourly_rate']}/hr.")
+                                    ->title("Hourly rate updated for {$record->first_name} {$record->last_name}")
+                                    ->body("New rate: NZ$" . number_format($data['hourly_rate'], 2) . " per hour")
                                     ->success()
                                     ->send();
 
+                                $livewire->dispatch('tradieUpdated');
                                 $livewire->dispatch('close-modal', id: 'viewProfile');
-                                $livewire->dispatch('refresh');
                             }),
                     ])
             ])

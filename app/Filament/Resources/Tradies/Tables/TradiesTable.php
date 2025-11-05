@@ -47,6 +47,8 @@ class TradiesTable
                     ->searchable(),
                 TextColumn::make('license_number')
                     ->searchable(),
+                TextColumn::make('trade_type')
+                    ->searchable(),
                 TextColumn::make('years_experience')
                     ->numeric()
                     ->sortable(),

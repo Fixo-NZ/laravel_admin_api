@@ -55,6 +55,8 @@ class TradieForm
                     ->default(null),
                 TextInput::make('license_number')
                     ->default(null),
+                TextInput::make('trade_type')
+                    ->default(null),
                 Textarea::make('insurance_details')
                     ->default(null)
                     ->columnSpanFull(),

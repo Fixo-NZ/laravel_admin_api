@@ -28,6 +28,7 @@ class Tradie extends Authenticatable
         'longitude',
         'business_name',
         'license_number',
+        'trade_type',
         'insurance_details',
         'years_experience',
         'hourly_rate',
@@ -57,29 +58,95 @@ class Tradie extends Authenticatable
         parent::boot();
 
         static::creating(function ($tradie) {
-            if (is_null($tradie->hourly_rate)) {
-                $tradie->hourly_rate = self::calculateHourlyRate($tradie->years_experience);
+            if (empty($tradie->hourly_rate)) {
+                $tradie->hourly_rate = self::calculateHourlyRate($tradie);
             }
         });
 
         static::updating(function ($tradie) {
-            if ($tradie->isDirty('years_experience')) {
-                $tradie->hourly_rate = self::calculateHourlyRate($tradie->years_experience);
+            $fieldsToCheck = [
+                'years_experience',
+                'region',
+                'license_number',
+                'insurance_details',
+                'availability_status',
+                'service_radius',
+                'trade_type'
+            ];
+
+            if ($tradie->isDirty($fieldsToCheck)) {
+                $tradie->hourly_rate = self::calculateHourlyRate($tradie);
             }
         });
     }
 
-    public static function calculateHourlyRate($yearsExperience)
+    // =========================================================================
+    // AUTO RATE CALCULATION LOGIC
+    // =========================================================================
+
+    /**
+     * Automatically calculate a fair hourly rate (in NZD)
+     * based on tradie experience, trade type, and other factors.
+     */
+    public static function calculateHourlyRate(self $tradie): float
     {
-        if (is_null($yearsExperience)) {
-            return 35.00; // Default fallback
+        $baseRate = 25.00; // Starting baseline in NZD/hour
+        $rate = $baseRate;
+
+        // 1. Experience bonus (max +NZ$40 for 20+ years)
+        $rate += min($tradie->years_experience ?? 0, 20) * 2.0;
+
+        // 2. Trade type influence
+        $tradeMultipliers = [
+            'electrical'          => 1.6,
+            'plumbing'            => 1.5,
+            'hvac'                => 1.45,
+            'carpentry'           => 1.3,
+            'roofing'             => 1.3,
+            'painting'            => 1.2,
+            'masonry'             => 1.25,
+            'flooring'            => 1.2,
+            'fencing & decking'   => 1.2,
+            'appliance repair'    => 1.15,
+            'drywall & plastering' => 1.15,
+            'window & door'       => 1.1,
+            'pest control'        => 1.1,
+            'gardening'           => 1.05,
+        ];
+
+        if (!empty($tradie->trade_type) && isset($tradeMultipliers[strtolower($tradie->trade_type)])) {
+            $rate *= $tradeMultipliers[strtolower($tradie->trade_type)];
         }
 
-        // Example rule: Base 35 + $5 for each year of experience (up to 20 years)
-        $baseRate = 35;
-        $rate = $baseRate + min($yearsExperience, 20) * 5;
+        // 3. Region multiplier (urban tradies earn more)
+        if (in_array(strtolower($tradie->region), ['auckland', 'wellington', 'christchurch'])) {
+            $rate *= 1.25;
+        } elseif (in_array(strtolower($tradie->region), ['hamilton', 'tauranga', 'dunedin'])) {
+            $rate *= 1.1;
+        }
 
-        return number_format($rate, 2, '.', '');
+        // 4. License bonus
+        if (!empty($tradie->license_number)) {
+            $rate += 10;
+        }
+
+        // 5. Insurance bonus
+        if (!empty($tradie->insurance_details)) {
+            $rate += 5;
+        }
+
+        // 6. Availability bump (if busy, increase slightly)
+        if ($tradie->availability_status === 'busy') {
+            $rate += 5;
+        }
+
+        // 7. Service radius adjustment (+NZ$1 per 10 km beyond 50)
+        if ($tradie->service_radius > 50) {
+            $extraKm = $tradie->service_radius - 50;
+            $rate += floor($extraKm / 10) * 1;
+        }
+
+        return round($rate, 2);
     }
 
     // Scopes
