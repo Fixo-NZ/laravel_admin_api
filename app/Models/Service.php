@@ -39,10 +39,10 @@ class Service extends Model
             ->withTimestamps();
     }
 
-    public function jobs()
-    {
-        return $this->hasMany(Job::class);
-    }
+    // public function jobs()
+    // {
+    //     return $this->hasMany(Job::class);
+    // }
 
     // Static methods
     public static function getCategories()

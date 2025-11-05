@@ -50,6 +50,38 @@ class Tradie extends Authenticatable
         'verified_at' => 'datetime',
     ];
 
+    // ─── Boot Method ────────────────────────────────────────────
+    // Automatically calculate hourly rates for each tradie upon creation based on their years of experience
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($tradie) {
+            if (is_null($tradie->hourly_rate)) {
+                $tradie->hourly_rate = self::calculateHourlyRate($tradie->years_experience);
+            }
+        });
+
+        static::updating(function ($tradie) {
+            if ($tradie->isDirty('years_experience')) {
+                $tradie->hourly_rate = self::calculateHourlyRate($tradie->years_experience);
+            }
+        });
+    }
+
+    public static function calculateHourlyRate($yearsExperience)
+    {
+        if (is_null($yearsExperience)) {
+            return 35.00; // Default fallback
+        }
+
+        // Example rule: Base 35 + $5 for each year of experience (up to 20 years)
+        $baseRate = 35;
+        $rate = $baseRate + min($yearsExperience, 20) * 5;
+
+        return number_format($rate, 2, '.', '');
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -147,38 +179,38 @@ class Tradie extends Authenticatable
             ->withTimestamps();
     }
 
-    public function jobApplications()
-    {
-        return $this->hasMany(JobApplication::class);
-    }
+    // public function jobApplications()
+    // {
+    //     return $this->hasMany(JobApplication::class);
+    // }
 
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
 
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
+    // public function sentMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'sender_id');
+    // }
 
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'receiver_id');
-    }
+    // public function receivedMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'receiver_id');
+    // }
 
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'reviewer_id');
-    }
+    // public function reviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewer_id');
+    // }
 
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'reviewee_id');
-    }
+    // public function receivedReviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewee_id');
+    // }
 
-    public function favoriteHomeowners()
-    {
-        return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
-    }
+    // public function favoriteHomeowners()
+    // {
+    //     return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
+    // }
 }
