@@ -35,6 +35,9 @@ class Tradie extends Authenticatable
         'availability_status',
         'service_radius',
         'status',
+        'suspension_reason',
+        'suspension_start',
+        'suspension_end'
     ];
 
     protected $hidden = [

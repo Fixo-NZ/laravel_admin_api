@@ -1,101 +1,134 @@
-<div class="p-6 bg-red-500 rounded-lg shadow-md w-full max-w-lg mx-auto">
-    <!-- Modal Header -->
-    <h2 class="text-xl font-bold text-gray-800 mb-4">{{ $tradie->name }} Profile</h2>
+<x-filament::card class="max-w-3xl mx-auto">
+    <x-slot name="header">
+        <h2 class="text-xl font-bold text-gray-800">
+            {{ $tradie->first_name }} {{ $tradie->last_name }} — Profile Overview
+        </h2>
+    </x-slot>
 
-    <!-- Profile Content -->
-    <div class="space-y-3 text-gray-700">
-        <div class="flex justify-between">
-            <span class="font-semibold">First Name:</span>
-            <span>{{ $tradie->first_name }}</span>
-        </div>
+    <!-- ==================== Profile Info ==================== -->
+    <x-filament::section heading="Personal Details">
+        <dl class="divide-y divide-gray-200">
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">First Name</dt>
+                <dd>{{ $tradie->first_name }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Middle Name:</span>
-            <span>{{ $tradie->middle_name }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Middle Name</dt>
+                <dd>{{ $tradie->middle_name }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Last Name:</span>
-            <span>{{ $tradie->last_name }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Last Name</dt>
+                <dd>{{ $tradie->last_name }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Email:</span>
-            <span class="text-blue-600 hover:underline">{{ $tradie->email }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Email</dt>
+                <dd><a href="mailto:{{ $tradie->email }}" class="text-primary-600 hover:underline">{{ $tradie->email }}</a></dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Phone:</span>
-            <span>{{ $tradie->phone ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Phone</dt>
+                <dd>{{ $tradie->phone ?? 'N/A' }}</dd>
+            </div>
+        </dl>
+    </x-filament::section>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Business Name:</span>
-            <span>{{ $tradie->business_name ?? 'N/A' }}</span>
-        </div>
+    <!-- ==================== Business Info ==================== -->
+    <x-filament::section heading="Business Information">
+        <dl class="divide-y divide-gray-200">
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Business Name</dt>
+                <dd>{{ $tradie->business_name ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">License Number:</span>
-            <span>{{ $tradie->license_number ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">License Number</dt>
+                <dd>{{ $tradie->license_number ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Years of Experience:</span>
-            <span>{{ $tradie->years_experience ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Years of Experience</dt>
+                <dd>{{ $tradie->years_experience ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Hourly Rate:</span>
-            <span>{{ $tradie->hourly_rate ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Hourly Rate</dt>
+                <dd class="font-semibold text-success-600">NZD ${{ number_format($tradie->hourly_rate, 2) ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Address:</span>
-            <span>{{ $tradie->address ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Service Radius</dt>
+                <dd>{{ $tradie->service_radius ?? 'N/A' }} km</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">City:</span>
-            <span>{{ $tradie->city ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Availability</dt>
+                <dd>{{ ucfirst($tradie->availability_status) ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Postal Code:</span>
-            <span>{{ $tradie->postal_code ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Status</dt>
+                <dd>
+                    <x-filament::badge 
+                        color="{{ $tradie->status === 'active' ? 'success' : ($tradie->status === 'suspended' ? 'warning' : 'danger') }}">
+                        {{ ucfirst($tradie->status) }}
+                    </x-filament::badge>
+                </dd>
+            </div>
+        </dl>
+    </x-filament::section>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Region:</span>
-            <span>{{ $tradie->region ?? 'N/A' }}</span>
-        </div>
+    <!-- ==================== Location ==================== -->
+    <x-filament::section heading="Location Details">
+        <dl class="divide-y divide-gray-200">
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Address</dt>
+                <dd>{{ $tradie->address ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Service Radius:</span>
-            <span>{{ $tradie->service_radius ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">City</dt>
+                <dd>{{ $tradie->city ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Availability Status:</span>
-            <span>{{ $tradie->availability_status ?? 'N/A' }}</span>
-        </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Postal Code</dt>
+                <dd>{{ $tradie->postal_code ?? 'N/A' }}</dd>
+            </div>
 
-        <div class="flex justify-between">
-            <span class="font-semibold">Status:</span>
-            <span class="px-3 py-1 rounded-full text-sm
-                {{ $tradie->status === 'active' ? 'bg-green-100 text-green-800' : '' }}
-                {{ $tradie->status === 'inactive' ? 'bg-red-100 text-red-800' : '' }}
-                {{ $tradie->status === 'suspended' ? 'bg-yellow-100 text-yellow-800' : '' }}">
-                {{ ucfirst($tradie->status) }}
-            </span>
-        </div>
-    </div>
+            <div class="flex justify-between py-2">
+                <dt class="font-medium text-gray-700">Region</dt>
+                <dd>{{ $tradie->region ?? 'N/A' }}</dd>
+            </div>
+        </dl>
+    </x-filament::section>
 
-    <!-- ========================================================= -->
-    <!-- 📋 Booked Jobs Section -->
-    <!-- ========================================================= -->
-    <div class="mt-8 border-t pt-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">Insurance Details</h3>
-
+    <!-- ==================== Insurance ==================== -->
+    <x-filament::section heading="Insurance Details">
         <p>{{ $tradie->insurance_details ?? 'N/A' }}</p>
-    </div>
-</div>
+    </x-filament::section>
+
+    <!-- ==================== Suspension Info ==================== -->
+    @if (strtolower($tradie->status) === 'suspended')
+        <x-filament::section heading="Suspension Details" icon="heroicon-o-exclamation-triangle" class="border-t pt-4">
+            <dl class="divide-y divide-gray-200">
+                <div class="flex justify-between py-2">
+                    <dt class="font-medium text-gray-700">Reason</dt>
+                    <dd>{{ $tradie->suspension_reason ?? 'N/A' }}</dd>
+                </div>
+                    <dd>
+                        {{ $tradie->suspension_start 
+                            ? \Carbon\Carbon::parse($tradie->suspension_start)->format('M d, Y') 
+                            : 'N/A' }}
+                    </dd>
+                <dd>
+                    {{ $tradie->suspension_end 
+                        ? \Carbon\Carbon::parse($tradie->suspension_end)->format('M d, Y') 
+                        : 'N/A' }}
+                </dd>
+            </dl>
+        </x-filament::section>
+    @endif
+</x-filament::card>
