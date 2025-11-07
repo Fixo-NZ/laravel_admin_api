@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -43,4 +44,41 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+// Public routes - anyone can view reviews
+Route::prefix('reviews')->group(function () {
+    // Get provider reviews and stats
+    // Change from provider to tradie
+    Route::get('tradie/{tradieId}', [ReviewController::class, 'getTradieReviews']);
+    Route::get('tradie/{tradieId}/stats', [ReviewController::class, 'getTradieStats']);
+    
+    // Get job review
+    Route::get('job/{jobId}', [ReviewController::class, 'getJobReview']);
+});
+
+// Protected routes - require authentication
+Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+    // Check if job can be reviewed
+    Route::get('can-review/{jobId}', [ReviewController::class, 'canReview']);
+    
+    // Submit review
+    Route::post('/', [ReviewController::class, 'store']);
+    
+    // My reviews
+    Route::get('my-reviews', [ReviewController::class, 'myReviews']);
+    
+    // Mark as helpful
+    Route::post('{reviewId}/helpful', [ReviewController::class, 'markHelpful']);
+    
+    // Report review
+    Route::post('{reviewId}/report', [ReviewController::class, 'reportReview']);
+    });
+});
+
+Route::get('/test', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'API is working!',
+        'timestamp' => now(),
+    ]);
 });

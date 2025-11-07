@@ -110,4 +110,21 @@ class Homeowner extends Authenticatable
     // {
     //     return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
     // }
+
+    // ─── Relationships ───────────────────────────────────
+public function reviewsGiven()
+{
+    return $this->hasMany(Review::class, 'homeowner_id');
+}
+
+// Accessor for full name (for Filament display)
+    public function getFullNameAttribute()
+    {
+        $parts = array_filter([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name
+        ]);
+        return implode(' ', $parts);
+    }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -93,4 +94,38 @@ class User extends Authenticatable implements FilamentUser
 
     // --- Relationships for Homeowner modal ---
     // (Keep your relationships here if they were part of the original model)
+
+    // Reviews given by this user (as customer)
+    public function reviewsGiven(): HasMany
+    {
+        return $this->hasMany(Review::class, 'user_id');
+    }
+
+    /**
+     * Reviews received by this user (as provider)
+     */
+    public function reviewsReceived(): HasMany
+    {
+        return $this->hasMany(Review::class, 'provider_id');
+    }
+
+    /**
+     * Get average rating for provider
+     */
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviewsReceived()
+            ->where('status', 'approved')
+            ->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get total review count for provider
+     */
+    public function getTotalReviewsAttribute()
+    {
+        return $this->reviewsReceived()
+            ->where('status', 'approved')
+            ->count();
+    }
 }

@@ -24,26 +24,17 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->id('admin')
-            ->path('/')
+            ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::hex('#4D47C3'), // Custom primary color (orange)
+                'primary' => Color::Amber,
             ])
-            ->discoverResources(
-                in: app_path('Filament/Admin/Resources'),
-                for: 'App\\Filament\\Admin\\Resources'
-            )
-            ->discoverPages(
-                in: app_path('Filament/Admin/Pages'),
-                for: 'App\\Filament\\Admin\\Pages'
-            )
+            ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
+            ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(
-                in: app_path('Filament/Admin/Widgets'),
-                for: 'App\\Filament\\Admin\\Widgets'
-            )
+            ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
@@ -59,48 +50,8 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-
-            // ================================================================
-            // NON-COLLAPSIBLE VERSION (Commented Out)
-            // ================================================================
-            // ->navigationGroups([
-            //     \Filament\Navigation\NavigationGroup::make()
-            //         ->label('User Overview')
-            //         ->icon('heroicon-o-user-circle')
-            //         ->collapsed(false)
-            //         ->items([
-            //             // Add your pages manually here if needed
-            //         ]),
-            // ])
-
-            // ================================================================
-            // COLLAPSIBLE VERSION (Default Active)
-            // ================================================================
-            ->navigationGroups([
-                \Filament\Navigation\NavigationGroup::make('User Overview')
-                    ->icon('heroicon-o-user-circle')
-                    ->collapsible() // makes it expandable/collapsible
-                    ->collapsed(),  // starts collapsed by default
-            ])
-
             ->authMiddleware([
                 Authenticate::class,
             ]);
     }
 }
-
-/* =========================================================================
-   NOTES
-   =========================================================================
-   1. You now have two versions:
-      - The **non-collapsible** sidebar 
-      - The **collapsible** sidebar (active by default)
-
-   2. Filament automatically groups pages using:
-         protected static ?string $navigationGroup = 'User Overview';
-      inside each page class (e.g., AdminPage, HomeownersPage, etc.)
-
-   3. Change ->collapsed() to ->collapsed(false)
-      if you want the collapsible group to start open.
-
-*/
