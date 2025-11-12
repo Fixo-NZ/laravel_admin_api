@@ -19,13 +19,12 @@ jobs:
 
       - name: Install dependencies
         run: composer install --no-interaction
-	
+
       - name: Generate .env file
         run: |
           cat <<EOF > .env
           DB_CONNECTION=sqlite
           EOF
-
 
       - name: Run unit tests
         run: php artisan test
