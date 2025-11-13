@@ -7,177 +7,177 @@ use App\Models\Homeowner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class HomeownerAuthController extends Controller
 {
-    /**
-     * Register a new homeowner
-     *
-     * This method handles the creation of a new homeowner user.
-     * It validates the input, hashes the password, creates the user, 
-     * and returns an API token for authentication.
-     */
     public function register(Request $request)
     {
-        // Step 1: Validate incoming request data
         $validator = Validator::make($request->all(), [
-            'name'        => 'required|string|max:255',   // Required, max 255 chars
-            'email'       => 'required|string|email|max:255|unique:homeowners,email', // Must be unique
-            'phone'       => 'nullable|string|max:20',   // Optional, max 20 chars
-            'password'    => 'required|string|min:8|confirmed', // Must match password_confirmation
-            'address'     => 'nullable|string|max:500',
-            'city'        => 'nullable|string|max:100',
-            'region'      => 'nullable|string|max:100',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'email' => 'required|string|email|max:255|unique:homeowners',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8|confirmed',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:10',
         ]);
 
-        // Step 2: Return errors if validation fails
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'VALIDATION_ERROR',
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
-                    'details' => $validator->errors(), // Detailed field errors
-                ],
-            ], 422); // 422 Unprocessable Entity
-        }
-
-        // Step 3: Create the homeowner record
-        $homeowner = Homeowner::create([
-            'name'        => $request->name,
-            'email'       => $request->email,
-            'phone'       => $request->phone,
-            'password'    => Hash::make($request->password), // Hash password securely
-            'address'     => $request->address,
-            'city'        => $request->city,
-            'region'      => $request->region,
-            'postal_code' => $request->postal_code,
-            'status'      => 'active', // Default to active; consider 'pending' for email verification
-        ]);
-
-        // Step 4: Generate API token using Laravel Sanctum
-        $token = $homeowner->createToken('homeowner-token')->plainTextToken;
-
-        // Step 5: Return success response with user data and token
-        return response()->json([
-            'success' => true,
-            'data'    => [
-                'user'  => $homeowner,
-                'token' => $token,
-            ],
-        ], 201); // 201 Created
-    }
-
-    /**
-     * Login homeowner
-     *
-     * Validates credentials, checks account status, revokes old tokens,
-     * and issues a new Sanctum token for API authentication.
-     */
-    public function login(Request $request)
-    {
-        // Step 1: Validate login input
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        // Step 2: Return errors if validation fails
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'error'   => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'The given data was invalid.',
-                    'details' => $validator->errors(),
-                ],
+                    'details' => $validator->errors()
+                ]
             ], 422);
         }
 
-        // Step 3: Find the homeowner by email
+        try {
+            $homeowner = Homeowner::create([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'address' => $request->address,
+                'city' => $request->city,
+                'region' => $request->region,
+                'postal_code' => $request->postal_code,
+                'status' => 'active',
+            ]);
+
+            $token = $homeowner->createToken('homeowner-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => 3600,
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'last_name' => $homeowner->last_name,
+                    'email' => $homeowner->email,
+                    'user_type' => 'homeowner',
+                ],
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'REGISTRATION_ERROR',
+                    'message' => 'Registration failed. Please try again.',
+                ]
+            ], 500);
+        }
+    }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
         $homeowner = Homeowner::where('email', $request->email)->first();
 
-        // Step 4: Verify password
         if (!$homeowner || !Hash::check($request->password, $homeowner->password)) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'INVALID_CREDENTIALS',
+                'error' => [
+                    'code' => 'INVALID_CREDENTIALS',
                     'message' => 'The provided credentials are incorrect.',
-                ],
-            ], 401); // 401 Unauthorized
+                ]
+            ], 401);
         }
 
-        // Step 5: Check account status
         if ($homeowner->status !== 'active') {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'ACCOUNT_INACTIVE',
+                'error' => [
+                    'code' => 'ACCOUNT_INACTIVE',
                     'message' => 'Your account is not active. Please contact support.',
-                ],
-            ], 403); // 403 Forbidden
+                ]
+            ], 403);
         }
 
-        // Step 6: Revoke any previous tokens to prevent session hijacking
+        // Revoke existing tokens
         $homeowner->tokens()->delete();
 
-        // Step 7: Issue a new API token
         $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
-        // Step 8: Return success response with token
         return response()->json([
             'success' => true,
-            'data'    => [
-                'user'  => $homeowner,
-                'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+            'user' => [
+                'id' => $homeowner->id,
+                'first_name' => $homeowner->first_name,
+                'middle_name' => $homeowner->middle_name,
+                'last_name' => $homeowner->last_name,
+                'email' => $homeowner->email,
+                'user_type' => 'homeowner',
             ],
         ]);
     }
 
-    /**
-     * Logout homeowner
-     *
-     * Deletes the current token to revoke API access.
-     */
     public function logout(Request $request)
     {
-        // Delete the token used for this request only
         $request->user()->currentAccessToken()->delete();
 
-        // Return success message
         return response()->json([
             'success' => true,
-            'message' => 'Logged out successfully',
+            'message' => 'Successfully logged out'
         ]);
     }
 
-    /**
-     * Get authenticated homeowner
-     *
-     * Returns the currently logged-in homeowner info.
-     */
     public function me(Request $request)
     {
-        $homeowner = $request->user(); // Fetched via Sanctum authentication
+        $homeowner = $request->user();
 
         return response()->json([
             'success' => true,
-            'data'    => [
-                'user' => $homeowner,
-            ],
+            'data' => [
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'last_name' => $homeowner->last_name,
+                    'email' => $homeowner->email,
+                    'phone' => $homeowner->phone,
+                    'avatar' => $homeowner->avatar,
+                    'bio' => $homeowner->bio,
+                    'address' => $homeowner->address,
+                    'city' => $homeowner->city,
+                    'region' => $homeowner->region,
+                    'postal_code' => $homeowner->postal_code,
+                    'latitude' => $homeowner->latitude,
+                    'longitude' => $homeowner->longitude,
+                    'status' => $homeowner->status,
+                    'user_type' => 'homeowner',
+                    'created_at' => $homeowner->created_at,
+                ]
+            ]
         ]);
-    }
-
-    /**
-     * Show homeowner profile page (for admin panel)
-     *
-     * Only authorized admins should access this route.
-     */
-    public function show(Homeowner $homeowner)
-    {
-        // Pass the homeowner data to the Blade view
-        return view('filament.admin.pages.homeowner-profile-page', compact('homeowner'));
     }
 }
