@@ -42,34 +42,81 @@ class ScheduleController extends Controller
             'schedule' => $schedule,
         ]);
     }
-        public function reschedule(Request $request, Schedule $schedule)
-        {
-    $validated = $request->validate([
-        'start_time' => 'required|date',
-        'end_time'   => 'required|date|after:start_time',
-    ]);
+    public function reschedule(Request $request, Schedule $schedule)
+    {
+        try {
+            // Custom validation messages
+            $messages = [
+                'start_time.required'        => 'Start time is required.',
+                'start_time.date'            => 'Start time must be a valid date.',
+                'start_time.after_or_equal'  => 'Start time must be in the future.',
+                'end_time.required'          => 'End time is required.',
+                'end_time.date'              => 'End time must be a valid date.',
+                'end_time.after'             => 'End time must be after start time.',
+            ];
 
-    $schedule->update([
-        'start_time' => $validated['start_time'],
-        'end_time'   => $validated['end_time'],
-        'status' => 'rescheduled',
-        'rescheduled_at' => now(),
-    ]);
+        // Validate request
+        $validated = $request->validate([
+            'start_time' => 'required|date|after_or_equal:now',
+            'end_time'   => 'required|date|after:start_time',
+        ], $messages);
 
-    return response()->json([
-        'message' => 'Schedule successfully rescheduled',
-        'schedule' => $schedule
-    ], \Symfony\Component\HttpFoundation\Response::HTTP_OK);
+        // Update schedule
+        $schedule->update([
+            'start_time'     => $validated['start_time'],
+            'end_time'       => $validated['end_time'],
+            'status'         => 'rescheduled',
+            'rescheduled_at' => now(),
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Schedule successfully rescheduled',
+            'schedule' => $schedule
+        ], \Symfony\Component\HttpFoundation\Response::HTTP_OK);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+
+        // Validation errors (422)
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors'  => $e->errors(),
+        ], \Symfony\Component\HttpFoundation\Response::HTTP_UNPROCESSABLE_ENTITY);
+
+    } catch (\Exception $e) {
+
+        // Unexpected errors (500)
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while rescheduling the schedule.',
+            'error'   => $e->getMessage(), // remove in production for security
+        ], \Symfony\Component\HttpFoundation\Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
 }
 
 
 
-        public function cancel(Schedule $schedule)
-        {
-            $schedule->delete(); 
 
-            return response()->json([
-            'message' => 'Schedule successfully cancelled and deleted',
+public function cancel(Schedule $schedule)
+{
+    try {
+        // Use the model's cancel() method
+        $schedule->cancel();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule successfully cancelled',
+            'schedule' => $schedule
         ], Response::HTTP_OK);
+
+    } catch (\Exception $e) {
+        // Handle unexpected errors
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while cancelling the schedule.',
+            'error'   => $e->getMessage(), // remove in production
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+}
 }
