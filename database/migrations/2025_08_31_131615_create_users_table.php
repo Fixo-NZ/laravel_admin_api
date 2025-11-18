@@ -21,10 +21,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
-            $table->rememberToken();
-            $table->timestamps();
             $table->string('phone')->nullable();
             $table->string('location')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
 
         });
     }
