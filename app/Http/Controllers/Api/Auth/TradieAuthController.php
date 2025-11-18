@@ -214,8 +214,13 @@ class TradieAuthController extends Controller
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
                     'verified_at' => $tradie->verified_at,
+<<<<<<< HEAD
                     //'average_rating' => $tradie->average_rating,
                     //'total_reviews' => $tradie->total_reviews,
+=======
+                    // 'average_rating' => $tradie->average_rating,
+                    // 'total_reviews' => $tradie->total_reviews,
+>>>>>>> g2/job_posting
                     'user_type' => 'tradie',
                     'created_at' => $tradie->created_at,
                 ]

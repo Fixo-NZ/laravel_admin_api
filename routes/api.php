@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
+use App\Http\Controllers\Api\Auth\UserAuthController;
+use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Schedule;
@@ -26,6 +29,11 @@ Route::prefix('homeowner')->group(function () {
         Route::post('logout', [HomeownerAuthController::class, 'logout']);
         Route::get('me', [HomeownerAuthController::class, 'me']);
     });
+});
+
+Route::prefix('user')->group(function () {
+    Route::post('login', [UserAuthController::class, 'login']);
+    
 });
 
 // Tradie Authentication Routes
@@ -56,3 +64,21 @@ Route::post('/schedules', [ScheduleController::class, 'store']);
 Route::post('/schedules/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
 //Cancel for calendar
 Route::post('/schedules/{schedule}/cancel', [ScheduleController::class, 'cancel']);
+// Public Job and Service Routes (POSTMAN)
+Route::prefix('jobs')->group(function () {
+    Route::get('/categories', [ServiceController::class, 'index']);
+    Route::get('/categories/{id}', [ServiceController::class, 'indexSpecificCategory']);
+    Route::get('/categories/{id}/services', [ServiceController::class, 'indexSpecificCategoryServices']);
+    Route::get('/services', [ServiceController::class, 'indexService']);
+    Route::get('/services/{id}', [ServiceController::class, 'indexSpecificService']);
+});
+
+
+// Homeowner 
+Route::prefix('jobs')->middleware('auth:sanctum')->group(function () {
+    Route::get('/job-offers', [JobOfferController::class, 'index']);
+    Route::post('/job-offers', [JobOfferController::class, 'store']);
+    Route::get('/job-offers/{id}', [JobOfferController::class, 'show']);
+    Route::put('/job-offers/{id}', [JobOfferController::class, 'update']);
+    Route::delete('/job-offers/{id}', [JobOfferController::class, 'destroy']);
+});
