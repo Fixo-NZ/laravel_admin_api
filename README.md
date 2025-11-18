@@ -1,6 +1,6 @@
 # Project Setup Guide
 
-This document explains how to set up the project after cloning the repository, including Filament Admin setup.
+This document explains how to set up the project after cloning the repository.
 
 ---
 
