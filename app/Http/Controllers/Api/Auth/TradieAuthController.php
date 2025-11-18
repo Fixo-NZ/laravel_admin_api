@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tradie;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,19 @@ class TradieAuthController extends Controller
         }
 
         try {
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'tradie',
+            ]);
+
+            $user->role = 'tradie';
+            $user->save();
+
             $tradie = Tradie::create([
+                'user_id' => $user->id,
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -85,13 +98,12 @@ class TradieAuthController extends Controller
                     'token' => $token,
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => [
                     'code' => 'REGISTRATION_ERROR',
-                    'message' => 'Registration failed. Please try again.',
+                    'message' => $e->getMessage(),
                 ]
             ], 500);
         }
@@ -162,8 +174,8 @@ class TradieAuthController extends Controller
                     'availability_status' => $tradie->availability_status,
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
+                    //'average_rating' => $tradie->average_rating,
+                    //'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                 ],
                 'token' => $token,
@@ -211,8 +223,8 @@ class TradieAuthController extends Controller
                     'status' => $tradie->status,
                     'is_verified' => $tradie->is_verified,
                     'verified_at' => $tradie->verified_at,
-                    'average_rating' => $tradie->average_rating,
-                    'total_reviews' => $tradie->total_reviews,
+                    //'average_rating' => $tradie->average_rating,
+                    //'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                     'created_at' => $tradie->created_at,
                 ]

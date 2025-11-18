@@ -81,7 +81,7 @@ class Tradie extends Authenticatable
     public function scopeNearLocation($query, $latitude, $longitude, $radiusKm = null)
     {
         $radius = $radiusKm ?? 50;
-        
+
         return $query->selectRaw("
             *, (
                 6371 * acos(
@@ -91,8 +91,8 @@ class Tradie extends Authenticatable
                 )
             ) AS distance
         ", [$latitude, $longitude, $latitude])
-        ->having('distance', '<=', $radius)
-        ->orderBy('distance');
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance');
     }
 
     public function scopeWithinServiceRadius($query, $latitude, $longitude)
@@ -106,14 +106,14 @@ class Tradie extends Authenticatable
                 )
             ) AS distance
         ", [$latitude, $longitude, $latitude])
-        ->whereRaw('(
+            ->whereRaw('(
             6371 * acos(
                 cos(radians(?)) * cos(radians(latitude)) * 
                 cos(radians(longitude) - radians(?)) + 
                 sin(radians(?)) * sin(radians(latitude))
             )
         ) <= service_radius', [$latitude, $longitude, $latitude])
-        ->orderBy('distance');
+            ->orderBy('distance');
     }
 
     // Accessors

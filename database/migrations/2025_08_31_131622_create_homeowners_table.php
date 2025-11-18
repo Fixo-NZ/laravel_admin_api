@@ -31,7 +31,6 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->rememberToken();    
             $table->timestamps();
-            
             $table->index(['latitude', 'longitude']);
             $table->index(['city', 'region']);
         });

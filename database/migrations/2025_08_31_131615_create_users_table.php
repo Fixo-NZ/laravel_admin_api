@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('role')->default('admin');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role')->default('homeowner');
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->rememberToken();
             $table->timestamps();
