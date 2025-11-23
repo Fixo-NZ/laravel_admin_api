@@ -50,7 +50,7 @@ class PaymentController extends Controller
             ]);
 
             $payment = Payment::create([
-                'user_id' => auth('sanctum')->id(),
+                'homeowner_id' => auth('sanctum')->id(),
                 'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
                 'amount' => $request->amount,
                 'currency' => $paymentIntent->currency,
