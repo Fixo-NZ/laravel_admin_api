@@ -15,7 +15,9 @@ class HomeownerAuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name'  => 'required|string|max:255',
+            'last_name'   => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',  
             'email' => 'required|string|email|max:255|unique:homeowners',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
@@ -37,58 +39,42 @@ class HomeownerAuthController extends Controller
         }
 
         try {
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'homeowner',
-            ]);
-
-            $user->role = 'homeowner';
-            $user->save();
-
+            // Create the homeowner record
             $homeowner = Homeowner::create([
-                'user_id' => $user->id,
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'address' => $request->address,
-                'city' => $request->city,
-                'region' => $request->region,
+                'first_name'  => $request->first_name,
+                'last_name'   => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'email'       => $request->email,
+                'phone'       => $request->phone,
+                'password'    => Hash::make($request->password),
+                'address'     => $request->address,
+                'city'        => $request->city,
+                'region'      => $request->region,
                 'postal_code' => $request->postal_code,
-                'status' => 'active',
+                'status'      => 'active', 
             ]);
+
+            // Generate API token using Laravel Sanctum
             $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
+            // Return success response with user data and token
             return response()->json([
                 'success' => true,
-                'user' => $user,
-                'data' => [
-                    'user' => [
-                        'id' => $homeowner->id,
-                        'name' => $homeowner->name,
-                        'email' => $homeowner->email,
-                        'phone' => $homeowner->phone,
-                        'address' => $homeowner->address,
-                        'city' => $homeowner->city,
-                        'region' => $homeowner->region,
-                        'postal_code' => $homeowner->postal_code,
-                        'status' => $homeowner->status,
-                        'user_type' => 'homeowner',
-                    ],
+                'data'    => [
+                    'user'  => $homeowner,
                     'token' => $token,
-                ]
-            ], 201);
+                ],
+            ], 201); // 201 Created
+
         } catch (\Exception $e) {
+            // Handle any unexpected errors during registration
             return response()->json([
                 'success' => false,
-                'error' => [
-                    'code' => 'REGISTRATION_ERROR',
-                    'message' => $e->getMessage(), // show real error
-                ]
-            ], 500);
+                'error'   => [
+                    'code'    => 'REGISTRATION_ERROR',
+                    'message' => 'Failed to register user. Please try again.',
+                ],
+            ], 500); // 500 Internal Server Error
         }
     }
 

@@ -50,7 +50,7 @@ class PaymentController extends Controller
             ]);
 
             $payment = Payment::create([
-                'user_id' => auth('sanctum')->id(),
+                'homeowner_id' => auth('sanctum')->id(),
                 'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
                 'amount' => $request->amount,
                 'currency' => $paymentIntent->currency,
@@ -84,7 +84,7 @@ class PaymentController extends Controller
         $user = $request->user();
 
         $payment = \App\Models\Payment::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
@@ -95,7 +95,7 @@ class PaymentController extends Controller
         }
 
         // Only allow if the user is the owner
-        if ($user->id !== $payment->user_id && $user->role !== 'admin') {
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
@@ -111,7 +111,7 @@ class PaymentController extends Controller
         $user = $request->user();
 
         $payment = \App\Models\Payment::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
@@ -122,7 +122,7 @@ class PaymentController extends Controller
         }
 
         // Only allow if the user is the owner
-        if ($user->id !== $payment->user_id && $user->role !== 'admin') {
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
@@ -187,7 +187,7 @@ class PaymentController extends Controller
 
 
         $payment = \App\Models\Payment::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
@@ -198,7 +198,7 @@ class PaymentController extends Controller
         }
 
         // Only allow if the user is the owner or an admin (basic security)
-        if ($user->id !== $payment->user_id && $user->role !== 'admin') {
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
@@ -215,7 +215,7 @@ class PaymentController extends Controller
 
             // Log access
             \App\Models\PaymentAccessLog::create([
-                'user_id' => $user->id,
+                'homeowner_id' => $user->id,
                 'payment_id' => $payment->id,
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -229,7 +229,7 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             // Failed decryption or error
             \App\Models\PaymentAccessLog::create([
-                'user_id' => $user->id ?? null,
+                'homeowner_id' => $user->id ?? null,
                 'payment_id' => $payment->id,
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),

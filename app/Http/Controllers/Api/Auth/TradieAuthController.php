@@ -14,7 +14,9 @@ class TradieAuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:tradies',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
@@ -41,20 +43,10 @@ class TradieAuthController extends Controller
         }
 
         try {
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'tradie',
-            ]);
-
-            $user->role = 'tradie';
-            $user->save();
-
             $tradie = Tradie::create([
-                'user_id' => $user->id,
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),
@@ -78,7 +70,9 @@ class TradieAuthController extends Controller
                 'data' => [
                     'user' => [
                         'id' => $tradie->id,
-                        'name' => $tradie->name,
+                        'first_name' => $tradie->first_name,
+                        'last_name' => $tradie->last_name,
+                        'middle_name' => $tradie->middle_name,
                         'email' => $tradie->email,
                         'phone' => $tradie->phone,
                         'business_name' => $tradie->business_name,
@@ -92,7 +86,6 @@ class TradieAuthController extends Controller
                         'service_radius' => $tradie->service_radius,
                         'availability_status' => $tradie->availability_status,
                         'status' => $tradie->status,
-                        'is_verified' => $tradie->is_verified,
                         'user_type' => 'tradie',
                     ],
                     'token' => $token,
@@ -103,7 +96,7 @@ class TradieAuthController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'REGISTRATION_ERROR',
-                    'message' => $e->getMessage(),
+                    'message' => 'Registration failed. Please try again.',
                 ]
             ], 500);
         }
