@@ -68,6 +68,16 @@ class HomeownerAuthController extends Controller
     {
         // Validate incoming request phone data
         $validator = Validator::make($request->all(), [
+            'first_name'  => 'required|string|max:255',
+            'last_name'   => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',  
+            'email' => 'required|string|email|max:255|unique:homeowners',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8|confirmed',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
             'phone' => 'required|digits_between:8,15',
         ]);
 
@@ -83,6 +93,28 @@ class HomeownerAuthController extends Controller
             ], 422);
         }
 
+        try {
+            // Create the homeowner record
+            $homeowner = Homeowner::create([
+                'first_name'  => $request->first_name,
+                'last_name'   => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'email'       => $request->email,
+                'phone'       => $request->phone,
+                'password'    => Hash::make($request->password),
+                'address'     => $request->address,
+                'city'        => $request->city,
+                'region'      => $request->region,
+                'postal_code' => $request->postal_code,
+                'status'      => 'active', 
+            ]);
+
+            // Generate API token using Laravel Sanctum
+            $token = $homeowner->createToken('homeowner-token')->plainTextToken;
+
+            // Return success response with user data and token
+            return response()->json([
+                'success' => true,
         // Generate OTP
         $otp = $this->otpService->generateOtp($request->phone);
 
