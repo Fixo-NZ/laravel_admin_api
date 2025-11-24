@@ -77,4 +77,63 @@ class PaymentController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+    public function viewDecryptedPayment(Request $request, $id)
+    {
+
+        $user = $request->user();
+
+
+        $payment = \App\Models\Payment::where('id', $id)
+            ->where('homeowner_id', $user->id)
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found or you do not have access to this record.',
+            ], 404);
+        }
+
+        // Only allow if the user is the owner or an admin (basic security)
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        }
+
+        try {
+            // Decrypt fields
+            $decrypted = [
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
+                'card_brand' => $payment->card_brand ? Crypt::decryptString($payment->card_brand) : null,
+                'card_last4number' => $payment->card_last4number ? Crypt::decryptString($payment->card_last4number) : null,
+                'exp_month' => $payment->exp_month ? Crypt::decryptString($payment->exp_month) : null,
+                'exp_year' => $payment->exp_year ? Crypt::decryptString($payment->exp_year) : null,
+            ];
+
+            // Log access
+            \App\Models\PaymentAccessLog::create([
+                'homeowner_id' => $user->id,
+                'payment_id' => $payment->id,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'success' => true,
+            ]);
+
+            return response()->json([
+                'message' => 'Decrypted data accessed successfully',
+                'data' => $decrypted,
+            ]);
+        } catch (\Exception $e) {
+            // Failed decryption or error
+            \App\Models\PaymentAccessLog::create([
+                'homeowner_id' => $user->id ?? null,
+                'payment_id' => $payment->id,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'success' => false,
+            ]);
+
+            return response()->json(['error' => 'Failed to decrypt data'], 500);
+        }
+    }
 }
