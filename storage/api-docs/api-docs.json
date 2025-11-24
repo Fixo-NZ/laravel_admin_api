@@ -1,0 +1,2263 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Fixo API Documentation",
+        "description": "L5 Swagger API documentation for Fixo API",
+        "contact": {
+            "email": "admin@example.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://my-default-host.com",
+            "description": "Demo API Server"
+        }
+    ],
+    "paths": {
+        "/api/homeowner/request-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request OTP for Homeowner",
+                "operationId": "ba18215ed768994dea6e3d9dc19d0fc8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ phone: ['The phone field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        },
+                                        "otp_code": {
+                                            "type": "string",
+                                            "example": "123456"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify OTP for Homeowner",
+                "operationId": "ca2258368eba0131aef97203135e7aec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "otp_code": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "OTP verification successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "new_user"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "OTP verification successful. Please proceed to registration."
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "existing_user"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "OTP verification successful."
+                                                },
+                                                "data": {
+                                                    "properties": {
+                                                        "user": {
+                                                            "properties": {
+                                                                "first_name": {
+                                                                    "type": "string",
+                                                                    "example": "John"
+                                                                },
+                                                                "last_name": {
+                                                                    "type": "string",
+                                                                    "example": "Doe"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string",
+                                                                    "example": "john.doe@gmail.com"
+                                                                },
+                                                                "phone": {
+                                                                    "type": "string",
+                                                                    "example": "09123456789"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "example": "active"
+                                                                },
+                                                                "user_type": {
+                                                                    "type": "string",
+                                                                    "example": "homeowner"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "authorisation": {
+                                                            "properties": {
+                                                                "access_token": {
+                                                                    "type": "string",
+                                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                                },
+                                                                "type": {
+                                                                    "type": "string",
+                                                                    "example": "Bearer"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "fddb0b641f10a4948da0fc9b8a91e29e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "middle_name": {
+                                        "type": "string",
+                                        "example": "M"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Metropolis"
+                                    },
+                                    "region": {
+                                        "type": "string",
+                                        "example": "State"
+                                    },
+                                    "postal_code": {
+                                        "type": "string",
+                                        "example": "12345"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email has already been taken.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "User registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Registration Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "REGISTRATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to register user. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login homeowner",
+                "operationId": "bd064dcd4282ba044e690c30b8211b1d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid Credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "INVALID_CREDENTIALS"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The provided credentials are incorrect."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Account Inactive",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ACCOUNT_INACTIVE"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Your account is not active. Please contact support."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/reset-password-request": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request password reset OTP for homeowner",
+                "description": "Request password reset OTP for homeowner",
+                "operationId": "481c0e745e76595b0f994cc87b6c7e52",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given email does not exist as a user."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "OTP generated and sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/reset-password": {
+            "put": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset homeowner password",
+                "description": "Reset homeowner password",
+                "operationId": "c9c89190a725e70719e48700f11821ea",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "new_password": {
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ new_password: ['The new password must be at least 8 characters.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Password reset successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password reset successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Reset Password Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "RESET_PASSWORD_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to reset password. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/homeowner/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout homeowner",
+                "operationId": "53ca0f09c6f32b96b5eb1012ff33947a",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/homeowner/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated homeowner details",
+                "operationId": "f64057d0c9bcbd32522692ad08d4bf34",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated homeowner details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tradie/request-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request OTP for Tradie",
+                "operationId": "14e87dcec4fc01bc8a4d02b1d1d885e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ phone: ['The phone field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        },
+                                        "otp_code": {
+                                            "type": "string",
+                                            "example": "123456"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify OTP for Tradie",
+                "operationId": "8a6a8377317470cf64254484c9e071cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "otp_code": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "OTP verification successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "new_user"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "OTP verification successful. Please proceed to registration."
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "existing_user"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "OTP verification successful."
+                                                },
+                                                "data": {
+                                                    "properties": {
+                                                        "user": {
+                                                            "properties": {
+                                                                "first_name": {
+                                                                    "type": "string",
+                                                                    "example": "John"
+                                                                },
+                                                                "last_name": {
+                                                                    "type": "string",
+                                                                    "example": "Doe"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string",
+                                                                    "example": "john.doe@gmail.com"
+                                                                },
+                                                                "phone": {
+                                                                    "type": "string",
+                                                                    "example": "09123456789"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "example": "active"
+                                                                },
+                                                                "user_type": {
+                                                                    "type": "string",
+                                                                    "example": "tradie"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "authorisation": {
+                                                            "properties": {
+                                                                "access_token": {
+                                                                    "type": "string",
+                                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                                },
+                                                                "type": {
+                                                                    "type": "string",
+                                                                    "example": "Bearer"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "c73bab9bc18c6d51745e541906739dab",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "middle_name": {
+                                        "type": "string",
+                                        "example": "M"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "business_name": {
+                                        "type": "string",
+                                        "example": "John's Plumbing"
+                                    },
+                                    "license_number": {
+                                        "type": "string",
+                                        "example": "LIC123456"
+                                    },
+                                    "years_experience": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "hourly_rate": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Metropolis"
+                                    },
+                                    "region": {
+                                        "type": "string",
+                                        "example": "State"
+                                    },
+                                    "postal_code": {
+                                        "type": "string",
+                                        "example": "12345"
+                                    },
+                                    "service_radius": {
+                                        "type": "integer",
+                                        "example": 50
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email has already been taken.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "User registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "business_name": {
+                                                            "type": "string",
+                                                            "example": "John's Plumbing"
+                                                        },
+                                                        "license_number": {
+                                                            "type": "string",
+                                                            "example": "LIC123456"
+                                                        },
+                                                        "years_experience": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        },
+                                                        "hourly_rate": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 50
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "service_radius": {
+                                                            "type": "integer",
+                                                            "example": 50
+                                                        },
+                                                        "availability_status": {
+                                                            "type": "string",
+                                                            "example": "available"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "tradie"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Registration Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "REGISTRATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to register user. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login tradie",
+                "operationId": "37330f2cabb0decf1322507772c2edfb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid Credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "INVALID_CREDENTIALS"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The provided credentials are incorrect."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Account Inactive",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ACCOUNT_INACTIVE"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Your account is not active. Please contact support."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "business_name": {
+                                                            "type": "string",
+                                                            "example": "John's Plumbing"
+                                                        },
+                                                        "license_number": {
+                                                            "type": "string",
+                                                            "example": "LIC123456"
+                                                        },
+                                                        "years_experience": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        },
+                                                        "hourly_rate": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 50
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "service_radius": {
+                                                            "type": "integer",
+                                                            "example": 50
+                                                        },
+                                                        "availability_status": {
+                                                            "type": "string",
+                                                            "example": "available"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "tradie"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/reset-password-request": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request password reset OTP for tradie",
+                "description": "Request password reset OTP for tradie",
+                "operationId": "5ffdd824f7a7c16edd6213db5441af95",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@gmail.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given email does not exist as a user."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "OTP generated and sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "OTP Generation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "OTP_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to generate OTP. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/reset-password": {
+            "put": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset tradie password",
+                "description": "Reset tradie password",
+                "operationId": "389a3df94cf46db2e8e6056816f55d96",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "new_password": {
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "type": "object",
+                                                    "example": "{ email: ['The email field is required.'] }"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Password reset successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password reset successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Reset Password Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "RESET_PASSWORD_ERROR"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to reset password. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tradie/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout tradie",
+                "operationId": "b7b66efff8c4d6835f4a7efdccbb3bf5",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tradie/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated tradie details",
+                "operationId": "e1c4e5a86a03910e5e260e392c026898",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated tradie details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string",
+                                                            "example": "M"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "avatar": {
+                                                            "type": "string",
+                                                            "example": "https://example.com/avatar.jpg"
+                                                        },
+                                                        "bio": {
+                                                            "type": "string",
+                                                            "example": "Experienced plumber specializing in residential repairs."
+                                                        },
+                                                        "business_name": {
+                                                            "type": "string",
+                                                            "example": "John's Plumbing"
+                                                        },
+                                                        "license_number": {
+                                                            "type": "string",
+                                                            "example": "LIC123456"
+                                                        },
+                                                        "insurance_details": {
+                                                            "type": "string",
+                                                            "example": "Insured with ABC Insurance, Policy #123456"
+                                                        },
+                                                        "years_experience": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        },
+                                                        "hourly_rate": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 50
+                                                        },
+                                                        "address": {
+                                                            "type": "string",
+                                                            "example": "123 Main St"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Metropolis"
+                                                        },
+                                                        "region": {
+                                                            "type": "string",
+                                                            "example": "State"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string",
+                                                            "example": "12345"
+                                                        },
+                                                        "latitude": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 40.7128
+                                                        },
+                                                        "longitude": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": -74.006
+                                                        },
+                                                        "service_radius": {
+                                                            "type": "integer",
+                                                            "example": 50
+                                                        },
+                                                        "availability_status": {
+                                                            "type": "string",
+                                                            "example": "available"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "tradie"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        }
+    ]
+}

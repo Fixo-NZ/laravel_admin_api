@@ -21,24 +21,31 @@ class DatabaseSeeder extends Seeder
 
         // Seed admin user
         User::factory()->create([
-            'first_name' => 'Helena ',
-            'last_name' => 'Mahinay',   
-            'middle_name' => 'Mahinay',    // single 'name' column
-            'email' => 'helenarica.mahinay@lorma.edu',
-            'password' => Hash::make("123"),
-            'role' => 'admin',                // mark as admin
-            'status' => 'active',             // mark as active
-        ]);
-       // ✅ Create Homeowners and Tradies first
-        $homeowners = Homeowner::factory(10)->create();
-        $tradies = Tradie::factory(10)->create();
-
-        // ✅ Then run ScheduleSeeder (it can now safely reference homeowner_id)
-        $this->call([
-            ScheduleSeeder::class,
+            'first_name' => 'Elijah',
+            'email' => 'elijahgarrence.delarosa@lorma.edu',
+            'password' => Hash::make("password"),
+            'status' => 'active'
         ]);
 
-        // Optionally create more users
         User::factory(10)->create();
+
+        Homeowner::factory(10)->create();
+        Tradie::factory(10)->create();
+
+        Tradie::factory()->create([
+            'first_name' => 'John',
+            'email' => 'john.example@email.com',
+            'phone' => '09987654321',
+            'password' => Hash::make("tradie123"),
+            'status' => 'active'
+        ]);
+
+        Tradie::factory()->create([
+            'first_name' => 'Elijah',
+            'email' => 'elijahgarrence.delarosa@lorma.edu',
+            'phone' => '09123456789',
+            'password' => Hash::make("tradie456"),
+            'status' => 'active'
+        ]);
     }
 }
