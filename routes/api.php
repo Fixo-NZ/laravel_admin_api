@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\Schedule;
 use App\Http\Controllers\ScheduleController;
 /*
 |--------------------------------------------------------------------------
