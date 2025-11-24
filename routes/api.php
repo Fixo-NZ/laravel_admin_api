@@ -54,16 +54,21 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-//Fetch values for calendar
-Route::get('/schedules', [ScheduleController::class, 'index']);
+// Calendar
+Route::prefix('schedules')->group(function () {
+    // Fetch values for calendar
+    Route::get('/', [ScheduleController::class, 'index']);
 
-//Send notification to homeowner via email
-Route::post('/schedules', [ScheduleController::class, 'store']);
+    // Send notification to homeowner via email
+    Route::post('/', [ScheduleController::class, 'store']);
 
-//Resched for calendar
-Route::post('/schedules/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
-//Cancel for calendar
-Route::post('/schedules/{schedule}/cancel', [ScheduleController::class, 'cancel']);
+    // Reschedule for calendar
+    Route::post('/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
+
+    // Cancel for calendar
+    Route::post('/{schedule}/cancel', [ScheduleController::class, 'cancel']);
+});
+
 // Public Job and Service Routes (POSTMAN)
 Route::prefix('jobs')->group(function () {
     Route::get('/categories', [ServiceController::class, 'index']);

@@ -9,12 +9,12 @@ class HomeownerJobOffer extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+     protected $fillable = [
         'homeowner_id',
         'service_category_id',
         'job_type',
-        'frequency',
         'preferred_date',
+        'frequency',
         'start_date',
         'end_date',
         'title',
@@ -24,6 +24,9 @@ class HomeownerJobOffer extends Model
         'latitude',
         'longitude',
         'status',
+        'start_time',
+        'end_time',
+        'rescheduled_at',
     ];
 
     protected $casts = [

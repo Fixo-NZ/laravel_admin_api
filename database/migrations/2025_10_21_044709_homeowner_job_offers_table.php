@@ -25,6 +25,11 @@ return new class extends Migration
             $table->decimal('longitude', 10, 7)->nullable();
             $table->enum('status', ['pending', 'open', 'in_progress', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
+
+            //Added for calendar
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
+            $table->timestamp('rescheduled_at')->nullable();
         });
         
         // Pivot table for selected services (multi-select)

@@ -53,11 +53,18 @@ class HomeownerJobOfferSeeder extends Seeder
                 'latitude' => fake()->latitude(10.0, 14.0),
                 'longitude' => fake()->longitude(120.0, 125.0),
                 'status' => fake()->randomElement(['pending', 'open', 'in_progress', 'completed']),
+
+                // 🔥 NEW FIELDS ADDED
+                'start_time' => fake()->dateTimeBetween('now', '+5 days'),
+                'end_time'   => fake()->dateTimeBetween('+6 days', '+20 days'),
+                'rescheduled_at' => fake()->optional()->dateTimeBetween('-5 days', 'now'),
             ]);
 
             // Attach 1–3 random services under the selected category
             if (!empty($relatedServices)) {
-                $jobOffer->services()->attach(fake()->randomElements($relatedServices, rand(1, min(3, count($relatedServices)))));
+                $jobOffer->services()->attach(
+                    fake()->randomElements($relatedServices, rand(1, min(3, count($relatedServices))))
+                );
             }
 
             // Create fake photos (simulate uploads)
@@ -65,16 +72,15 @@ class HomeownerJobOfferSeeder extends Seeder
                 $fileName = "job_" . uniqid() . "_{$i}.jpg";
                 $filePath = "uploads/job_photos/{$fileName}";
 
-                // Generate a placeholder image from a public URL (only for local seeding)
+                // Generate a placeholder image
                 try {
                     $imageContent = file_get_contents('https://via.placeholder.com/600x400');
                     Storage::disk('public')->put($filePath, $imageContent);
                 } catch (\Exception $e) {
-                    // fallback if URL is blocked
                     Storage::disk('public')->put($filePath, 'placeholder image content');
                 }
 
-                // Insert record
+                // Insert photo record
                 DB::table('job_offer_photos')->insert([
                     'job_offer_id' => $jobOffer->id,
                     'file_path' => $filePath,
@@ -86,6 +92,6 @@ class HomeownerJobOfferSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Homeowner job offers successfully seeded with categories, services, and photos.');
+        $this->command->info('✅ Homeowner job offers successfully seeded with times and rescheduled_at.');
     }
 }
