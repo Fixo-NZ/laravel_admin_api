@@ -2,22 +2,20 @@
 
 namespace Database\Factories;
 
+use App\Models\Homeowner;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Homeowner>
- */
 class HomeownerFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Homeowner::class;
+
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'middle_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'email_verified_at' => now(),
@@ -30,7 +28,8 @@ class HomeownerFactory extends Factory
             'postal_code' => fake()->postcode(),
             'latitude' => fake()->latitude(-47, -34),
             'longitude' => fake()->longitude(166, 179),
-            'status' => 'active',
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended']),
         ];
+
     }
 }

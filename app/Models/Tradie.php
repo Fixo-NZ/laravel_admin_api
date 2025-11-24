@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 
 class Tradie extends Authenticatable
@@ -38,7 +39,10 @@ class Tradie extends Authenticatable
 
     protected $hidden = [
         'password',
+        'email_verified_at',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -49,6 +53,11 @@ class Tradie extends Authenticatable
         'hourly_rate' => 'decimal:2',
         'verified_at' => 'datetime',
     ];
+
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
 
     // Scopes
     public function scopeActive($query)
@@ -147,38 +156,38 @@ class Tradie extends Authenticatable
             ->withTimestamps();
     }
 
-    public function jobApplications()
-    {
-        return $this->hasMany(JobApplication::class);
-    }
+    // public function jobApplications()
+    // {
+    //     return $this->hasMany(JobApplication::class);
+    // }
 
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
 
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
+    // public function sentMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'sender_id');
+    // }
 
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'receiver_id');
-    }
+    // public function receivedMessages()
+    // {
+    //     return $this->hasMany(Message::class, 'receiver_id');
+    // }
 
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'reviewer_id');
-    }
+    // public function reviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewer_id');
+    // }
 
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'reviewee_id');
-    }
+    // public function receivedReviews()
+    // {
+    //     return $this->hasMany(Review::class, 'reviewee_id');
+    // }
 
-    public function favoriteHomeowners()
-    {
-        return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
-    }
+    // public function favoriteHomeowners()
+    // {
+    //     return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
+    // }
 }
