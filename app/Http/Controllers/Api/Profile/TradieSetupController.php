@@ -292,15 +292,16 @@ class TradieSetupController extends Controller
 
 public function updateAvatar(Request $request)
 {
-     \Log::info('📸 Avatar upload received', [
+    \Log::info('📸 Avatar upload received', [
         'has_file' => $request->hasFile('avatar'),
         'file' => $request->file('avatar'),
         'all_inputs' => $request->all(),
         'auth_user' => auth()->user()?->id,
     ]);
-    
+
+    // ✅ Validate file (5MB limit)
     $validator = Validator::make($request->all(), [
-        'avatar' => 'required|image|mimes:jpg,jpeg,png|max:5120', // max 5MB
+        'avatar' => 'required|image|mimes:jpg,jpeg,png|max:5120',
     ]);
 
     if ($validator->fails()) {
@@ -309,7 +310,7 @@ public function updateAvatar(Request $request)
             'error' => [
                 'code' => 'VALIDATION_ERROR',
                 'message' => 'Invalid avatar file',
-                'details' => $validator->errors()
+                'details' => $validator->errors(),
             ]
         ], 422);
     }
@@ -322,42 +323,45 @@ public function updateAvatar(Request $request)
                 'success' => false,
                 'error' => [
                     'code' => 'NOT_FOUND',
-                    'message' => 'Tradie not found'
+                    'message' => 'Tradie not found',
                 ]
             ], 404);
         }
 
-        // ✅ Delete old avatar if exists
+        // ✅ Delete old avatar if it exists
         if ($tradie->avatar && Storage::disk('public')->exists($tradie->avatar)) {
             Storage::disk('public')->delete($tradie->avatar);
         }
 
-        // ✅ Store new avatar
+        // ✅ Store new avatar under "storage/app/public/avatars"
         $path = $request->file('avatar')->store('avatars', 'public');
 
-        // ✅ Update database
+        // ✅ Save new avatar path
         $tradie->update(['avatar' => $path]);
+
+        // ✅ Return public URL using Storage::url()
+        $avatarUrl = $tradie->avatar ? asset(Storage::url($tradie->avatar)) : null;
 
         return response()->json([
             'success' => true,
             'data' => [
                 ...$tradie->toArray(),
-                'avatar_url' => $tradie->avatar 
-                    ? asset('storage/' . $tradie->avatar)
-                    : null,
-            ]
+                'avatar_url' => $avatarUrl,
+            ],
         ]);
 
     } catch (\Exception $e) {
+        \Log::error('❌ Avatar upload failed: ' . $e->getMessage());
         return response()->json([
             'success' => false,
             'error' => [
                 'code' => 'UPDATE_ERROR',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]
         ], 500);
     }
 }
+
 
 
 
