@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel; // Import the Panel class
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -19,10 +20,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'middle_name',
         'email',
         'role',
         'password',
+        'role',
+        'status',
+        'phone',
+        'location',
     ];
     protected $guard_name = 'web';
 
@@ -35,10 +42,12 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -49,9 +58,45 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    // =========================================================================
+    // Problem : Filament expects a 'name' attribute, but our User model uses 'first_name' and 'last_name'.
+    // This causes issues in the Filament admin panel where it tries to display the user's name
+    // and as such filament displays as Filament User
+    // =========================================================================
 
-    public function homeowner()
+
+    // =========================================================================
+    // FIX 1: DEFINE A VIRTUAL 'name' ATTRIBUTE FOR FILAMENT
+    // This combines first_name and last_name, which is what Filament expects.
+    // =========================================================================
+    protected function name(): Attribute
     {
-        return $this->hasOne(Homeowner::class);
+        return Attribute::make(
+            get: fn () => $this->first_name . ' ' . $this->last_name,
+        );
     }
+    
+    // =========================================================================
+    // FIX 2: Implement getFilamentName() correctly (Optional but good practice)
+    // This is used by Filament when it needs the user's name specifically.
+    // We can rely on the 'name' attribute we just created.
+    // =========================================================================
+    public function getFilamentName(): string
+    {
+        // $this->name will now call the accessor above
+        return $this->name;
+    }
+
+    // =========================================================================
+    // FILAMENT ACCESS CONTROL
+    // =========================================================================
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // For a basic setup, returning true allows all logged-in users.
+        // If you need role-based access, implement it here (e.g., return $this->role === 'admin';)
+        return true;
+    }
+
+    // --- Relationships for Homeowner modal ---
+    // (Keep your relationships here if they were part of the original model)
 }
