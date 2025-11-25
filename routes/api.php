@@ -5,6 +5,16 @@ use App\Http\Controllers\Api\Auth\TradieAuthController;
 use App\Http\Controllers\PaymentController; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SupportTicketController;
+
+// Support Ticket Routes
+Route::prefix('support')->group(function () {
+    Route::post('/tickets', [SupportTicketController::class, 'store']);    // Create
+    Route::get('/tickets', [SupportTicketController::class, 'index']);    // Read all
+    Route::get('/tickets/{id}', [SupportTicketController::class, 'show']); // Read one
+    Route::put('/tickets/{id}', [SupportTicketController::class, 'update']); // Update
+    Route::delete('/tickets/{id}', [SupportTicketController::class, 'destroy']); // Delete
+});
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {

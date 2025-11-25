@@ -70,9 +70,8 @@ class HomeownerAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name'  => 'required|string|max:255',
             'last_name'   => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',  
+            'middle_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:homeowners',
-            'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'address' => 'nullable|string|max:500',
             'city' => 'nullable|string|max:100',
@@ -94,48 +93,36 @@ class HomeownerAuthController extends Controller
         }
 
         try {
-            // Create the homeowner record
-            $homeowner = Homeowner::create([
-                'first_name'  => $request->first_name,
-                'last_name'   => $request->last_name,
-                'middle_name' => $request->middle_name,
-                'email'       => $request->email,
-                'phone'       => $request->phone,
-                'password'    => Hash::make($request->password),
-                'address'     => $request->address,
-                'city'        => $request->city,
-                'region'      => $request->region,
-                'postal_code' => $request->postal_code,
-                'status'      => 'active', 
-            ]);
+            // Generate OTP
+            $otp = $this->otpService->generateOtp($request->phone);
 
-            // Generate API token using Laravel Sanctum
-            $token = $homeowner->createToken('homeowner-token')->plainTextToken;
+            // Check if otp is generated
+            if ($otp) {
+                // OTP generated successfully
+                return response()->json([
+                    'success' => true,
+                    'message' => 'OTP sent successfully',
+                    'otp_code' => $otp->otp_code
+                ], 201);
+            }
 
-            // Return success response with user data and token
+            // OTP generation failed
             return response()->json([
-                'success' => true,
-        // Generate OTP
-        $otp = $this->otpService->generateOtp($request->phone);
-
-        // Check if otp is generated
-        if ($otp) {
-            // OTP generated successfully
+                'success' => false,
+                'error' => [
+                    'code' => 'OTP_ERROR',
+                    'message' => 'Failed to generate OTP. Please try again.',
+                ]
+            ], 500);
+        } catch (\Exception $e) {
             return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully',
-                'otp_code' => $otp->otp_code
-            ], 201);
+                'success' => false,
+                'error' => [
+                    'code' => 'OTP_ERROR',
+                    'message' => 'Failed to process request. ' . $e->getMessage(),
+                ]
+            ], 500);
         }
-
-        // OTP generation failed
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'OTP_ERROR',
-                'message' => 'Failed to generate OTP. Please try again.',
-            ]
-        ], 500);
     }
 
 
