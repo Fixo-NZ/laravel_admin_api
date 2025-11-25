@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('homeowner_id')->constrained('homeowners')->cascadeOnDelete();
             $table->foreignId('service_category_id')->constrained('service_categories')->cascadeOnDelete();
+            $table->foreignId('tradie_id')->nullable()->constrained('tradies')->nullOnDelete();
             $table->enum('job_type', ['standard', 'urgent', 'recurrent'])->default('standard');
             $table->date('preferred_date')->nullable();
             $table->enum('frequency', ['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'custom'])->nullable();
@@ -27,8 +28,8 @@ return new class extends Migration
             $table->timestamps();
 
             //Added for calendar
-            $table->dateTime('start_time');
-            $table->dateTime('end_time');
+            $table->dateTime('start_time')->nullable();
+            $table->dateTime('end_time')->nullable();
             $table->timestamp('rescheduled_at')->nullable();
         });
         

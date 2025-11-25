@@ -62,12 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Calendar
-Route::prefix('schedules')->group(function () {
+Route::prefix('schedules')->middleware('auth:sanctum')->group(function () {
     // Fetch values for calendar
     Route::get('/', [ScheduleController::class, 'index']);
-
-    // Send notification to homeowner via email
-    Route::post('/', [ScheduleController::class, 'store']);
 
     // Reschedule for calendar
     Route::post('/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);

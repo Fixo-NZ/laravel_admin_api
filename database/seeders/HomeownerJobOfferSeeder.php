@@ -9,23 +9,21 @@ use App\Models\Homeowner;
 use App\Models\HomeownerJobOffer;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\Tradie;
 
 class HomeownerJobOfferSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure upload directory exists
         Storage::disk('public')->makeDirectory('uploads/job_photos');
 
-        // Ensure we have homeowners
         if (Homeowner::count() === 0) {
             Homeowner::factory()->count(3)->create();
         }
 
         $homeowners = Homeowner::all();
-
-        // Retrieve existing categories & services
         $categories = ServiceCategory::with('services')->get();
+        $tradies = Tradie::all(); // get all tradies
 
         if ($categories->isEmpty() || $categories->pluck('services')->flatten()->isEmpty()) {
             $this->command->warn('⚠️ No service categories or services found. Run ServiceSeeder first.');
@@ -33,11 +31,9 @@ class HomeownerJobOfferSeeder extends Seeder
         }
 
         foreach ($homeowners as $homeowner) {
-            // Pick a random category with at least 1 service
             $category = $categories->random();
             $relatedServices = $category->services->pluck('id')->toArray();
 
-            // Create job offer
             $jobOffer = HomeownerJobOffer::create([
                 'homeowner_id' => $homeowner->id,
                 'service_category_id' => $category->id,
@@ -53,26 +49,24 @@ class HomeownerJobOfferSeeder extends Seeder
                 'latitude' => fake()->latitude(10.0, 14.0),
                 'longitude' => fake()->longitude(120.0, 125.0),
                 'status' => fake()->randomElement(['pending', 'open', 'in_progress', 'completed']),
-
-                // 🔥 NEW FIELDS ADDED
                 'start_time' => fake()->dateTimeBetween('now', '+5 days'),
                 'end_time'   => fake()->dateTimeBetween('+6 days', '+20 days'),
                 'rescheduled_at' => fake()->optional()->dateTimeBetween('-5 days', 'now'),
+
+                // Assign a tradie randomly or leave null
+                'tradie_id' => fake()->optional()->randomElement($tradies->pluck('id')->toArray()),
             ]);
 
-            // Attach 1–3 random services under the selected category
             if (!empty($relatedServices)) {
                 $jobOffer->services()->attach(
                     fake()->randomElements($relatedServices, rand(1, min(3, count($relatedServices))))
                 );
             }
 
-            // Create fake photos (simulate uploads)
             foreach (range(1, 2) as $i) {
                 $fileName = "job_" . uniqid() . "_{$i}.jpg";
                 $filePath = "uploads/job_photos/{$fileName}";
 
-                // Generate a placeholder image
                 try {
                     $imageContent = file_get_contents('https://via.placeholder.com/600x400');
                     Storage::disk('public')->put($filePath, $imageContent);
@@ -80,7 +74,6 @@ class HomeownerJobOfferSeeder extends Seeder
                     Storage::disk('public')->put($filePath, 'placeholder image content');
                 }
 
-                // Insert photo record
                 DB::table('job_offer_photos')->insert([
                     'job_offer_id' => $jobOffer->id,
                     'file_path' => $filePath,
@@ -92,6 +85,6 @@ class HomeownerJobOfferSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Homeowner job offers successfully seeded with times and rescheduled_at.');
+        $this->command->info('✅ Homeowner job offers successfully seeded with tradie_id, times, and rescheduled_at.');
     }
 }

@@ -13,56 +13,20 @@ class ScheduleController extends Controller
     /**
      * Fetch all schedules (job offers with start/end time)
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Load homeowner info
+        // Get the currently authenticated tradie
+        $tradie = $request->user(); 
+        $tradieId = $tradie->id;
+
+        // Load schedules (job offers) for this tradie with homeowner info
         $offers = HomeownerJobOffer::with('homeowner:id,first_name,last_name,middle_name,email,address,phone')
+            ->where('tradie_id', $tradieId) // only schedules assigned to this tradie
             ->get();
 
         return response()->json([
             'schedules' => $offers,
         ]);
-    }
-
-    /**
-     * Create a new schedule (job offer event)
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'homeowner_id' => 'required|exists:homeowners,id',
-            'service_category_id' => 'required|exists:service_categories,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'job_type' => 'required|in:standard,urgent,recurrent',
-            'job_size' => 'required|in:small,medium,large',
-
-            // Schedule fields
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-
-            // Optional
-            'preferred_date' => 'nullable|date',
-            'frequency' => 'nullable|in:daily,weekly,monthly,quarterly,yearly,custom',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'address' => 'required|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-        ]);
-
-        $jobOffer = HomeownerJobOffer::create($request->all());
-
-        // Notify homeowner
-        $homeowner = Homeowner::find($request->homeowner_id);
-        if ($homeowner) {
-            $homeowner->notify(new ScheduleNotification($jobOffer));
-        }
-
-        return response()->json([
-            'message' => 'Schedule created successfully and homeowner notified.',
-            'schedule' => $jobOffer,
-        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -88,7 +52,7 @@ class ScheduleController extends Controller
             $schedule->update([
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
-                'status' => 'pending',           // or 'rescheduled' if you prefer
+                'status' => 'in_progress',           // or 'rescheduled' if you prefer
                 'rescheduled_at' => now(),
             ]);
 

@@ -13,3 +13,14 @@ To generate sample schedule data, run the following:
 
 ```bash
 php artisan db:seed
+
+
+Then
+
+php artisan tinker
+
+$user = App\Models\User::find(1); // replace 1 with the correct user ID
+$token = $user->createToken('PostmanToken')->plainTextToken;
+echo $token;
+
+to test

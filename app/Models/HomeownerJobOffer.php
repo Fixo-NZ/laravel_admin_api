@@ -9,9 +9,10 @@ class HomeownerJobOffer extends Model
 {
     use HasFactory;
 
-     protected $fillable = [
+    protected $fillable = [
         'homeowner_id',
         'service_category_id',
+        'tradie_id',          
         'job_type',
         'preferred_date',
         'frequency',
@@ -65,6 +66,12 @@ class HomeownerJobOffer extends Model
     public function photos()
     {
         return $this->hasMany(JobOfferPhoto::class, 'job_offer_id');
+    }
+
+    // Belongs to a tradie (nullable)
+    public function tradie()
+    {
+        return $this->belongsTo(Tradie::class);
     }
 
     /*
