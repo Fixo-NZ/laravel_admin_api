@@ -148,7 +148,7 @@ class TradieAuthController extends Controller
      *                         @OA\Property(property="status", type="string", example="active"),
      *                         @OA\Property(property="user_type", type="string", example="tradie"),
      *                     ),
-     *                     @OA\Property(property="authorisation", type="object",
+     *                     @OA\Property(property="authorization", type="object",
      *                         @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
      *                         @OA\Property(property="type", type="string", example="Bearer"),
      *                     )
@@ -217,7 +217,7 @@ class TradieAuthController extends Controller
                         'user_type' => 'tradie',
                     ],
                 ],
-                'authorisation' => [
+                'authorization' => [
                     'access_token' => $token,
                     'type' => 'Bearer',
                 ],
