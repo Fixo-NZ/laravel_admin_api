@@ -17,20 +17,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
+        User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
-        ]);
-        // User::factory(10)->create();
-
-        // Seed admin user
-        User::factory()->create([
-            'first_name' => 'Elijah',
-            'email' => 'elijahgarrence.delarosa@lorma.edu',
-            'password' => Hash::make("password"),
-            'status' => 'active'
         ]);
 
         User::factory(10)->create();
@@ -43,14 +34,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'john.example@email.com',
             'phone' => '09987654321',
             'password' => Hash::make("tradie123"),
-            'status' => 'active'
-        ]);
-
-        Tradie::factory()->create([
-            'first_name' => 'Elijah',
-            'email' => 'elijahgarrence.delarosa@lorma.edu',
-            'phone' => '09123456789',
-            'password' => Hash::make("tradie456"),
             'status' => 'active'
         ]);
     }
