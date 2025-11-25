@@ -5,6 +5,15 @@ use App\Http\Controllers\Api\Auth\TradieAuthController;
 use App\Http\Controllers\PaymentController; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
+
+// Booking Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/bookings', [BookingController::class, 'index']); // View bookings
+    Route::post('/bookings', [BookingController::class, 'store']); // Create booking
+    Route::put('/bookings/{id}', [BookingController::class, 'update']); // Update booking
+    Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']); // Cancel booking
+});
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
