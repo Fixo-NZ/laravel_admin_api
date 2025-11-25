@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payment_access_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('homeowner_id')->nullable();
             $table->unsignedBigInteger('payment_id')->nullable();
             $table->string('action')->default('decrypt_view');
             $table->string('ip', 45)->nullable();
