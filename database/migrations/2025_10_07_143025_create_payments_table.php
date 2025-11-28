@@ -18,10 +18,10 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('currency')->default('usd');
             $table->string('status')->default('pending');
-            $table->text('card_brand')->nullable();
-            $table->text('card_last4number', 4)->nullable();
-            $table->text('exp_month')->nullable();
-            $table->text('exp_year')->nullable();
+            $table->string('card_brand')->nullable();
+            $table->string('card_last4number', 4)->nullable();
+            $table->string('exp_month')->nullable();
+            $table->string('exp_year')->nullable();
             $table->timestamps();
         });
     }
