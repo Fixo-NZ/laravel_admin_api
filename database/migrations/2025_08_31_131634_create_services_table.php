@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('services', function (Blueprint $table) {
-            $table->bigIncrements('job_id');
+            $table->id();
             $table->unsignedBigInteger('homeowner_id');
-            $table->unsignedBigInteger('job_categoryid');
+            $table->unsignedBigInteger('job_category_id'); // matches new naming
             $table->text('job_description');
             $table->string('location', 255);
             $table->enum('status', ['Pending', 'InProgress', 'Completed', 'Cancelled']);
-            $table->dateTime('createdAt');
-            $table->dateTime('updatedAt');
             $table->tinyInteger('rating')->nullable();
+            $table->timestamps();
 
             $table->foreign('homeowner_id')->references('id')->on('homeowners')->onDelete('cascade');
-            $table->foreign('job_categoryid')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
         });
     }
 
