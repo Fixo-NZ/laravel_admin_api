@@ -2,13 +2,13 @@
 
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
-use App\Http\Controllers\PaymentController; 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-<<<<<<< HEAD
-=======
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TradieRecommendationController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\JobController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -20,10 +20,8 @@ use App\Http\Controllers\ServiceController;
 |
 */
 
-
 // Create backend API to fetch recommended tradies for a given job request. (G4 - #52)
 Route::get('/jobs/{jobId}/recommend-tradies', [TradieRecommendationController::class, 'recommend']);
->>>>>>> bf01661 (Refracted jobs table to service table to be able to accompany with other groups. Adjusted unit testing and passed all.)
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
@@ -69,12 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
-<<<<<<< HEAD
-=======
 
 // Service API Resource Routes
 Route::apiResource('services', ServiceController::class);
 
 // Job API Resource Routes
 Route::apiResource('jobs', JobController::class);
->>>>>>> bf01661 (Refracted jobs table to service table to be able to accompany with other groups. Adjusted unit testing and passed all.)

@@ -28,22 +28,15 @@ class Service extends Model
         return $this->belongsTo(Homeowner::class, 'homeowner_id');
     }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class, 'job_categoryid');
-    }
-
-<<<<<<< HEAD
-    // public function jobs()
+    // public function category()
     // {
-    //     return $this->hasMany(Job::class);
+    //     return $this->belongsTo(Category::class, 'job_categoryid');
     // }
-=======
+
     public function jobs()
     {
         return $this->hasMany(Job::class);
     }
->>>>>>> bf01661 (Refracted jobs table to service table to be able to accompany with other groups. Adjusted unit testing and passed all.)
 
     // Static methods
     public static function getCategories()

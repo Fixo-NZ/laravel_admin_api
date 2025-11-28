@@ -161,10 +161,10 @@ class Tradie extends Authenticatable
     //     return $this->hasMany(JobApplication::class);
     // }
 
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
-    }
+    // public function bookings()
+    // {
+    //     return $this->hasMany(Booking::class);
+    // }
 
     // public function sentMessages()
     // {
