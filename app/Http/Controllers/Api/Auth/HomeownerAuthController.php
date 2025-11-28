@@ -511,11 +511,30 @@ class HomeownerAuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => 3600 * 24, // 24 hours
-            'data'    => [
-                'user'  => $homeowner,
+            'data' => [
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'last_name' => $homeowner->last_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'email' => $homeowner->email,
+                    'phone' => $homeowner->phone,
+                    'business_name' => $homeowner->business_name,
+                    'license_number' => $homeowner->license_number,
+                    'years_experience' => $homeowner->years_experience,
+                    'hourly_rate' => $homeowner->hourly_rate,
+                    'address' => $homeowner->address,
+                    'city' => $homeowner->city,
+                    'region' => $homeowner->region,
+                    'postal_code' => $homeowner->postal_code,
+                    'service_radius' => $homeowner->service_radius,
+                    'availability_status' => $homeowner->availability_status,
+                    'status' => $homeowner->status,
+                    'user_type' => 'tradie',
+                ],
                 'token' => $token,
-            ],
-        ], 200);
+            ]
+        ]);
     }
 
     /**
