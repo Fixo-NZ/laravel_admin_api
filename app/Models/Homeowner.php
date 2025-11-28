@@ -109,13 +109,13 @@ class Homeowner extends Authenticatable
     // ─── Relationships (commented out as requested) ───────────────
     // These are kept here for later use but are currently disabled.
 
-    // public function bookings()
-    // {
-    //     return $this->hasMany(Booking::class);
-    // }
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 
-    // public function favoriteTradies()
-    // {
-    //     return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
-    // }
+    public function favoriteTradies()
+    {
+        return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
+    }
 }

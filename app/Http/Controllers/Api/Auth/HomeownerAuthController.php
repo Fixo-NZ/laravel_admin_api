@@ -317,7 +317,7 @@ class HomeownerAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name'  => 'required|string|max:255',
             'last_name'   => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',   
+            'middle_name' => 'required|string|max:255',
             'email'       => 'required|string|email|max:255|unique:homeowners,email',
             'phone'       => 'nullable|string|max:20',
             'password'    => 'required|string|min:8|confirmed',
@@ -352,7 +352,7 @@ class HomeownerAuthController extends Controller
                 'city'        => $request->city,
                 'region'      => $request->region,
                 'postal_code' => $request->postal_code,
-                'status'      => 'active', 
+                'status'      => 'active',
             ]);
 
             // Generate API token using Laravel Sanctum
@@ -361,6 +361,9 @@ class HomeownerAuthController extends Controller
             // Return success response with user data and token
             return response()->json([
                 'success' => true,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => 3600 * 24, // 24 hours
                 'data'    => [
                     'user'  => $homeowner,
                     'token' => $token,
@@ -505,6 +508,9 @@ class HomeownerAuthController extends Controller
         // Return success response with token
         return response()->json([
             'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600 * 24, // 24 hours
             'data'    => [
                 'user'  => $homeowner,
                 'token' => $token,
@@ -578,7 +584,7 @@ class HomeownerAuthController extends Controller
 
         // Find homeowner by email
         $homeowner = Homeowner::where('email', $request->email)->first();
-        
+
         // Generate OTP
         $otp = $this->otpService->generateOtp($homeowner->phone);
 
@@ -592,8 +598,7 @@ class HomeownerAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             // OTP generation failed
             return response()->json([
                 'success' => false,
