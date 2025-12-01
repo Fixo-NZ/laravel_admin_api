@@ -35,13 +35,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
     protected static ?string $model = HomeownerJobOffer::class;
 
     // Icon to display in the sidebar (use Heroicons names)
-    protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
+    protected static ?string $navigationIcon = null;
     
     // Label for the navigation item 
     protected static ?string $navigationLabel = 'Job Postings';
     
     // Navigation group in the sidebar
-    protected static ?string $navigationGroup = 'Jobs';
+    protected static ?string $navigationGroup = 'Job Oversight';
 
     // Model Label
     protected static ?string $modelLabel = 'Job Post';
@@ -52,6 +52,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
     // Default sort to display the newest jobs first
     protected static ?string $defaultSort = 'created_at';
     protected static ?string $defaultSortDirection = 'desc';
+
+    // Auto-refresh interval (in seconds)
+    protected static int $pollingInterval = 5;
 
 
     // ============================================================

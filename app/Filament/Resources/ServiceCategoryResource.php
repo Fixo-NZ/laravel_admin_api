@@ -18,6 +18,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceCategoryResource extends Resource
 {
@@ -29,13 +30,13 @@ class ServiceCategoryResource extends Resource
     protected static ?string $model = ServiceCategory::class;
 
     // Icon to display in the sidebar (use Heroicons names)
-    protected static ?string $navigationIcon = 'heroicon-o-cube';
+    protected static ?string $navigationIcon = null;
 
     // Label for the navigation item 
     protected static ?string $navigationLabel = 'Service Categories';
 
     // Navigation group in the sidebar
-    protected static ?string $navigationGroup = 'Jobs';
+    protected static ?string $navigationGroup = 'Job Oversight';
 
     // Model Label
     protected static ?string $modelLabel = 'Service Category';
@@ -43,6 +44,8 @@ class ServiceCategoryResource extends Resource
     // Slug for the resource URLs
     protected static ?string $slug = 'jobs/service-categories';
 
+    // Auto-refresh interval (in seconds)
+    protected static int $pollingInterval = 5;
 
 
     // ============================================================
@@ -90,12 +93,11 @@ class ServiceCategoryResource extends Resource
                 // Icon Preview Column
                 TextColumn::make('icon')
                     ->label('Icon')
-                    ->formatStateUsing(fn($state, $record) => $record->icon
-                        ? new HtmlString('<img src="' . asset('storage/icons/' . $record->icon . '.svg') . '" 
+                    ->formatStateUsing(fn($state, $record) => $state && Storage::disk('public')->exists('icons/' . $state)
+                        ? new HtmlString('<img src="' . Storage::url('icons/' . $state) . '" 
                             alt="' . e($record->name) . '" class="w-6 h-6 inline-block">')
                         : new HtmlString('<span class="text-gray-400 italic">No Icon</span>')
                     )
-                    ->tooltip(fn($record) => $record->icon ? $record->icon . '.svg' : 'No icon assigned')
                     ->sortable(),
 
                 // Name Column (separate)

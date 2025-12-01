@@ -30,19 +30,22 @@ class ServiceResource extends Resource
     protected static ?string $model = Service::class;
 
     // Icon to display in the sidebar (use Heroicons names)
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
+    protected static ?string $navigationIcon = null;
     
     // Label for the navigation item 
     protected static ?string $navigationLabel = 'Services';
 
     // Navigation group in the sidebar
-    protected static ?string $navigationGroup = 'Jobs';
+    protected static ?string $navigationGroup = 'Job Oversight';
     
     // Model Label
     protected static ?string $modelLabel = 'Services';
 
     // Slug for the resource URLs
     protected static ?string $slug = 'jobs/services';
+
+    // Auto-refresh interval (in seconds)
+    protected static int $pollingInterval = 5;
 
     // ============================================================
     // FORM DEFINITION

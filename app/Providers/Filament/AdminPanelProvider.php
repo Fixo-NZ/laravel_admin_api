@@ -83,7 +83,8 @@ class AdminPanelProvider extends PanelProvider
                     ->collapsible() // makes it expandable/collapsible
                     ->collapsed(),  // starts collapsed by default
 
-                \Filament\Navigation\NavigationGroup::make('Jobs')
+                \Filament\Navigation\NavigationGroup::make('Job Oversight')
+                    ->icon('heroicon-o-briefcase')
                     ->collapsible()
                     ->collapsed(),
             ])
