@@ -8,11 +8,7 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('jobs', function (Blueprint $table) {
-<<<<<<< HEAD
             $table->decimal('budget_min', 8, 2)->nullable()->after('status');
-=======
-            $table->decimal('budget_min', 8, 2)->nullable();
->>>>>>> 24172d873ef38a8fa72e08a82046ccf88c100ee2
             $table->decimal('budget_max', 8, 2)->nullable()->after('budget_min');
         });
     }

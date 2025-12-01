@@ -156,23 +156,10 @@ class Tradie extends Authenticatable
             ->withTimestamps();
     }
 
-<<<<<<< HEAD
     // public function jobApplications()
     // {
     //     return $this->hasMany(JobApplication::class);
     // }
-=======
-    // Relationship for skills
-    public function skills()
-    {
-        return $this->hasMany(Skill::class);
-    }
-
-    public function jobApplications()
-    {
-        return $this->hasMany(JobApplication::class);
-    }
->>>>>>> 24172d873ef38a8fa72e08a82046ccf88c100ee2
 
     // public function bookings()
     // {
@@ -194,7 +181,6 @@ class Tradie extends Authenticatable
     //     return $this->hasMany(Review::class, 'reviewer_id');
     // }
 
-<<<<<<< HEAD
     // public function receivedReviews()
     // {
     //     return $this->hasMany(Review::class, 'reviewee_id');
@@ -204,16 +190,4 @@ class Tradie extends Authenticatable
     // {
     //     return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
     // }
-=======
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'reviewed_id');
-    }
-
-
-    public function favoriteHomeowners()
-    {
-        return $this->belongsToMany(Homeowner::class, 'user_favorites', 'favorited_user_id', 'user_id');
-    }
->>>>>>> 24172d873ef38a8fa72e08a82046ccf88c100ee2
 }
