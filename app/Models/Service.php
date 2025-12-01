@@ -9,8 +9,13 @@ class Service extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'job_id';
-    public $timestamps = false;
+    // protected $primaryKey = 'job_id';
+
+    // public $timestamps = false;
+
+    protected $primaryKey = 'id'; // matches PostgreSQL table
+    public $timestamps = true; // enable timestamps
+
 
     protected $fillable = [
         'homeowner_id',
@@ -46,5 +51,11 @@ class Service extends Model
             ->pluck('category')
             ->sort()
             ->values();
+    }
+
+    public function tradies()
+    {
+        return $this->belongsToMany(Tradie::class, 'tradie_services', 'service_id', 'tradie_id')
+            ->withTimestamps();
     }
 }

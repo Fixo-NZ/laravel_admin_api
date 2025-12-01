@@ -7,6 +7,7 @@ use App\Http\Controllers\TradieRecommendationController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\BookingController;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UrgentBookingController;
@@ -23,6 +24,28 @@ use App\Http\Controllers\UrgentBookingController;
 
 // Create backend API to fetch recommended tradies for a given job request. (G4 - #52)
 Route::get('/jobs/{jobId}/recommend-tradies', [TradieRecommendationController::class, 'recommend']);
+
+// Service tradie recommendations (bridge to existing Job-based recommender)
+Route::middleware('auth:sanctum')->get('/services/{serviceId}/recommend-tradies', function ($serviceId) {
+    $service = Service::findOrFail($serviceId);
+    
+    // Find JobRequest that matches this service (by homeowner and category)
+    $jobRequest = \App\Models\JobRequest::where('homeowner_id', $service->homeowner_id)
+        ->where('job_category_id', $service->job_categoryid)
+        ->where('status', '!=', 'cancelled')
+        ->first();
+    
+    if (!$jobRequest) {
+        return response()->json([
+            'success' => true,
+            'message' => 'No job request found for this service. Please create a job request first.',
+            'data' => [],
+        ], 200);
+    }
+    
+    return app(TradieRecommendationController::class)
+        ->recommend($jobRequest->id);
+});
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {

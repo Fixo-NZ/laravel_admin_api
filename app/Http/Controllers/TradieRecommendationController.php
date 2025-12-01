@@ -16,10 +16,19 @@ class TradieRecommendationController extends Controller
      */
     public function recommend($jobId)
     {
-        // 1️⃣  Load job request with required details
+        // 1) Load job request; may be null if ID is invalid
         $job = JobRequest::with('category')
             ->where('status', '!=', 'cancelled')
-            ->findOrFail($jobId);
+            ->find($jobId);
+
+        // If no matching job, return empty list instead of throwing
+        if (!$job) {
+            return response()->json([
+                'success' => true,
+                'message' => 'No available tradie found for this job request.',
+                'data'    => [],
+            ], 200);
+        }
 
         // Extract job details
         $latitude   = $job->latitude;
@@ -46,7 +55,7 @@ class TradieRecommendationController extends Controller
         if (!is_null($budget)) {
             $query->where(function ($q) use ($budget) {
                 $q->whereNull('hourly_rate')
-                  ->orWhere('hourly_rate', '<=', $budget);
+                    ->orWhere('hourly_rate', '<=', $budget);
             });
         }
 
