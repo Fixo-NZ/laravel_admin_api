@@ -13,8 +13,15 @@ return new class extends Migration
     {
         Schema::create('tradie_services', function (Blueprint $table) {
             $table->id();
+<<<<<<< HEAD
             $table->unsignedBigInteger('service_id'); // foreign key
             $table->unsignedBigInteger('tradie_id');  // foreign key
+=======
+            $table->foreignId('tradie_id')->constrained('tradies')->onDelete('cascade');
+            $table->unsignedBigInteger('service_id');
+            $table->foreign('service_id')->references('job_id')->on('services')->onDelete('cascade');
+            $table->decimal('base_rate', 8, 2)->nullable();
+>>>>>>> 24172d873ef38a8fa72e08a82046ccf88c100ee2
             $table->timestamps();
 
             $table->foreign('service_id')

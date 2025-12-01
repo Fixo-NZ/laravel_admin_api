@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tradies', function (Blueprint $table) {
-            $table->id();
+    Schema::create('tradies', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('user_id')->nullable();
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->string('first_name');
             $table->string('last_name');
             $table->string('middle_name');
@@ -37,9 +39,10 @@ return new class extends Migration
             $table->integer('service_radius')->default(50);
             $table->timestamp('verified_at')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->decimal('rating', 3, 2)->nullable();
             $table->rememberToken();
             $table->timestamps();
-            
+
             $table->index(['latitude', 'longitude']);
             $table->index(['city', 'region']);
             $table->index(['availability_status', 'verified_at']);
