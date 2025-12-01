@@ -7,8 +7,10 @@ use App\Models\Tradie;
 use App\Services\OtpService;
 use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
 
 class TradieAuthController extends Controller
 {
@@ -66,7 +68,6 @@ class TradieAuthController extends Controller
      */
     public function requestOtp(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
         ]);
@@ -173,7 +174,7 @@ class TradieAuthController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'phone' => 'required|digits_between:8,15',
+            'email' => 'required|email',
             'otp_code' => 'required|digits:6',
         ]);
 
@@ -188,41 +189,36 @@ class TradieAuthController extends Controller
             ], 422);
         }
 
-        if ($this->otpService->verifyOtp($request->phone, $request->otp_code)) {
+        $tradie = Tradie::where('email', $request->email)->first();
 
-            $tradie = Tradie::where('phone', $request->phone)->first();
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
 
-            if (! $tradie) {
-                return response()->json([
-                    'success' => true,
-                    'status' => 'new_user',
-                    'message' => 'OTP verification successful. Please proceed to registration.',
-                ], 200);
-            }
+        if ($this->otpService->verifyOtp($tradie->phone, $request->otp_code)) {
 
-            $tradie->tokens()->delete();
-            $token = $tradie->createToken('tradie-token')->plainTextToken;
+            $tradie->tokens()->where('name', 'password-reset-token')->delete();
+
+            $token = $tradie->createToken(
+                'password-reset-token',
+                ['reset-password'],
+                now()->addMinutes(60)
+            );
 
             return response()->json([
                 'success' => true,
-                'status' => 'existing_user',
-                'message' => 'OTP verification successful.',
+                'message' => 'OTP successfully verified.',
                 'data' => [
-                    'user' => [
-                        'first_name' => $tradie->first_name,
-                        'last_name' => $tradie->last_name,
-                        'email' => $tradie->email,
-                        'phone' => $tradie->phone,
-                        'status' => $tradie->status,
-                        'user_type' => 'tradie',
-                    ],
-                ],
-                'authorization' => [
-                    'access_token' => $token,
-                    'type' => 'Bearer',
-                ],
+                    'password_reset_token' => $token->plainTextToken,
+                    'expires_at' => now()->addMinutes(60)->toDateTimeString(),
+                ]
             ], 200);
-
         }
 
         return response()->json([
@@ -367,6 +363,8 @@ class TradieAuthController extends Controller
                 'status' => 'active',
             ]);
 
+            event(new Registered($tradie));
+
             $token = $tradie->createToken('tradie-token')->plainTextToken;
 
             return response()->json([
@@ -404,6 +402,117 @@ class TradieAuthController extends Controller
                 ]
             ], 500);
         }
+    }
+
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $tradie = Tradie::find($id);
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'TRADIE_NOT_FOUND',
+                    'message' => 'Tradie does not exist.',
+                ]
+            ], 404);
+        }
+
+        if (!URL::hasValidSignature($request)) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SIGNATURE',
+                    'message' => 'Invalid or expired verification link.',
+                ]
+            ], 403);
+        }
+
+        if (!hash_equals((string) $hash, sha1($tradie->getEmailForVerification()))) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_VERIFICATION',
+                    'message' => 'Verification details do not match.',
+                ]
+            ], 403);
+        }
+
+        if ($tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        if (!$tradie->markEmailAsVerified()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VERIFICATION_FAILED',
+                    'message' => 'Failed to verify email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully.',
+        ], 200);
+    }
+
+    public function resendEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $tradie = Tradie::where('email', $request->email)->first();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'TRADIE_NOT_FOUND',
+                    'message' => 'Tradie does not exist.',
+                ]
+            ], 404);
+        }
+
+        if ($tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        try {
+            $tradie->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESEND_FAILED',
+                    'message' => 'Failed to send verification email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email resent successfully.',
+        ], 200);
     }
 
     /**
@@ -603,7 +712,7 @@ class TradieAuthController extends Controller
     public function resetPasswordRequest(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:tradies,email',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
@@ -611,14 +720,24 @@ class TradieAuthController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
-                    'message' => 'The given email does not exist as a user.',
+                    'message' => 'The given email is invalid.',
                     'details' => $validator->errors()
                 ]
             ], 422);
         }
 
         $tradie = Tradie::where('email', $request->email)->first();
-        
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
+
         $otp = $this->otpService->generateOtp($tradie->phone);
 
         $tradie->notify(new SendOtp($otp));
@@ -628,8 +747,7 @@ class TradieAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             return response()->json([
                 'success' => false,
                 'error' => [
@@ -709,6 +827,11 @@ class TradieAuthController extends Controller
 
             $tradie->password = Hash::make($request->new_password);
             $tradie->save();
+
+            // Revoke token used for resetting password
+            $tradie->currentAccessToken()->delete();
+            // Revoke all other tokens forcing re-login on all devices
+            $tradie->tokens()->where('name', '!=', 'password-reset-token')->delete();
 
             return response()->json([
                 'success' => true,
