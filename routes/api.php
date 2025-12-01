@@ -9,6 +9,7 @@ use App\Http\Controllers\JobController;
 use App\Http\Controllers\BookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UrgentBookingController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -81,4 +82,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']); // Create booking
     Route::put('/bookings/{id}', [BookingController::class, 'update']); // Update booking
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']); // Cancel booking
+
+        // Urgent Booking Routes
+    Route::get('/urgent-bookings', [UrgentBookingController::class, 'index']);
+    Route::post('/urgent-bookings', [UrgentBookingController::class, 'store']);
+    Route::get('/urgent-bookings/{id}', [UrgentBookingController::class, 'show']);
+    Route::put('/urgent-bookings/{id}', [UrgentBookingController::class, 'update']);
+    Route::delete('/urgent-bookings/{id}', [UrgentBookingController::class, 'destroy']);
+    Route::get('/urgent-bookings/{id}/recommendations', [UrgentBookingController::class, 'recommendations']);
 });
+
+
+

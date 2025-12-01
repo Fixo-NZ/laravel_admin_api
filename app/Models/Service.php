@@ -28,10 +28,10 @@ class Service extends Model
         return $this->belongsTo(Homeowner::class, 'homeowner_id');
     }
 
-    // public function category()
-    // {
-    //     return $this->belongsTo(Category::class, 'job_categoryid');
-    // }
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'job_categoryid');
+    }
 
     public function jobs()
     {
