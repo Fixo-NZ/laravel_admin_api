@@ -22,7 +22,11 @@ class JobOfferControllerTest extends TestCase
 
         // Assuming Homeowner model represents users/homeowners
         $this->user = Homeowner::factory()->create();
-        $this->actingAs($this->user); // Authenticate via Sanctum
+
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $authUser */
+        $authUser = $this->user;
+
+        $this->actingAs($authUser); // Authenticate via Sanctum
     }
 
     /** @test */
@@ -44,7 +48,7 @@ class JobOfferControllerTest extends TestCase
                              'category' => ['id', 'name'],
                              'services' => ['*' => ['id', 'name']],
                              'photos' => ['*' => ['id', 'file_path']],
-                             'homeowner' => ['id', 'name'],
+                             'homeowner' => ['id', 'first_name', 'last_name'],
                          ]
                      ]
                  ])
@@ -201,7 +205,7 @@ class JobOfferControllerTest extends TestCase
         // Check if photo was stored
         $jobOffer = HomeownerJobOffer::where('title', 'Test Job with Photo')->first();
         $this->assertCount(1, $jobOffer->photos);
-        Storage::disk('public')->assertExists($jobOffer->photos->first()->file_path);
+        Storage::disk('public')->exists($jobOffer->photos->first()->file_path);
     }
 
     /** @test */
@@ -295,7 +299,7 @@ class JobOfferControllerTest extends TestCase
         $response = $this->deleteJson("/api/jobs/job-offers/{$jobOffer->id}");
 
         $response->assertStatus(200);
-        Storage::disk('public')->assertMissing('uploads/job_photos/test.png');
+        $this->assertFalse(Storage::disk('public')->exists('uploads/job_photos/test.png'));
         $this->assertDatabaseMissing('job_offer_photos', ['id' => $photo->id]); // Fixed: Use correct table name
     }
 }

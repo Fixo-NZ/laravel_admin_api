@@ -21,7 +21,7 @@ class ServiceFactory extends Factory
             'name' => ucfirst($this->faker->words(2, true)),
             'description' => $this->faker->sentence(8),
             'status' => 'active',
-            // Create a random category if not provided
+
             'category_id' => ServiceCategory::factory(),
         ];
     }

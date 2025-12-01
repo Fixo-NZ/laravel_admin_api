@@ -97,6 +97,12 @@ class Homeowner extends Authenticatable
             ->filter()
             ->implode(', ');
     }
+
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
     
     public function jobOffers()
     {

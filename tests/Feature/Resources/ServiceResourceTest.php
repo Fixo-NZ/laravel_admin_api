@@ -146,7 +146,7 @@ class ServiceResourceTest extends TestCase
             ->map(fn($action) => $action->getName())
             ->toArray();
 
-        $expectedActions = ['view'];
+        $expectedActions = ['viewDetails'];
 
         foreach ($expectedActions as $actionName) {
             $this->assertContains(

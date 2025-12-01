@@ -21,7 +21,6 @@ class ServiceCategoryFactory extends Factory
             'description' => $this->faker->sentence(10),
             'icon' => 'none',
             'status' => 'active',
-
         ];
     }
 }

@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Storage;
 
 class JobOfferController extends Controller
 {
+    /**
+     * List all job offers
+     */
     public function index(Request $request)
     {
-        $query = HomeownerJobOffer::with(['category', 'services', 'photos', 'homeowner:id,name']);
+        $query = HomeownerJobOffer::with(['category', 'services', 'photos', 'homeowner:id,first_name,last_name']);
 
         return response()->json([
             'success' => true,
@@ -21,6 +24,9 @@ class JobOfferController extends Controller
         ]);
     }
 
+    /**
+     * Show a specific job offer
+     */
     public function show(Request $request, $id)
     {
         $job = HomeownerJobOffer::with(['category', 'services', 'photos'])->findOrFail($id);
@@ -32,6 +38,9 @@ class JobOfferController extends Controller
         return response()->json(['success' => true, 'data' => $job]);
     }
 
+    /**
+     * Create a new job offer
+     */
     public function store(Request $request)
     {
         try {
@@ -60,7 +69,6 @@ class JobOfferController extends Controller
 
             $jobOffer->services()->sync($validated['services']);
 
-            // Handle Base64 photos
             if (!empty($validated['photos'])) {
                 foreach ($validated['photos'] as $base64Image) {
                     $this->storeBase64Photo($jobOffer, $base64Image);
@@ -88,6 +96,9 @@ class JobOfferController extends Controller
         }
     }
 
+    /**
+     * Update a job offer
+     */
     public function update(Request $request, $id)
     {
         try {
@@ -148,7 +159,10 @@ class JobOfferController extends Controller
             ], 500);
         }
     }
-
+    
+    /**
+     * Delete a job offer
+     */
     public function destroy(Request $request, $id)
     {
         $jobOffer = HomeownerJobOffer::findOrFail($id);
@@ -168,7 +182,7 @@ class JobOfferController extends Controller
     }
 
     /**
-     * Helper: store a base64 image for a job offer
+     * Helper : store a base64 image for a job offer
      */
     private function storeBase64Photo($jobOffer, $base64Image)
     {

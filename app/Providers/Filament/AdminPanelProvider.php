@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Resources;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -30,8 +31,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#4D47C3'), // Custom primary color (orange)
             ])
             ->discoverResources(
-                in: app_path('Filament/Admin/Resources'),
-                for: 'App\\Filament\\Admin\\Resources'
+                in: app_path('Filament/Resources'),
+                for: 'App\\Filament\\Resources'
             )
             ->discoverPages(
                 in: app_path('Filament/Admin/Pages'),
@@ -81,6 +82,10 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user-circle')
                     ->collapsible() // makes it expandable/collapsible
                     ->collapsed(),  // starts collapsed by default
+
+                \Filament\Navigation\NavigationGroup::make('Jobs')
+                    ->collapsible()
+                    ->collapsed(),
             ])
 
             ->authMiddleware([

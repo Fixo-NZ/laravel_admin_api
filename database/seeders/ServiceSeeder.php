@@ -11,7 +11,8 @@ class ServiceSeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    { 
+    {
+        // Temporary Datas for Service Categories and Services (Based on Figma Design)
         $categories = [
             [
                 'category_name' => 'Electrical',
@@ -83,6 +84,11 @@ class ServiceSeeder extends Seeder
                 'category_subtitle' => 'Roof installation, roof repair, gutter installation, waterproofing, roof cleaning, metal and tile roofing, etc.',
                 'category_icon' => 'roofing'
             ],
+            [   
+                'category_name' => 'Other Services',
+                'category_subtitle' => 'General handyman services, home maintenance, odd jobs, furniture assembly, moving help, etc.',
+                'status' => 'inactive',
+            ]
         ];
 
         $services = [
@@ -154,7 +160,8 @@ class ServiceSeeder extends Seeder
             \DB::table('service_categories')->insert([
                 'name'     => $category['category_name'],
                 'description' => $category['category_subtitle'],
-                'icon'     => $category['category_icon'],
+                'icon' => $category['category_icon'] ?? 'none',
+                'status' => $category['status'] ?? 'active',
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ]);
@@ -169,7 +176,7 @@ class ServiceSeeder extends Seeder
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
-        }
-
+        }   
+        
     }
 }

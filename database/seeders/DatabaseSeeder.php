@@ -21,24 +21,25 @@ class DatabaseSeeder extends Seeder
 
         // Seed admin user
         User::factory()->create([
-            'first_name' => 'Helena ',
-            'last_name' => 'Mahinay',   
-            'middle_name' => 'Mahinay',    // single 'name' column
-            'email' => 'helenarica.mahinay@lorma.edu',
-            'password' => Hash::make("123"),
-            'role' => 'admin',                // mark as admin
-            'status' => 'active',             // mark as active
+            'first_name' => 'Eizler ',
+            'last_name' => 'Martin',   
+            'middle_name' => 'Est',
+            'email' => 'eizlerdylan.martin@lorma.edu',
+            'password' => Hash::make("admin"),
+            'role' => 'admin',
+            'status' => 'active',
         ]);
 
         Homeowner::factory()->create([
-            'name' => 'John Doe1',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
             'email' => 'homeowner1@gmail.com',
             'password' => Hash::make("password"),
         ]);
 
         User::factory(10)->create();
         // Seed other users
-        Homeowner::factory(10)->create();
+        Homeowner::factory(20)->create();
         Tradie::factory(10)->create();
 
         $this->call([

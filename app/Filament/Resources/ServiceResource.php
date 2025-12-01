@@ -6,53 +6,75 @@ use App\Filament\Resources\ServiceResource\Pages;
 use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Support\HtmlString;
+
 
 class ServiceResource extends Resource
 {
+    // ============================================================
+    // PAGE CONFIGURATION
+    // ============================================================
+
+    // The Eloquent model this resource manages
     protected static ?string $model = Service::class;
 
+    // Icon to display in the sidebar (use Heroicons names)
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
-    protected static ?string $navigationGroup = 'Jobs';
+    
+    // Label for the navigation item 
     protected static ?string $navigationLabel = 'Services';
+
+    // Navigation group in the sidebar
+    protected static ?string $navigationGroup = 'Jobs';
+    
+    // Model Label
     protected static ?string $modelLabel = 'Services';
+
+    // Slug for the resource URLs
     protected static ?string $slug = 'jobs/services';
 
-    // -------------------------
-    // FORM (used in modals)
-    // -------------------------
+    // ============================================================
+    // FORM DEFINITION
+    // ============================================================
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->label('Service Name')
                     ->required()
                     ->maxLength(255)
                     ->columnSpanFull(),
 
-                Forms\Components\Textarea::make('description')
+                Textarea::make('description')
                     ->label('Description')
                     ->rows(7)
                     ->maxLength(1000)
                     ->columnSpanFull(),
 
-                Forms\Components\Select::make('category_id')
+                Select::make('category_id')
                     ->label('Category')
                     ->relationship('category', 'name')
                     ->searchable()
                     ->preload()
                     ->required()
-                    // ③ Inline modal to add category
                     ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Category Name')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Description')
                             ->rows(3)
                             ->maxLength(500),
@@ -62,9 +84,9 @@ class ServiceResource extends Resource
             ]);
     }
 
-    // -------------------------
-    // TABLE (with modal actions)
-    // -------------------------
+    // ============================================================
+    // TABLE DEFINITION
+    // ============================================================   
     public static function table(Table $table): Table
     {
         return $table
@@ -94,8 +116,8 @@ class ServiceResource extends Resource
                     ->badge()
                     ->colors([
                         'success' => fn($state) => strtolower($state) === 'active',
-                        'danger'  => fn($state) => strtolower($state) === 'inactive',
-                        'warning' => fn($state) => strtolower($state) === 'suspended',
+                        'warning'  => fn($state) => strtolower($state) === 'inactive',
+                        'danger' => fn($state) => strtolower($state) === 'suspended',
                     ])
                     ->formatStateUsing(fn($state) => ucfirst($state))
                     ->extraAttributes([
@@ -110,22 +132,21 @@ class ServiceResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Status')
                     ->options([
                         'active' => 'Active',
                         'inactive' => 'Inactive',
                         'suspended' => 'Suspended',
                     ]),
-                Tables\Filters\SelectFilter::make('category')
+                SelectFilter::make('category')
                     ->label('Category')
                     ->relationship('category', 'name'),
             ])
-
-            // Actions now use modals
+            ->recordAction('viewDetails')
             ->actions([
-                // ② Custom modal: View Details
-                Tables\Actions\Action::make('view')
+                // Custom modal: View Details
+                Action::make('viewDetails')
                     ->label('View')
                     ->icon('heroicon-o-eye')
                     ->modalSubmitAction(false)
@@ -137,15 +158,18 @@ class ServiceResource extends Resource
                         ['service' => $record]
                     )),
 
-                // // Built-in edit modal
-                // Tables\Actions\EditAction::make()
-                //     ->modalHeading('Edit Service')
-                //     ->modalSubmitActionLabel('Save Changes')
-                //     ->modalWidth('lg'),
+                // Edit action (only through action button)
+                EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil')
+                    ->modalHeading('Edit Service')
+                    ->modalSubmitActionLabel('Save Changes')
+                    ->modalWidth('lg'),
 
-                // Tables\Actions\DeleteAction::make()
-                //     ->modalHeading('Delete Service')
-                //     ->modalDescription('Are you sure you want to delete this service?'),
+
+                DeleteAction::make()
+                    ->modalHeading('Delete Service')
+                    ->modalDescription('Are you sure you want to delete this service?'),
             ])
 
             ->bulkActions([]);

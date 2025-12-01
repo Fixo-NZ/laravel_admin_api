@@ -6,8 +6,16 @@ use App\Filament\Resources\ServiceCategoryResource\Pages;
 use App\Models\ServiceCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 
@@ -17,13 +25,25 @@ class ServiceCategoryResource extends Resource
     // PAGE CONFIGURATION
     // ============================================================
 
+    // The Eloquent model this resource manages
     protected static ?string $model = ServiceCategory::class;
 
+    // Icon to display in the sidebar (use Heroicons names)
     protected static ?string $navigationIcon = 'heroicon-o-cube';
-    protected static ?string $navigationGroup = 'Jobs';
+
+    // Label for the navigation item 
     protected static ?string $navigationLabel = 'Service Categories';
+
+    // Navigation group in the sidebar
+    protected static ?string $navigationGroup = 'Jobs';
+
+    // Model Label
     protected static ?string $modelLabel = 'Service Category';
+    
+    // Slug for the resource URLs
     protected static ?string $slug = 'jobs/service-categories';
+
+
 
     // ============================================================
     // FORM DEFINITION
@@ -32,23 +52,23 @@ class ServiceCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Category Details')
+                Section::make('Category Details')
                     ->description('Provide the basic information for this job category.')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Category Name')
                             ->placeholder('e.g., Plumbing, Electrical, Carpentry')
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Description')
                             ->placeholder('Briefly describe what this category covers...')
                             ->rows(4)
                             ->maxLength(500)
                             ->nullable(),
 
-                        Forms\Components\TextInput::make('icon')
+                        TextInput::make('icon')
                             ->label('Icon Name')
                             ->placeholder('Enter icon filename (without .svg)')
                             ->hint('Icons are stored in storage/app/public/icons/')
@@ -68,7 +88,7 @@ class ServiceCategoryResource extends Resource
         return $table
             ->columns([
                 // Icon Preview Column
-                Tables\Columns\TextColumn::make('icon')
+                TextColumn::make('icon')
                     ->label('Icon')
                     ->formatStateUsing(fn($state, $record) => $record->icon
                         ? new HtmlString('<img src="' . asset('storage/icons/' . $record->icon . '.svg') . '" 
@@ -79,32 +99,32 @@ class ServiceCategoryResource extends Resource
                     ->sortable(),
 
                 // Name Column (separate)
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Category Name')
                     ->searchable()
                     ->sortable(),
 
                 // Description Column (separate)
-                Tables\Columns\TextColumn::make('description')
+                TextColumn::make('description')
                     ->label('Description')
                     ->limit(60)
                     ->wrap()
                     ->sortable(),
 
                 // Status Column
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->colors([
                         'success' => fn($state) => strtolower($state) === 'active',
-                        'danger'  => fn($state) => strtolower($state) === 'inactive',
-                        'warning' => fn($state) => strtolower($state) === 'suspended',
+                        'warning'  => fn($state) => strtolower($state) === 'inactive',
+                        'danger' => fn($state) => strtolower($state) === 'suspended',
                     ])
                     ->formatStateUsing(fn($state) => ucfirst($state))
                     ->sortable(),
 
                 // Created At
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime('M d, Y h:i A')
                     ->sortable()
@@ -115,7 +135,7 @@ class ServiceCategoryResource extends Resource
             // FILTERS
             // ====================================================
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Filter by Status')
                     ->options([
                         'active' => 'Active',
@@ -129,8 +149,7 @@ class ServiceCategoryResource extends Resource
             // TABLE ACTIONS
             // ====================================================
             ->actions([
-                // 🟩 View Details Modal
-                Tables\Actions\Action::make('view')
+                Action::make('view')
                     ->label('View')
                     ->icon('heroicon-o-eye')
                     ->modalSubmitAction(false)
@@ -142,15 +161,15 @@ class ServiceCategoryResource extends Resource
                         ['category' => $record]
                     )),
 
-                // Tables\Actions\EditAction::make()
-                //     ->modalHeading('Edit Category')
-                //     ->modalWidth('lg'),
+                EditAction::make()
+                    ->modalHeading('Edit Category')
+                    ->modalWidth('lg'),
 
-                // Tables\Actions\DeleteAction::make()
-                //     ->requiresConfirmation()
-                //     ->modalHeading('Delete Category')
-                //     ->modalDescription('Are you sure you want to delete this job category? This action cannot be undone.')
-                //     ->color('danger'),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete Category')
+                    ->modalDescription('Are you sure you want to delete this job category? This action cannot be undone.')
+                    ->color('danger'),
             ])
 
             // ====================================================

@@ -11,6 +11,7 @@ class ServiceController extends Controller
 {
     /**
      * GET /api/jobs/categories
+     * 
      * Fetch all service categories
      */
     public function index(Request $request)
@@ -40,6 +41,7 @@ class ServiceController extends Controller
 
     /**
      * GET /api/jobs/categories/{id}
+     * 
      * Fetch a single category
      */
     public function indexSpecificCategory(Request $request, $id)
@@ -70,6 +72,7 @@ class ServiceController extends Controller
 
     /**
      * GET /api/jobs/categories/{id}/services
+     * 
      * Fetch all services under a specific category
      */
     public function indexSpecificCategoryServices($categoryId)
@@ -107,6 +110,7 @@ class ServiceController extends Controller
 
     /**
      * GET /api/jobs/services
+     * 
      * Fetch all services across all categories
      */
     public function indexService()
@@ -130,6 +134,7 @@ class ServiceController extends Controller
 
     /**
      * GET /api/jobs/services/{id}
+     * 
      * Fetch a specific service with its category
      */
     public function indexSpecificService($id)

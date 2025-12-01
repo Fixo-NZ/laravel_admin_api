@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\JobPostResource\Pages;
 use App\Models\HomeownerJobOffer;
+use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -11,10 +12,16 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\DatePicker;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -32,15 +39,19 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
     
     // Label for the navigation item 
     protected static ?string $navigationLabel = 'Job Postings';
+    
+    // Navigation group in the sidebar
+    protected static ?string $navigationGroup = 'Jobs';
 
+    // Model Label
+    protected static ?string $modelLabel = 'Job Post';
+    
     // Slug for the resource URLs
     protected static ?string $slug = 'job-postings';
     
     // Default sort to display the newest jobs first
     protected static ?string $defaultSort = 'created_at';
     protected static ?string $defaultSortDirection = 'desc';
-
-    protected static ?string $navigationGroup = 'Jobs';
 
 
     // ============================================================
@@ -50,12 +61,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
     {
     return $form
         ->schema([
-            Forms\Components\Section::make('Job Details')
+            Section::make('Job Details')
                 ->schema([
                     Select::make('homeowner_id')
-                        ->relationship('homeowner', 'name')
+                        ->relationship('homeowner', 'first_name')
+                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->first_name . ' ' . $record->last_name)
                         ->label('Homeowner')
-                        ->disabled() // 👈 read-only for privacy
+                        ->disabled()
                         ->dehydrated(false),
 
                     Select::make('service_category_id')
@@ -102,18 +114,18 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                         ->visible(fn(callable $get) => $get('job_type') === 'recurrent')
                         ->nullable(),
 
-                    Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label('Start Date')
                         ->visible(fn(callable $get) => $get('job_type') === 'recurrent')
                         ->nullable(),
 
-                    Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label('End Date')
                         ->visible(fn(callable $get) => $get('job_type') === 'recurrent')
                         ->afterOrEqual('start_date')
                         ->nullable(),
 
-                    Forms\Components\DatePicker::make('preferred_date')
+                    DatePicker::make('preferred_date')
                         ->label('Preferred Date')
                         ->nullable(),
 
@@ -139,7 +151,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                 ])
                 ->columns(2),
 
-            Forms\Components\Section::make('Location Details')
+            Section::make('Location Details')
                 ->schema([
                     TextInput::make('address')
                         ->label('Address')
@@ -174,7 +186,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                                 return [];
                             }
 
-                            return \App\Models\Service::where('category_id', $categoryId)
+                            return Service::where('category_id', $categoryId)
                                 ->pluck('name', 'id');
                         })
                         ->reactive(),
@@ -185,7 +197,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
     // ============================================================
     // TABLE DEFINITION
     // ============================================================    
-    // The table method defines the list view (tracking dashboard)
     public static function table(Table $table): Table
     {
         return $table
@@ -210,19 +221,20 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->label('Description')
                     ->limit(50)
                     ->wrap()
-                    ->toggleable(),
-
-                // Homeowner ID/Name
-                TextColumn::make('homeowner.name') 
-                    ->label('Homeowner')
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                // Category
+                // Homeowner ID/Name
+                TextColumn::make('homeowner.full_name') 
+                    ->label('Homeowner')
+                    ->sortable()
+                    ->toggleable(),
+
+                // Service Category
                 TextColumn::make('category.name')
                     ->label('Category')
                     ->sortable(),
 
+                // Job Type
                 TextColumn::make('job_type')
                     ->label('Job Type')
                     ->badge()
@@ -235,8 +247,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->extraAttributes([
                         'class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs',
                     ])
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
+                // Job Size
                 TextColumn::make('job_size')
                     ->label('Job Size')
                     ->badge()
@@ -249,7 +263,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->extraAttributes([
                         'class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs',
                     ])
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('preferred_date')
                     ->label('Preferred Date')
@@ -273,12 +288,14 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->badge()
                     ->colors([
                         'success' => fn($state) => strtolower($state) === 'open',
-                        'danger'  => fn($state) => strtolower($state) === 'cancelled',
+                        'danger'  => fn($state) => in_array(strtolower($state), ['cancelled', 'expired']),
                         'warning' => fn($state) => strtolower($state) === 'pending',
                         'primary' => fn($state) => strtolower($state) === 'completed',
                         'info'    => fn($state) => strtolower($state) === 'in_progress',
                     ])
-                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->formatStateUsing(function ($state) {
+                        return Str::of($state)->replace('_', ' ')->title();
+                    })
                     ->extraAttributes([
                         'class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs',
                     ])
@@ -290,9 +307,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                
-
             ])
 
             // ============================================================
@@ -336,16 +350,16 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
             // ============================================================
             ->actions([
                 // Actions (Mirrors the 'Actions' column from the HTML mock-up)
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
 
             // ============================================================
             // Bulk Actions
             // ============================================================
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

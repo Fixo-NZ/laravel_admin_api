@@ -18,10 +18,10 @@ class HomeownerJobOfferFactory extends Factory
             'service_category_id' => ServiceCategory::factory(),
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->optional()->paragraph,
-            'job_type' => $this->faker->randomElement(['standard', 'urgent', 'recurrent']),
-            'frequency' => null, // Only used if recurrent
-            'start_date' => null, // Only used if recurrent
-            'end_date' => null,   // Only used if recurrent
+            'job_type' => $this->faker->randomElement(['standard','recurrent']),
+            'frequency' => null,
+            'start_date' => null,
+            'end_date' => null,
             'preferred_date' => $this->faker->date(), // Used for standard jobs
             'job_size' => $this->faker->randomElement(['small', 'medium', 'large']),
             'address' => $this->faker->address,

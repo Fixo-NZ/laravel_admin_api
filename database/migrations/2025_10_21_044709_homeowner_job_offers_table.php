@@ -6,8 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
+        // Job Posting Table
         Schema::create('homeowner_job_offers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('homeowner_id')->constrained('homeowners')->cascadeOnDelete();
@@ -23,7 +27,7 @@ return new class extends Migration
             $table->string('address');
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            $table->enum('status', ['pending', 'open', 'in_progress', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'open', 'in_progress', 'completed', 'cancelled', 'expired'])->default('open');
             $table->timestamps();
         });
         
@@ -40,7 +44,7 @@ return new class extends Migration
             $table->foreignId('job_offer_id')->constrained('homeowner_job_offers')->cascadeOnDelete();
             $table->string('file_path');
             $table->string('original_name')->nullable(); 
-            $table->integer('file_size')->nullable(); //5120 KB
+            $table->integer('file_size')->nullable();
             $table->timestamps();
         });
 
@@ -54,6 +58,9 @@ return new class extends Migration
         // });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         // Schema::dropIfExists('job_offer_applications');

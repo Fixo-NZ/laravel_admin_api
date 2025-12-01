@@ -39,7 +39,7 @@ class JobPostResourceTest extends TestCase
             'id',
             'title',
             'description',
-            'homeowner.name',
+            'homeowner.full_name',
             'category.name',
             'job_type',
             'job_size',

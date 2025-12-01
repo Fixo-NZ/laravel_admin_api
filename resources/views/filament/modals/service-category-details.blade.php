@@ -13,7 +13,7 @@
     <div class="flex items-center gap-3">
         <strong class="text-gray-700 w-32">Status:</strong>
         <span 
-            class="px-3 py-1 rounded-full text-xs font-semibold">
+            class="px-3 py-1 rounded-full font-semibold">
             {{ ucfirst($category->status ?? 'N/A') }}
         </span>
     </div>
