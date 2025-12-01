@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
-use App\Http\Controllers\PaymentController; 
+use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +13,7 @@ Route::prefix('homeowner')->group(function () {
     Route::post('reset-password-request', [HomeownerAuthController::class, 'resetPasswordRequest']);
     Route::post('request-otp', [HomeownerAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [HomeownerAuthController::class, 'verifyOtp']);
-    
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::put('/reset-password', [HomeownerAuthController::class, 'resetPassword']);
         Route::post('logout', [HomeownerAuthController::class, 'logout']);
@@ -28,8 +28,17 @@ Route::prefix('tradie')->group(function () {
     Route::post('reset-password-request', [TradieAuthController::class, 'resetPasswordRequest']);
     Route::post('request-otp', [TradieAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [TradieAuthController::class, 'verifyOtp']);
-    
-    Route::middleware('auth:sanctum')->group(function () {
+
+    Route::prefix('auth/email')->group(function () {
+        Route::get('verify-email/{id}/{hash}', [TradieAuthController::class, 'verifyEmail'])
+            ->middleware('signed')
+            ->name('verification.verify');
+
+        Route::post('resend-email-verification', [TradieAuthController::class, 'resendEmailVerification'])
+            ->name('verification.resend');
+    });
+
+    Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/reset-password', [TradieAuthController::class, 'resetPassword']);
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
@@ -37,7 +46,7 @@ Route::prefix('tradie')->group(function () {
 });
 
 // Public payment route
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/payment/process', [PaymentController::class, 'processPayment']);
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);

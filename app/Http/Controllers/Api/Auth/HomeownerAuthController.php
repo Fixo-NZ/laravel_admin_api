@@ -173,13 +173,11 @@ class HomeownerAuthController extends Controller
      */
     public function verifyOtp(Request $request)
     {
-        // Validate incoming request phone and otp_code data 
         $validator = Validator::make($request->all(), [
-            'phone' => 'required|digits_between:8,15',
+            'email' => 'required|email',
             'otp_code' => 'required|digits:6',
         ]);
 
-        // Return errors if validation fails
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -191,48 +189,38 @@ class HomeownerAuthController extends Controller
             ], 422);
         }
 
-        // Verify OTP
-        if ($this->otpService->verifyOtp($request->phone, $request->otp_code)) {
-            // Find homeowner by phone
-            $homeowner = Homeowner::where('phone', $request->phone)->first();
+        $homeowner = Homeowner::where('email', $request->email)->first();
 
-            // Check if homeowner does not exists
-            if (! $homeowner) {
-                // New user - prompt for registration
-                return response()->json([
-                    'success' => true,
-                    'status' => 'new_user',
-                    'message' => 'OTP verification successful. Please proceed to registration.',
-                ], 200);
-            }
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
 
-            // Existing user - reissue token
-            $homeowner->tokens()->delete();
-            $token = $homeowner->createToken('homeowner-token')->plainTextToken;
+        if ($this->otpService->verifyOtp($homeowner->phone, $request->otp_code)) {
 
-            // Return existing user response with token
+            $homeowner->tokens()->where('name', 'password-reset-token')->delete();
+
+            $token = $homeowner->createToken(
+                'password-reset-token',
+                ['reset-password'],
+                now()->addMinutes(60)
+            );
+
             return response()->json([
                 'success' => true,
-                'status' => 'existing_user',
-                'message' => 'OTP verification successful.',
+                'message' => 'OTP successfully verified.',
                 'data' => [
-                    'user' => [
-                        'first_name' => $homeowner->first_name,
-                        'last_name' => $homeowner->last_name,
-                        'email' => $homeowner->email,
-                        'phone' => $homeowner->phone,
-                        'status' => $homeowner->status,
-                        'user_type' => 'homeowner',
-                    ],
-                ],
-                'authorization' => [
-                    'access_token' => $token,
-                    'type' => 'Bearer',
-                ],
+                    'password_reset_token' => $token->plainTextToken,
+                    'expires_at' => now()->addMinutes(60)->toDateTimeString(),
+                ]
             ], 200);
         }
 
-        // OTP verification failed
         return response()->json([
             'success' => false,
             'error' => [
@@ -315,15 +303,15 @@ class HomeownerAuthController extends Controller
     {
         // Validate incoming request data
         $validator = Validator::make($request->all(), [
-            'first_name'  => 'required|string|max:255',
-            'last_name'   => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',   
-            'email'       => 'required|string|email|max:255|unique:homeowners,email',
-            'phone'       => 'nullable|string|max:20',
-            'password'    => 'required|string|min:8|confirmed',
-            'address'     => 'nullable|string|max:500',
-            'city'        => 'nullable|string|max:100',
-            'region'      => 'nullable|string|max:100',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:homeowners,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8|confirmed',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:10',
         ]);
 
@@ -331,8 +319,8 @@ class HomeownerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'VALIDATION_ERROR',
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
                     'details' => $validator->errors(), // Detailed field errors
                 ],
@@ -342,17 +330,17 @@ class HomeownerAuthController extends Controller
         try {
             // Create the homeowner record
             $homeowner = Homeowner::create([
-                'first_name'  => $request->first_name,
-                'last_name'   => $request->last_name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'middle_name' => $request->middle_name,
-                'email'       => $request->email,
-                'phone'       => $request->phone,
-                'password'    => Hash::make($request->password),
-                'address'     => $request->address,
-                'city'        => $request->city,
-                'region'      => $request->region,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'address' => $request->address,
+                'city' => $request->city,
+                'region' => $request->region,
                 'postal_code' => $request->postal_code,
-                'status'      => 'active', 
+                'status' => 'active',
             ]);
 
             // Generate API token using Laravel Sanctum
@@ -361,8 +349,8 @@ class HomeownerAuthController extends Controller
             // Return success response with user data and token
             return response()->json([
                 'success' => true,
-                'data'    => [
-                    'user'  => $homeowner,
+                'data' => [
+                    'user' => $homeowner,
                     'token' => $token,
                 ],
             ], 201); // 201 Created
@@ -371,8 +359,8 @@ class HomeownerAuthController extends Controller
             // Handle any unexpected errors during registration
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'REGISTRATION_ERROR',
+                'error' => [
+                    'code' => 'REGISTRATION_ERROR',
                     'message' => 'Failed to register user. Please try again.',
                 ],
             ], 500); // 500 Internal Server Error
@@ -455,7 +443,7 @@ class HomeownerAuthController extends Controller
     {
         // Validate login input
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
@@ -463,8 +451,8 @@ class HomeownerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'VALIDATION_ERROR',
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
                     'details' => $validator->errors(),
                 ],
@@ -478,8 +466,8 @@ class HomeownerAuthController extends Controller
         if (!$homeowner || !Hash::check($request->password, $homeowner->password)) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'INVALID_CREDENTIALS',
+                'error' => [
+                    'code' => 'INVALID_CREDENTIALS',
                     'message' => 'The provided credentials are incorrect.',
                 ],
             ], 401); // 401 Unauthorized
@@ -489,8 +477,8 @@ class HomeownerAuthController extends Controller
         if ($homeowner->status !== 'active') {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'ACCOUNT_INACTIVE',
+                'error' => [
+                    'code' => 'ACCOUNT_INACTIVE',
                     'message' => 'Your account is not active. Please contact support.',
                 ],
             ], 403); // 403 Forbidden
@@ -505,8 +493,8 @@ class HomeownerAuthController extends Controller
         // Return success response with token
         return response()->json([
             'success' => true,
-            'data'    => [
-                'user'  => $homeowner,
+            'data' => [
+                'user' => $homeowner,
                 'token' => $token,
             ],
         ], 200);
@@ -561,7 +549,7 @@ class HomeownerAuthController extends Controller
     {
         // Validate incoming request email data
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:homeowners,email',
+            'email' => 'required|email',
         ]);
 
         // Return errors if validation fails
@@ -570,7 +558,7 @@ class HomeownerAuthController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
-                    'message' => 'The given email does not exist as a user.',
+                    'message' => 'The given email is invalid.',
                     'details' => $validator->errors()
                 ]
             ], 422);
@@ -578,7 +566,17 @@ class HomeownerAuthController extends Controller
 
         // Find homeowner by email
         $homeowner = Homeowner::where('email', $request->email)->first();
-        
+
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
+
         // Generate OTP
         $otp = $this->otpService->generateOtp($homeowner->phone);
 
@@ -592,8 +590,7 @@ class HomeownerAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             // OTP generation failed
             return response()->json([
                 'success' => false,
@@ -676,6 +673,11 @@ class HomeownerAuthController extends Controller
             $homeowner->password = Hash::make($request->new_password);
             $homeowner->save();
 
+            // Revoke token used for resetting password
+            $homeowner->currentAccessToken()->delete();
+            // Revoke all other tokens forcing re-login on all devices
+            $homeowner->tokens()->where('name', '!=', 'password-reset-token')->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Password reset successfully.'
@@ -755,7 +757,7 @@ class HomeownerAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => [
+            'data' => [
                 'user' => $homeowner,
             ],
         ], 200);

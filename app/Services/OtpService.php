@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Otp;
-use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class OtpService
@@ -15,7 +14,7 @@ class OtpService
         $otp = Otp::create([
             'phone' => $phone,
             'otp_code' => $otpCode,
-            'expires_at' => Carbon::now()->addMinutes(5),
+            'expires_at' => Carbon::now()->addMinutes(10),
         ]);
 
         return $otp;
