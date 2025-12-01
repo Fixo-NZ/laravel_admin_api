@@ -14,6 +14,12 @@ class PaymentController extends Controller
 {
     public function processPayment(Request $request)
     {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.5',
+            'currency' => 'nullable|string|size:3',
+            'payment_method' => 'nullable|string',
+        ]);
+
         try {
             // Set Stripe secret key from .env
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
@@ -44,7 +50,7 @@ class PaymentController extends Controller
             ]);
 
             $payment = Payment::create([
-                'user_id' => auth('sanctum')->id(),
+                'homeowner_id' => auth('sanctum')->id(),
                 'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
                 'amount' => $request->amount,
                 'currency' => $paymentIntent->currency,
@@ -72,6 +78,108 @@ class PaymentController extends Controller
         }
     }
 
+    public function deletePayment(Request $request, $id)
+    {
+
+        $user = $request->user();
+
+        $payment = \App\Models\Payment::where('id', $id)
+            ->where('homeowner_id', $user->id)
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found or you do not have access to this record.',
+            ], 404);
+        }
+
+        // Only allow if the user is the owner
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        }
+
+        $payment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment deleted successfully.',
+        ]);
+    }
+    public function updatePayment(Request $request, $id)
+    {
+        $user = $request->user();
+
+        $payment = \App\Models\Payment::where('id', $id)
+            ->where('homeowner_id', $user->id)
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found or you do not have access to this record.',
+            ], 404);
+        }
+
+        // Only allow if the user is the owner
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.5',
+            'currency' => 'required|string|size:3',
+            'card_brand' => 'required|string|max:40',
+            'card_last4number' => 'required|numeric|digits:4',
+            'exp_month' => 'required|string|size:2',
+            'exp_year' => 'required|string|size:4',
+        ]);
+
+        if($validated['exp_month'] < 1 || $validated['exp_month'] > 12){
+            return response()->json([
+                'success' => false,
+                'message' => 'Expiration month must be between 01 and 12.',
+            ], 400);
+        }elseif($validated['exp_year'] < date('Y')){
+            return response()->json([
+                'success' => false,
+                'message' => 'Expiration year cannot be in the past.',
+            ], 400);
+        }elseif($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')){
+            return response()->json([
+                'success' => false,
+                'message' => 'Expiration month cannot be in the past for the current year.',
+            ], 400);
+        }elseif ($validated['exp_year'] > date('Y') + 20) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Expiration year is too far in the future.',
+            ], 400);
+        }
+
+         // Encrypt sensitive fields if they are being updated
+         if (isset($validated['card_brand'])) {
+             $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
+         }
+         if (isset($validated['card_last4number'])) {
+             $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
+         }
+         if (isset($validated['exp_month'])) {
+             $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
+         }
+         if (isset($validated['exp_year'])) {
+             $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
+         }
+
+        $payment->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment updated successfully.',
+            'data' => $payment,
+        ]);
+    }
+
     public function viewDecryptedPayment(Request $request, $id)
     {
 
@@ -79,7 +187,7 @@ class PaymentController extends Controller
 
 
         $payment = \App\Models\Payment::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
@@ -90,7 +198,7 @@ class PaymentController extends Controller
         }
 
         // Only allow if the user is the owner or an admin (basic security)
-        if ($user->id !== $payment->user_id && $user->role !== 'admin') {
+        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
@@ -107,7 +215,7 @@ class PaymentController extends Controller
 
             // Log access
             \App\Models\PaymentAccessLog::create([
-                'user_id' => $user->id,
+                'homeowner_id' => $user->id,
                 'payment_id' => $payment->id,
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -121,7 +229,7 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             // Failed decryption or error
             \App\Models\PaymentAccessLog::create([
-                'user_id' => $user->id ?? null,
+                'homeowner_id' => $user->id ?? null,
                 'payment_id' => $payment->id,
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),

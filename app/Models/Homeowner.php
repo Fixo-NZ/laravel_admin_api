@@ -35,7 +35,10 @@ class Homeowner extends Authenticatable
     // These attributes will not be visible when the model is converted to arrays or JSON.
     protected $hidden = [
         'password',
+        'email_verified_at',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     // ─── Casts ──────────────────────────────────────────────────
