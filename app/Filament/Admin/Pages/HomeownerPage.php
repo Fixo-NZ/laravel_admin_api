@@ -52,6 +52,7 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
             // Retrieves all registered homeowners and allows optional searching
             ->query(
                 Homeowner::query()
+                    ->when(request('status'), fn($query, $status) => $query->where('status', $status))
                     ->when(request('table_search'), function ($query, $search) {
                         $query->where('first_name', 'like', "%{$search}%")
                               ->orWhere('last_name', 'like', "%{$search}%")
@@ -180,6 +181,16 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
             // Bulk Actions
             // -----------------------------
             ->bulkActions([]); // No bulk actions enabled
+    }
+
+    // =========================================================================
+    // NAVIGATE TO THE HOMEOWNERS PAGE
+    // =========================================================================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\HomeownerStatsWidget::class,
+        ];
     }
 
     // =========================================================================
