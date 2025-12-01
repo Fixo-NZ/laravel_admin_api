@@ -534,9 +534,7 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'first_name' => $tradie->first_name,
-                    'last_name' => $tradie->last_name,
-                    'middle_name' => $tradie->middle_name,
+                    'name' => $tradie->name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
                     'business_name' => $tradie->business_name,

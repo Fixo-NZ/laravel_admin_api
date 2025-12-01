@@ -66,12 +66,11 @@ class HomeownerAuthController extends Controller
      */
     public function requestOtp(Request $request)
     {
-        // Validate incoming request phone data
+
         $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
         ]);
 
-        // Return errors if validation fails
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -83,12 +82,9 @@ class HomeownerAuthController extends Controller
             ], 422);
         }
 
-        // Generate OTP
         $otp = $this->otpService->generateOtp($request->phone);
 
-        // Check if otp is generated
         if ($otp) {
-            // OTP generated successfully
             return response()->json([
                 'success' => true,
                 'message' => 'OTP sent successfully',
@@ -96,7 +92,6 @@ class HomeownerAuthController extends Controller
             ], 201);
         }
 
-        // OTP generation failed
         return response()->json([
             'success' => false,
             'error' => [

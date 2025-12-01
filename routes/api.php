@@ -5,9 +5,10 @@ use App\Http\Controllers\Api\Auth\TradieAuthController;
 use App\Http\Controllers\Api\Auth\UserAuthController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\JobOfferController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ScheduleController; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ScheduleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,6 +19,7 @@ use App\Http\Controllers\ScheduleController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
 
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
@@ -54,7 +56,15 @@ Route::prefix('tradie')->group(function () {
     });
 });
 
-// Protected routes for authenticated users
+// Public payment route
+Route::middleware('auth:sanctum')->group(function() {
+    Route::post('/payment/process', [PaymentController::class, 'processPayment']);
+    Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
+    Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
+    Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);
+});
+
+// Protected routes (for authenticated users)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();

@@ -69,6 +69,10 @@ class Homeowner extends Authenticatable
     {
         return $query->where('status', 'active');
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     // Filter homeowners by region.
     public function scopeInRegion($query, $region)
@@ -88,8 +92,8 @@ class Homeowner extends Authenticatable
                 )
             ) AS distance
         ", [$latitude, $longitude, $latitude])
-        ->having('distance', '<=', $radiusKm)
-        ->orderBy('distance');
+            ->having('distance', '<=', $radiusKm)
+            ->orderBy('distance');
     }
 
     // ─── Accessors ────────────────────────────────────────────────

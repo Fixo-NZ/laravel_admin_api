@@ -14,20 +14,24 @@ class ScheduleController extends Controller
      * Fetch all schedules (job offers with start/end time)
      */
     public function index(Request $request)
-    {
-        // Get the currently authenticated tradie
-        $tradie = $request->user(); 
-        $tradieId = $tradie->id;
+{
+    // Get the currently authenticated tradie
+    $tradie = $request->user(); 
+    $tradieId = $tradie->id;
 
-        // Load schedules (job offers) for this tradie with homeowner info
-        $offers = HomeownerJobOffer::with('homeowner:id,first_name,last_name,middle_name,email,address,phone')
-            ->where('tradie_id', $tradieId) // only schedules assigned to this tradie
-            ->get();
+    // Load schedules + homeowner + service category
+    $offers = HomeownerJobOffer::with([
+        'homeowner:id,first_name,last_name,middle_name,email,address,phone',
+        'category:id,name,description,icon,status'
+    ])
+    ->where('tradie_id', $tradieId)
+    ->get();
 
-        return response()->json([
-            'schedules' => $offers,
-        ]);
-    }
+    return response()->json([
+        'schedules' => $offers,
+    ]);
+}
+
 
     /**
      * Reschedule an existing job offer
