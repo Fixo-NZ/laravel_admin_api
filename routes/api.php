@@ -6,6 +6,20 @@ use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Models\Schedule;
+use App\Http\Controllers\ScheduleController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+
 // Homeowner Authentication Routes
 Route::prefix('homeowner')->group(function () {
     Route::post('register', [HomeownerAuthController::class, 'register']);
@@ -50,3 +64,15 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+//Fetch values for calendar
+Route::get('/schedules', [ScheduleController::class, 'index']);
+
+//Send notification to homeowner via email
+Route::post('/schedules', [ScheduleController::class, 'store']);
+
+//Resched for calendar
+Route::post('/schedules/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
+//Cancel for calendar
+Route::post('/schedules/{schedule}/cancel', [ScheduleController::class, 'cancel']);
+

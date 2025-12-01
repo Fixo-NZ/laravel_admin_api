@@ -12,9 +12,20 @@ class HomeownerSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create 10 homeowners using the HomeownerFactory
-        Homeowner::factory()
-            ->count(10)
-            ->create();
+        Homeowner::create([
+            'first_name'  => 'Juan',
+            'last_name'   => 'Dela Cruz',
+            'middle_name' => 'Reyes',
+            'email'       => 'juan@example.com',
+            'phone'       => '09171234567',
+            'password'    => Hash::make('password'),
+            'address'     => '123 Manila Street',
+            'city'        => 'Manila',
+            'region'      => 'NCR',
+            'postal_code' => '1000',
+            'latitude'    => null,
+            'longitude'   => null,
+            'status'      => 'active',
+        ]);
     }
 }
