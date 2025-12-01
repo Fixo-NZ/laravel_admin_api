@@ -370,8 +370,11 @@ class TradieAuthController extends Controller
             $token = $tradie->createToken('tradie-token')->plainTextToken;
 
             return response()->json([
-                'success' => true,
-                'data' => [
+                // 'success' => true,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => 3600 * 24,
+                // 'data' => [
                     'user' => [
                         'id' => $tradie->id,
                         'first_name' => $tradie->first_name,
@@ -393,7 +396,7 @@ class TradieAuthController extends Controller
                         'user_type' => 'tradie',
                     ],
                     'token' => $token,
-                ]
+                // ]
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -530,8 +533,11 @@ class TradieAuthController extends Controller
         $token = $tradie->createToken('tradie-token')->plainTextToken;
 
         return response()->json([
-            'success' => true,
-            'data' => [
+            // 'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600 * 24,
+            // 'data' => [
                 'user' => [
                     'id' => $tradie->id,
                     'first_name' => $tradie->first_name,
@@ -552,8 +558,8 @@ class TradieAuthController extends Controller
                     'status' => $tradie->status,
                     'user_type' => 'tradie',
                 ],
-                'token' => $token,
-            ]
+                // 'token' => $token,
+            // ]
         ]);
     }
 
