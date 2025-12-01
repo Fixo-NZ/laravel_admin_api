@@ -7,8 +7,10 @@ use App\Models\Homeowner;
 use App\Services\OtpService;
 use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
 
 class HomeownerAuthController extends Controller
 {
@@ -23,7 +25,7 @@ class HomeownerAuthController extends Controller
      * @OA\Post(
      *     path="/api/homeowner/request-otp",
      *     summary="Request OTP for Homeowner",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -46,9 +48,8 @@ class HomeownerAuthController extends Controller
      *         response=201,
      *         description="OTP sent successfully",
      *         @OA\JsonContent(
-     *              @OA\Property(property="success", type="boolean", example=true),
-     *              @OA\Property(property="message", type="string", example="OTP sent successfully"),
-     *              @OA\Property(property="otp_code", type="string", example="123456"),
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully"),
      *        )
      *     ),
      *     @OA\Response(
@@ -88,7 +89,6 @@ class HomeownerAuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'OTP sent successfully',
-                'otp_code' => $otp->otp_code
             ], 201);
         }
 
@@ -101,16 +101,15 @@ class HomeownerAuthController extends Controller
         ], 500);
     }
 
-
     /**
      * @OA\Post(
      *     path="/api/homeowner/verify-otp",
      *     summary="Verify OTP for Homeowner",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="phone", type="string", example="09123456789"),
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
      *             @OA\Property(property="otp_code", type="string", example="123456"),
      *         )
      *     ),
@@ -118,57 +117,50 @@ class HomeownerAuthController extends Controller
      *         response=422,
      *         description="Validation Error",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *                 @OA\Property(property="details", type="object", example="{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"),
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
+     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a homeowner."),
+     *                         )
+     *                     )
+     *                 }
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="OTP verification successful",
+     *         description="OTP successfully verified",
      *         @OA\JsonContent(
-     *         oneOf={
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="new_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful. Please proceed to registration."),
-     *             ),
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="existing_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful."),
-     *                 @OA\Property(property="data", type="object",
-     *                     @OA\Property(property="user", type="object",
-     *                         @OA\Property(property="first_name", type="string", example="John"),
-     *                         @OA\Property(property="last_name", type="string", example="Doe"),
-     *                         @OA\Property(property="email", type="string", example="john.doe@gmail.com"),
-     *                         @OA\Property(property="phone", type="string", example="09123456789"),
-     *                         @OA\Property(property="status", type="string", example="active"),
-     *                         @OA\Property(property="user_type", type="string", example="homeowner"),
-     *                     ),
-     *                     @OA\Property(property="authorization", type="object",
-     *                         @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                         @OA\Property(property="type", type="string", example="Bearer"),
-     *                     )
-     *                 )
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP successfully verified."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="password_reset_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="expires_at", type="string", example="2024-12-31 23:59:59"),
      *             )
-     *         }
      *         )
      *     ),
      *     @OA\Response(
-     *         response=500,
-     *         description="OTP Generation Error",
+     *         response=400,
+     *         description="OTP Verification Error",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="OTP_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="Failed to generate OTP. Please try again."),
+     *                 @OA\Property(property="code", type="string", example="OTP_VERIFICATION_ERROR"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify OTP. Please try again."),
      *             )
      *         )
-     *     )
+     *    )
      * )
      */
     public function verifyOtp(Request $request)
@@ -195,8 +187,8 @@ class HomeownerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'USER_NOT_FOUND',
-                    'message' => 'The given email does not exist as a user.',
+                    'code' => 'HOMEOWNER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a homeowner.',
                 ]
             ], 422);
         }
@@ -234,7 +226,7 @@ class HomeownerAuthController extends Controller
      * @OA\Post(
      *     path="/api/homeowner/register",
      *     summary="Register a new user",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -367,12 +359,274 @@ class HomeownerAuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/homeowner/auth/verify-email/{id}/{hash}",
+     *     summary="Verify homeowner email",
+     *     tags={"Homeowner Authentication"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Homeowner ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         in="path",
+     *         description="Email verification hash",
+     *         required=true,
+     *         @OA\Schema(type="string", example="sha1-hash-of-email")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Homeowner Not Found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="Homeowner does not exist."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid or Signature or Hash Mismatch",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="INVALID_SIGNATURE"),
+     *                             @OA\Property(property="message", type="string", example="Invalid or expired verification link."),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="INVALID_VERIFICATION"),
+     *                             @OA\Property(property="message", type="string", example="Verification details do not match."),
+     *                         )
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Verification Failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VERIFICATION_FAILED"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify email. Please try again."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email Verified Successfully / is Already Verified",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Email verified successfully."),
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Email already verified."),
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     * )
+     */
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $homeowner = Homeowner::find($id);
+
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'HOMEOWNER_NOT_FOUND',
+                    'message' => 'This homeowner does not exist.',
+                ]
+            ], 404);
+        }
+
+        if (!URL::hasValidSignature($request)) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SIGNATURE',
+                    'message' => 'Invalid or expired verification link.',
+                ]
+            ], 403);
+        }
+
+        if (!hash_equals((string) $hash, sha1($homeowner->getEmailForVerification()))) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_VERIFICATION',
+                    'message' => 'Verification details do not match.',
+                ]
+            ], 403);
+        }
+
+        if ($homeowner->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        if (!$homeowner->markEmailAsVerified()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VERIFICATION_FAILED',
+                    'message' => 'Failed to verify email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully.',
+        ], 200);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/homeowner/auth/resend-verification",
+     *     summary="Resend email verification for homeowner",
+     *     tags={"Homeowner Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
+     *        )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
+     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="Homeowner does not exist."),
+     *                         )
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Resend Failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="RESEND_FAILED"),
+     *                 @OA\Property(property="message", type="string", example="Failed to send verification email. Please try again."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verification Email Resent Successfully / Email Already Verified",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Verification email resent successfully."),
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Email already verified."),
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function resendEmailVerification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $homeowner = Homeowner::where('email', $request->email)->first();
+
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'HOMEOWNER_NOT_FOUND',
+                    'message' => 'This homeowner does not exist.',
+                ]
+            ], 422);
+        }
+
+        if ($homeowner->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        try {
+            $homeowner->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESEND_FAILED',
+                    'message' => 'Failed to send verification email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email resent successfully.',
+        ], 200);
+    }
 
     /**
      * @OA\Post(
      *     path="/api/homeowner/login",
      *     summary="Login homeowner",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -505,7 +759,7 @@ class HomeownerAuthController extends Controller
      *     path="/api/homeowner/reset-password-request",
      *     summary="Request password reset OTP for homeowner",
      *     description="Request password reset OTP for homeowner",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -607,7 +861,7 @@ class HomeownerAuthController extends Controller
      *     path="/api/homeowner/reset-password",
      *     summary="Reset homeowner password",
      *     description="Reset homeowner password",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -697,7 +951,7 @@ class HomeownerAuthController extends Controller
      * @OA\Post(
      *     path="/api/homeowner/logout",
      *     summary="Logout homeowner",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
@@ -725,7 +979,7 @@ class HomeownerAuthController extends Controller
      * @OA\Get(
      *     path="/api/homeowner/me",
      *     summary="Get authenticated homeowner details",
-     *     tags={"Authentication"},
+     *     tags={"Homeowner Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
