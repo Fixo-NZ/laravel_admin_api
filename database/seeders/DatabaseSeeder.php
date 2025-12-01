@@ -18,21 +18,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'Admin User',
+            'first_name' => 'Admin',
+            'middle_name' => 'N/A',
+            'last_name' => 'User',
             'email' => 'admin@example.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
         ]);
-       // ✅ Create Homeowners and Tradies first
-        $homeowners = Homeowner::factory(10)->create();
-        $tradies = Tradie::factory(10)->create();
-
-        // ✅ Then run ScheduleSeeder (it can now safely reference homeowner_id)
-        $this->call([
-            ScheduleSeeder::class,
-        ]);
-
-        // Optionally create more users
         User::factory(10)->create();
 
         Homeowner::factory(10)->create();
@@ -45,6 +37,5 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("tradie123"),
             'status' => 'active'
         ]);
-
     }
 }

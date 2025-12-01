@@ -823,6 +823,12 @@ class TradieAuthController extends Controller
                     'service_radius' => $tradie->service_radius,
                     'availability_status' => $tradie->availability_status,
                     'status' => $tradie->status,
+                    'is_verified' => $tradie->is_verified,
+                    'verified_at' => $tradie->verified_at,
+                    'average_rating' => $tradie->average_rating,
+                    'total_reviews' => $tradie->total_reviews,
+                    'average_rating' => $tradie->average_rating,
+                    'total_reviews' => $tradie->total_reviews,
                     'user_type' => 'tradie',
                 ]
             ]

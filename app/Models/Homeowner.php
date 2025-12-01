@@ -113,8 +113,34 @@ class Homeowner extends Authenticatable
     //     return $this->hasMany(Booking::class);
     // }
 
-    // public function favoriteTradies()
-    // {
-    //     return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
-    // }
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+
+    public function favoriteTradies()
+    {
+        return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
+    }
+
+   public function jobOffers()
+    {
+        return $this->hasMany(HomeownerJobOffer::class);
+    }
+
 }
