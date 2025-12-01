@@ -6,6 +6,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TradieRecommendationController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\BookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -73,3 +74,12 @@ Route::apiResource('services', ServiceController::class);
 
 // Job API Resource Routes
 Route::apiResource('jobs', JobController::class);
+
+
+// Booking Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/bookings', [BookingController::class, 'index']); // View bookings
+    Route::post('/bookings', [BookingController::class, 'store']); // Create booking
+    Route::put('/bookings/{id}', [BookingController::class, 'update']); // Update booking
+    Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']); // Cancel booking
+});
