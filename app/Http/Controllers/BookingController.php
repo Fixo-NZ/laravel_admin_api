@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class BookingController extends Controller
@@ -42,7 +43,7 @@ class BookingController extends Controller
         DB::beginTransaction();
         try {
             $booking = Booking::create([
-                'homeowner_id' => auth()->id(),
+                'homeowner_id' => Auth::id(),
                 'tradie_id' => $request->tradie_id,
                 'service_id' => $request->service_id,
                 'booking_start' => $request->booking_start,
@@ -52,7 +53,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'action' => 'created',
                 'notes' => 'Booking created.'
             ]);
@@ -76,7 +77,7 @@ class BookingController extends Controller
 
     // View all bookings for homeowner
     public function index() {
-        $bookings = Booking::where('homeowner_id', auth()->id())
+        $bookings = Booking::where('homeowner_id', Auth::id())
                             ->with(['tradie', 'service'])
                             ->orderBy('booking_start', 'desc')
                             ->get();
@@ -87,7 +88,7 @@ class BookingController extends Controller
     // Update booking
     public function update(Request $request, $id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        $booking = Booking::where('id', $id)->where('homeowner_id', Auth::id())->firstOrFail();
 
         $request->validate([
             'booking_start' => 'required|date|after:now',
@@ -110,7 +111,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'action' => 'updated',
                 'notes' => 'Booking updated.'
             ]);
@@ -135,7 +136,7 @@ class BookingController extends Controller
     // Cancel booking
     public function cancel($id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        $booking = Booking::where('id', $id)->where('homeowner_id', Auth::id())->firstOrFail();
 
         if ($booking->status == 'canceled') {
             return response()->json([
@@ -151,7 +152,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'action' => 'canceled',
                 'notes' => 'Booking canceled.'
             ]);
