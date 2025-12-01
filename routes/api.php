@@ -41,7 +41,7 @@ Route::prefix('tradie')->group(function () {
     Route::post('request-otp', [TradieAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [TradieAuthController::class, 'verifyOtp']);
 
-    Route::prefix('auth/email')->group(function () {
+    Route::prefix('auth')->group(function () {
         Route::get('verify-email/{id}/{hash}', [TradieAuthController::class, 'verifyEmail'])
             ->middleware('signed')
             ->name('verification.verify');

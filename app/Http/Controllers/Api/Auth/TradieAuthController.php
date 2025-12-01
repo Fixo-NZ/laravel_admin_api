@@ -461,7 +461,7 @@ class TradieAuthController extends Controller
         ], 200);
     }
 
-    public function resendEmail(Request $request)
+    public function resendEmailVerification(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
