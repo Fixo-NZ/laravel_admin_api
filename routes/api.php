@@ -9,6 +9,9 @@ use App\Http\Controllers\BookingController;
 
 // Booking Routes
 Route::middleware('auth:sanctum')->group(function () {
+    // Booking History 
+    Route::get('/bookings/history', [BookingController::class, 'history']); // Grouped booking history (past + upcoming)
+    Route::get('/bookings/{id}', [BookingController::class, 'show']); // Booking details
     Route::get('/bookings', [BookingController::class, 'index']); // View bookings
     Route::post('/bookings', [BookingController::class, 'store']); // Create booking
     Route::put('/bookings/{id}', [BookingController::class, 'update']); // Update booking

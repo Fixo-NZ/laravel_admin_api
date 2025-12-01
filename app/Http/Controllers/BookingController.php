@@ -77,11 +77,44 @@ class BookingController extends Controller
     // View all bookings for homeowner
     public function index() {
         $bookings = Booking::where('homeowner_id', auth()->id())
+                    ->with(['tradie', 'service', 'logs' => function($q) { $q->orderBy('created_at', 'desc'); }])
+                    ->orderBy('booking_start', 'desc')
+                    ->get();
+
+        return response()->json($bookings, 200);
+    }
+
+    // Grouped booking history (upcoming + past)
+    public function history() {
+        $bookings = Booking::where('homeowner_id', auth()->id())
                             ->with(['tradie', 'service'])
                             ->orderBy('booking_start', 'desc')
                             ->get();
 
-        return response()->json($bookings, 200);
+        $now = Carbon::now();
+
+        $upcoming = $bookings->filter(function($b) use ($now) {
+            return Carbon::parse($b->booking_start)->gt($now);
+        })->values();
+
+        $past = $bookings->filter(function($b) use ($now) {
+            return Carbon::parse($b->booking_start)->lte($now);
+        })->values();
+
+        return response()->json([
+            'upcoming' => $upcoming,
+            'past' => $past
+        ], 200);
+    }
+
+    // Show booking details (with logs)
+    public function show($id) {
+        $booking = Booking::where('id', $id)
+                          ->where('homeowner_id', auth()->id())
+                          ->with(['tradie', 'service', 'logs'])
+                          ->firstOrFail();
+
+        return response()->json($booking, 200);
     }
 
     // Update booking
