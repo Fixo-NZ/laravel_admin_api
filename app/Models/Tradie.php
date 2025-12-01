@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 
 class Tradie extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, AuthMustVerifyEmail;
 
     protected $fillable = [
         'first_name',
