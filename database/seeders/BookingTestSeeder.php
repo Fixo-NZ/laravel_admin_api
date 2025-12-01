@@ -42,6 +42,7 @@ class BookingTestSeeder extends Seeder
             ['email' => 'test.homeowner@example.com'],
             [
                 'first_name' => 'Test',
+                'middle_name' => 'X',  // Required field
                 'last_name' => 'Homeowner',
                 'phone' => '0211234567',
                 'password' => Hash::make('password123'),
@@ -50,10 +51,11 @@ class BookingTestSeeder extends Seeder
         );
 
         // 3. Create a service (for urgent booking flow)
+        // Note: Database column is job_category_id (with underscore)
         $service = Service::firstOrCreate(
             [
                 'homeowner_id' => $homeowner->id,
-                'job_categoryid' => $electricalCategory->id,
+                'job_category_id' => $electricalCategory->id,  // Fixed: use job_category_id
             ],
             [
                 'job_description' => 'Need urgent electrical repair - lights not working in kitchen',

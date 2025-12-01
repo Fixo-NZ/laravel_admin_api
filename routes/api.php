@@ -10,6 +10,7 @@ use App\Http\Controllers\BookingController;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\UrgentBookingController;
 /*
 |--------------------------------------------------------------------------
@@ -30,8 +31,13 @@ Route::middleware('auth:sanctum')->get('/services/{serviceId}/recommend-tradies'
     $service = Service::findOrFail($serviceId);
     
     // Find JobRequest that matches this service (by homeowner and category)
+    // Get the category ID directly from the database column
+    $categoryId = DB::table('services')
+        ->where('id', $service->id)
+        ->value('job_category_id');
+    
     $jobRequest = \App\Models\JobRequest::where('homeowner_id', $service->homeowner_id)
-        ->where('job_category_id', $service->job_categoryid)
+        ->where('job_category_id', $categoryId)
         ->where('status', '!=', 'cancelled')
         ->first();
     
