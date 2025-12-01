@@ -26,6 +26,15 @@ Route::prefix('homeowner')->group(function () {
     Route::post('request-otp', [HomeownerAuthController::class, 'requestOtp']);
     Route::post('verify-otp', [HomeownerAuthController::class, 'verifyOtp']);
 
+    Route::prefix('auth')->group(function () {
+        Route::get('verify-email/{id}/{hash}', [HomeownerAuthController::class, 'verifyEmail'])
+            ->middleware('signed')
+            ->name('verification.verify');
+
+        Route::post('resend-email-verification', [HomeownerAuthController::class, 'resendEmailVerification'])
+            ->name('verification.resend');
+    });
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::put('/reset-password', [HomeownerAuthController::class, 'resetPassword']);
         Route::post('logout', [HomeownerAuthController::class, 'logout']);

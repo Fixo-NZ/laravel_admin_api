@@ -25,7 +25,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/request-otp",
      *     summary="Request OTP for Tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -48,9 +48,8 @@ class TradieAuthController extends Controller
      *         response=201,
      *         description="OTP sent successfully",
      *         @OA\JsonContent(
-     *              @OA\Property(property="success", type="boolean", example=true),
-     *              @OA\Property(property="message", type="string", example="OTP sent successfully"),
-     *              @OA\Property(property="otp_code", type="string", example="123456"),
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully"),
      *        )
      *     ),
      *     @OA\Response(
@@ -89,7 +88,6 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'OTP sent successfully',
-                'otp_code' => $otp->otp_code
             ], 201);
         }
 
@@ -106,11 +104,11 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/verify-otp",
      *     summary="Verify OTP for Tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="phone", type="string", example="09123456789"),
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
      *             @OA\Property(property="otp_code", type="string", example="123456"),
      *         )
      *     ),
@@ -118,57 +116,50 @@ class TradieAuthController extends Controller
      *         response=422,
      *         description="Validation Error",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *                 @OA\Property(property="details", type="object", example="{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"),
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
+     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a tradie."),
+     *                         )
+     *                     )
+     *                 }
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="OTP verification successful",
+     *         description="OTP successfully verified",
      *         @OA\JsonContent(
-     *         oneOf={
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="new_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful. Please proceed to registration."),
-     *             ),
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="existing_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful."),
-     *                 @OA\Property(property="data", type="object",
-     *                     @OA\Property(property="user", type="object",
-     *                         @OA\Property(property="first_name", type="string", example="John"),
-     *                         @OA\Property(property="last_name", type="string", example="Doe"),
-     *                         @OA\Property(property="email", type="string", example="john.doe@gmail.com"),
-     *                         @OA\Property(property="phone", type="string", example="09123456789"),
-     *                         @OA\Property(property="status", type="string", example="active"),
-     *                         @OA\Property(property="user_type", type="string", example="tradie"),
-     *                     ),
-     *                     @OA\Property(property="authorization", type="object",
-     *                         @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                         @OA\Property(property="type", type="string", example="Bearer"),
-     *                     )
-     *                 )
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP successfully verified."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="password_reset_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="expires_at", type="string", example="2024-12-31 23:59:59"),
      *             )
-     *         }
      *         )
      *     ),
      *     @OA\Response(
-     *         response=500,
-     *         description="OTP Generation Error",
+     *         response=400,
+     *         description="OTP Verification Error",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="OTP_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="Failed to generate OTP. Please try again."),
+     *                 @OA\Property(property="code", type="string", example="OTP_VERIFICATION_ERROR"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify OTP. Please try again."),
      *             )
      *         )
-     *     )
+     *    )
      * )
      */
     public function verifyOtp(Request $request)
@@ -195,8 +186,8 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'USER_NOT_FOUND',
-                    'message' => 'The given email does not exist as a user.',
+                    'code' => 'TRADIE_NOT_FOUND',
+                    'message' => 'The given email does not exist as a tradie.',
                 ]
             ], 422);
         }
@@ -234,7 +225,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/register",
      *     summary="Register a new user",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -404,6 +395,91 @@ class TradieAuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/tradie/auth/verify-email/{id}/{hash}",
+     *     summary="Verify tradie email",
+     *     tags={"Tradie Authentication"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Tradie ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         in="path",
+     *         description="Email verification hash",
+     *         required=true,
+     *         @OA\Schema(type="string", example="sha1-hash-of-email")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tradie Not Found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="Tradie does not exist."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid or Signature or Hash Mismatch",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="INVALID_SIGNATURE"),
+     *                             @OA\Property(property="message", type="string", example="Invalid or expired verification link."),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="INVALID_VERIFICATION"),
+     *                             @OA\Property(property="message", type="string", example="Verification details do not match."),
+     *                         )
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Verification Failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VERIFICATION_FAILED"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify email. Please try again."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email Verified Successfully / is Already Verified",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Email verified successfully."),
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=true),
+     *                         @OA\Property(property="message", type="string", example="Email already verified."),
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     * )
+     */
     public function verifyEmail(Request $request, $id, $hash)
     {
         $tradie = Tradie::find($id);
@@ -461,6 +537,73 @@ class TradieAuthController extends Controller
         ], 200);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/tradie/auth/resend-verification",
+     *     summary="Resend email verification for tradie",
+     *     tags={"Tradie Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
+     *        )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
+     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="Tradie does not exist."),
+     *                         )
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *    ),
+     *    @OA\Response(
+     *        response=500,
+     *        description="Resend Failed",
+     *        @OA\JsonContent(
+     *            @OA\Property(property="success", type="boolean", example=false),
+     *            @OA\Property(property="error", type="object",
+     *                @OA\Property(property="code", type="string", example="RESEND_FAILED"),
+     *                @OA\Property(property="message", type="string", example="Failed to send verification email. Please try again."),
+     *            )
+     *        )
+     *    ),
+     *    @OA\Response(
+     *        response=200,
+     *        description="Verification Email Resent Successfully / Email Already Verified",
+     *        @OA\JsonContent(
+     *            @OA\Schema(
+     *                oneOf={
+     *                    @OA\Schema(
+     *                        @OA\Property(property="success", type="boolean", example=true),
+     *                        @OA\Property(property="message", type="string", example="Verification email resent successfully."),
+     *                    ),
+     *                    @OA\Schema(
+     *                        @OA\Property(property="success", type="boolean", example=true),
+     *                        @OA\Property(property="message", type="string", example="Email already verified."),
+     *                    )
+     *                }
+     *            )
+     *        )
+     *    )
+     * )
+     */
     public function resendEmailVerification(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -487,7 +630,7 @@ class TradieAuthController extends Controller
                     'code' => 'TRADIE_NOT_FOUND',
                     'message' => 'Tradie does not exist.',
                 ]
-            ], 404);
+            ], 422);
         }
 
         if ($tradie->hasVerifiedEmail()) {
@@ -519,7 +662,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/login",
      *     summary="Login tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -669,7 +812,7 @@ class TradieAuthController extends Controller
      *     path="/api/tradie/reset-password-request",
      *     summary="Request password reset OTP for tradie",
      *     description="Request password reset OTP for tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -763,7 +906,7 @@ class TradieAuthController extends Controller
      *     path="/api/tradie/reset-password",
      *     summary="Reset tradie password",
      *     description="Reset tradie password",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -852,7 +995,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/logout",
      *     summary="Logout tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
@@ -878,7 +1021,7 @@ class TradieAuthController extends Controller
      * @OA\Get(
      *     path="/api/tradie/me",
      *     summary="Get authenticated tradie details",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
