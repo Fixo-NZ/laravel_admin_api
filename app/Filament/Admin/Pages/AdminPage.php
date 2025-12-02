@@ -16,7 +16,7 @@ class AdminPage extends Page implements Tables\Contracts\HasTable
     // Include trait that provides table handling methods (required for HasTable)
     use Tables\Concerns\InteractsWithTable;
 
-    // =========================================================================
+    // =================================zz========================================
     // PAGE CONFIGURATION
     // =========================================================================
 
