@@ -18,4 +18,17 @@ class Payment extends Model
         'exp_month',
         'exp_year'
     ];
+
+    /**
+     * Hide sensitive fields from JSON serialization by default.
+     */
+    protected $hidden = [
+        'payment_method_id',
+        'card_brand',
+        'card_last4number',
+        'exp_month',
+        'exp_year',
+        'created_at',
+        'updated_at',
+    ];
 }

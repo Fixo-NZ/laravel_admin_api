@@ -8,4 +8,10 @@ Route::get('/homeowners/{homeowner}', [HomeownerAuthController::class, 'show'])
     ->name('homeowners.show');
 
 
+// Booking history page (web)
+Route::middleware('auth')->get('/bookings', function() {
+    return view('bookings.index');
+})->name('bookings.index');
+
     
+
