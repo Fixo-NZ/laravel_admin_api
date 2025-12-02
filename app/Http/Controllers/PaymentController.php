@@ -61,15 +61,14 @@ class PaymentController extends Controller
                 'exp_year' => $encExpYear ?? null,
             ]);
 
+            // For security, do not return raw/decrypted card data in the standard response.
+            // Use the dedicated `viewDecryptedPayment` endpoint for authorized, audited access.
             return response()->json([
                 'message' => 'Payment processed successfully',
+                'payment_id' => $payment->id,
                 'amount' => $payment->amount,
+                'currency' => $payment->currency,
                 'status' => $paymentIntent->status,
-                'card_brand' => $paymentIntent->payment_method->card->brand ?? null,
-                'card_last4' => $paymentIntent->payment_method->card->last4 ?? null,
-                'exp_month' => $paymentIntent->payment_method->card->exp_month ?? null,
-                'exp_year' => $paymentIntent->payment_method->card->exp_year ?? null,
-                'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
             ]);
         } catch (\Stripe\Exception\CardException $e) {
             return response()->json(['error' => $e->getMessage()], 400);

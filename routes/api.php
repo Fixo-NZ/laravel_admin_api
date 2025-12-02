@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 
 // Booking Routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
     // Booking History 
     Route::get('/bookings/history', [BookingController::class, 'history']); // Grouped booking history (past + upcoming)
     Route::get('/bookings/{id}', [BookingController::class, 'show']); // Booking details
@@ -48,8 +48,8 @@ Route::prefix('tradie')->group(function () {
     });
 });
 
-// Public payment route
-Route::middleware('auth:sanctum')->group(function() {
+// Public payment route (protected + rate limited)
+Route::middleware(['auth:sanctum','throttle:api'])->group(function() {
     Route::post('/payment/process', [PaymentController::class, 'processPayment']);
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function() {
 });
 
 // Protected routes (for authenticated users)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

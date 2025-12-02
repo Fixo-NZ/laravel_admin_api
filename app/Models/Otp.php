@@ -16,6 +16,15 @@ class Otp extends Model
         'expires_at',
     ];
     
+    /**
+     * Hide OTP code from JSON output to avoid exposing secrets.
+     */
+    protected $hidden = [
+        'otp_code',
+        'created_at',
+        'updated_at',
+    ];
+    
     protected $casts = [
         'is_used' => 'boolean',
         'is_verified' => 'boolean',
