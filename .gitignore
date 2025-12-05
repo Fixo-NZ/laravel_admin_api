@@ -24,3 +24,4 @@ Homestead.yaml
 Thumbs.db
 composer.json
 composer.lock
+/storage/firebase/.gitignore
