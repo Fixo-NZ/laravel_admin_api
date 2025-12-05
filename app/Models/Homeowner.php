@@ -29,6 +29,7 @@ class Homeowner extends Authenticatable
         'latitude',
         'longitude',
         'status',
+        'fcm_token',
     ];
 
     // ─── Hidden ─────────────────────────────────────────────────

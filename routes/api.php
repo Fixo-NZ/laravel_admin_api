@@ -81,7 +81,18 @@ Route::prefix('schedules')->middleware('auth:sanctum')->group(function () {
 
     // Cancel for calendar
     Route::post('/{schedule}/cancel', [ScheduleController::class, 'cancel']);
+
+    // Push notificaiton 
+    Route::post('/tradie/update-token', [ScheduleController::class, 'updateFcmToken']);
+
+    // Homeowner FCM token update
+    Route::post('/homeowner/update-token', [ScheduleController::class, 'updateHomeownerFcmToken']);
+
+    // Accept a job offer (notifies homeowner)
+    Route::post('/{schedule}/accept', [ScheduleController::class, 'acceptOffer']);
 });
+
+
 
 // Public Job and Service Routes (POSTMAN)
 Route::prefix('jobs')->group(function () {

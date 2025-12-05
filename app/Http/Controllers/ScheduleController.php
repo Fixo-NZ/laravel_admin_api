@@ -7,9 +7,17 @@ use App\Models\Homeowner;
 use App\Models\HomeownerJobOffer;
 use App\Notifications\ScheduleNotification;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\FCMService;
 
 class ScheduleController extends Controller
 {
+    protected $fcm;
+
+    public function __construct(FCMService $fcm)
+    {
+        $this->fcm = $fcm;
+    }
+
     /**
      * Fetch all schedules (job offers with start/end time)
      */
@@ -109,4 +117,137 @@ class ScheduleController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    // Update FCM token for tradie
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        // Authenticated tradie
+        $tradie = $request->user();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+    }
+
+        $tradie->update([
+            'fcm_token' => $request->fcm_token,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM Token updated successfully',
+            'token' => $tradie->fcm_token
+        ]);
+    }
+
+    // Update FCM token for homeowner
+    public function updateHomeownerFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        // Authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $homeowner->update([
+            'fcm_token' => $request->fcm_token,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM Token updated successfully',
+            'token' => $homeowner->fcm_token
+        ]);
+    }
+
+    /**
+     * Accept a job offer and notify the homeowner
+     */
+    public function acceptOffer(Request $request, HomeownerJobOffer $schedule)
+    {
+        $tradie = $request->user();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        // Update the job offer
+        $schedule->update([
+            'tradie_id' => $tradie->id,
+            'status' => 'accepted',
+        ]);
+
+        // Send FCM notification to the homeowner
+        if ($schedule->homeowner && $schedule->homeowner->fcm_token) {
+            $title = "Job Offer Accepted";
+            $body = "{$tradie->first_name} {$tradie->last_name} accepted your job offer: {$schedule->title}";
+
+            $data = [
+                'job_id' => (string) $schedule->id,
+                'type' => 'job_accepted',
+            ];
+
+            try {
+                $this->fcm->send($schedule->homeowner->fcm_token, $title, $body, $data);
+            } catch (\Exception $e) {
+                \Log::error("Failed to send FCM to homeowner ID {$schedule->homeowner->id}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job offer accepted successfully',
+            'schedule' => $schedule
+        ], Response::HTTP_OK);
+    }
+
+    /**
+    * Send a reminder to a tradie about an upcoming job
+    */
+    public function sendJobReminderToTradie(HomeownerJobOffer $schedule)
+    {
+        $tradie = $schedule->tradie;
+
+        if (!$tradie || !$tradie->fcm_token) {
+            \Log::warning("No FCM token found for tradie ID {$schedule->tradie_id}");
+            return false;
+        }
+
+        $title = "Upcoming Job Reminder";
+        $body = "You have a job scheduled in 1 hour: {$schedule->title} with {$schedule->homeowner->first_name} {$schedule->homeowner->last_name}";
+
+        $data = [
+            'job_id' => (string) $schedule->id,
+            'type' => 'job_reminder',
+            'start_time' => $schedule->start_time->toDateTimeString(),
+        ];
+
+        try {
+            $this->fcm->send($tradie->fcm_token, $title, $body, $data);
+            \Log::info("Job reminder sent to tradie ID {$tradie->id}");
+            return true;
+        } catch (\Exception $e) {
+            \Log::error("Failed to send job reminder to tradie ID {$tradie->id}: " . $e->getMessage());
+            return false;
+        }
+    }
 }
+
+

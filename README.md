@@ -12,10 +12,14 @@ You can **fetch**, **reschedule**, and **cancel** schedule entries directly from
 To generate sample schedule data, run the following:
 
 ```bash
+
 php artisan db:seed
 
+after doing that do 
+php artisan db:seed --class=ServiceSeeder
+php artisan db:seed --class=HomeownerjobOfferSeeder
 
-Then
+Then for postman api
 
 php artisan tinker
 
@@ -24,3 +28,10 @@ $token = $tradie->createToken('PostmanToken')->plainTextToken;
 echo $token;
 
 to test
+
+php artisan schedule:work
+
+FIREBASE_CREDENTIALS="storage/firebase/service-account.json"
+.env
+
+php artisan send:job-reminder

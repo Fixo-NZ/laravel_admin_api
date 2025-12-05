@@ -35,6 +35,7 @@ class Tradie extends Authenticatable
         'availability_status',
         'service_radius',
         'status',
+        'fcm_token',
     ];
 
     protected $hidden = [

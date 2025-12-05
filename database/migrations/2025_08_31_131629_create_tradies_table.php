@@ -38,6 +38,7 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->rememberToken();
+            $table->string('fcm_token')->nullable();
             $table->timestamps();
             
             $table->index(['latitude', 'longitude']);
