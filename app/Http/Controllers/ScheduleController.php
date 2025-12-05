@@ -191,7 +191,7 @@ class ScheduleController extends Controller
         // Update the job offer
         $schedule->update([
             'tradie_id' => $tradie->id,
-            'status' => 'accepted',
+            'status' => 'in_progress',
         ]);
 
         // Send FCM notification to the homeowner
