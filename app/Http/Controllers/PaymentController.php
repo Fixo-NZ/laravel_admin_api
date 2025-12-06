@@ -24,18 +24,18 @@ class PaymentController extends Controller
         try {
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            // If payment_intent_id exists, confirm it (after 3DS)
+            // If payment_intent_id exists, confirm it
             if (!empty($request->payment_intent_id)) {
                 $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
                 $paymentIntent->confirm();
             } else {
                 // Create a new PaymentIntent
                 $paymentIntent = \Stripe\PaymentIntent::create([
-                    'amount' => $request->amount * 100, // convert to cents
+                    'amount' => $request->amount * 100,
                     'currency' => $request->currency ?? 'usd',
                     'payment_method' => $request->payment_method ?? 'pm_card_visa',
                     'confirm' => true,
-                    'return_url' => 'https://buy.stripe.com/test_5kQ8wQ4x04qSfQAeQxf7i000', // For 3DS redirect (not used in mobile apps)
+                    'return_url' => 'https://buy.stripe.com/test_5kQ8wQ4x04qSfQAeQxf7i000', // For 3DS redirect
                     'automatic_payment_methods' => ['enabled' => true],
                     'expand' => ['payment_method', 'charges.data.payment_method_details'],
                 ]);
@@ -74,7 +74,7 @@ class PaymentController extends Controller
                 'status' => $paymentIntent->status,
                 'requires_action' => $requiresAction,
                 'next_action_url' => $nextActionUrl, // Flutter should open this if 3DS required
-                'client_secret' => $paymentIntent->client_secret, // optional for frontend SDKs
+                'client_secret' => $paymentIntent->client_secret,
             ]);
         } catch (\Stripe\Exception\CardException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
