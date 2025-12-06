@@ -18,57 +18,63 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0.5',
             'currency' => 'nullable|string|size:3',
             'payment_method' => 'nullable|string',
+            'payment_intent_id' => 'nullable|string', // For confirming 3DS
         ]);
 
         try {
-            // Set Stripe secret key from .env
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount' => $request->amount * 100, // convert to cents
-                'currency' => 'usd',
-                'payment_method' => 'pm_card_visa',
-                'confirm' => true,
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                    'allow_redirects' => 'never',
-                ],
-                'expand' => ['payment_method', 'charges.data.payment_method_details'],
-            ]);
+            // If payment_intent_id exists, confirm it (after 3DS)
+            if (!empty($request->payment_intent_id)) {
+                $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
+                $paymentIntent->confirm();
+            } else {
+                // Create a new PaymentIntent
+                $paymentIntent = \Stripe\PaymentIntent::create([
+                    'amount' => $request->amount * 100, // convert to cents
+                    'currency' => $request->currency ?? 'usd',
+                    'payment_method' => $request->payment_method ?? 'pm_card_visa',
+                    'confirm' => true,
+                    'return_url' => 'https://buy.stripe.com/test_5kQ8wQ4x04qSfQAeQxf7i000', // For 3DS redirect (not used in mobile apps)
+                    'automatic_payment_methods' => ['enabled' => true],
+                    'expand' => ['payment_method', 'charges.data.payment_method_details'],
+                ]);
+            }
 
-            //agsave datoy yanti db
-
+            // Save to database
             $charge = $paymentIntent->payment_method->card ?? null;
-            $encryptBrand = Crypt::encryptString($charge['brand']);
-            $encryptLast4 = Crypt::encryptString($charge['last4']);
-            $encExpYear = Crypt::encryptString($charge['exp_year']);
-            $encExpMonth = Crypt::encryptString($charge['exp_month']);
+            $encryptBrand = $charge['brand'] ?? null ? Crypt::encryptString($charge['brand']) : null;
+            $encryptLast4 = $charge['last4'] ?? null ? Crypt::encryptString($charge['last4']) : null;
+            $encExpYear = $charge['exp_year'] ?? null ? Crypt::encryptString($charge['exp_year']) : null;
+            $encExpMonth = $charge['exp_month'] ?? null ? Crypt::encryptString($charge['exp_month']) : null;
 
-            Log::info('User Authenticated?', [
-                'user' => auth('sanctum')->user(),
-                'id' => auth('sanctum')->id()
-            ]);
+            $payment = Payment::updateOrCreate(
+                ['payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method],
+                [
+                    'homeowner_id' => auth('sanctum')->id(),
+                    'amount' => $request->amount,
+                    'currency' => $paymentIntent->currency,
+                    'status' => $paymentIntent->status,
+                    'card_brand' => $encryptBrand,
+                    'card_last4number' => $encryptLast4,
+                    'exp_month' => $encExpMonth,
+                    'exp_year' => $encExpYear,
+                ]
+            );
 
-            $payment = Payment::create([
-                'homeowner_id' => auth('sanctum')->id(),
-                'payment_method_id' => $paymentIntent->payment_method->id ?? $paymentIntent->payment_method,
-                'amount' => $request->amount,
-                'currency' => $paymentIntent->currency,
-                'status' => $paymentIntent->status,
-                'card_brand' => $encryptBrand ?? null,
-                'card_last4number' => $encryptLast4 ?? null,
-                'exp_month' => $encExpMonth ?? null,
-                'exp_year' => $encExpYear ?? null,
-            ]);
+            // Handle 3DS flow
+            $requiresAction = $paymentIntent->status === 'requires_action';
+            $nextActionUrl = $requiresAction ? $paymentIntent->next_action->redirect_to_url->url ?? null : null;
 
-            // For security, do not return raw/decrypted card data in the standard response.
-            // Use the dedicated `viewDecryptedPayment` endpoint for authorized, audited access.
             return response()->json([
                 'message' => 'Payment processed successfully',
                 'payment_id' => $payment->id,
                 'amount' => $payment->amount,
                 'currency' => $payment->currency,
                 'status' => $paymentIntent->status,
+                'requires_action' => $requiresAction,
+                'next_action_url' => $nextActionUrl, // Flutter should open this if 3DS required
+                'client_secret' => $paymentIntent->client_secret, // optional for frontend SDKs
             ]);
         } catch (\Stripe\Exception\CardException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -76,6 +82,7 @@ class PaymentController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function deletePayment(Request $request, $id)
     {
@@ -134,41 +141,41 @@ class PaymentController extends Controller
             'exp_year' => 'required|string|size:4',
         ]);
 
-        if($validated['exp_month'] < 1 || $validated['exp_month'] > 12){
+        if ($validated['exp_month'] < 1 || $validated['exp_month'] > 12) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration month must be between 01 and 12.',
             ], 400);
-        }elseif($validated['exp_year'] < date('Y')){
+        } elseif ($validated['exp_year'] < date('Y')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration year cannot be in the past.',
             ], 400);
-        }elseif($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')){
+        } elseif ($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration month cannot be in the past for the current year.',
             ], 400);
-        }elseif ($validated['exp_year'] > date('Y') + 20) {
+        } elseif ($validated['exp_year'] > date('Y') + 20) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration year is too far in the future.',
             ], 400);
         }
 
-         // Encrypt sensitive fields if they are being updated
-         if (isset($validated['card_brand'])) {
-             $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
-         }
-         if (isset($validated['card_last4number'])) {
-             $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
-         }
-         if (isset($validated['exp_month'])) {
-             $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
-         }
-         if (isset($validated['exp_year'])) {
-             $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
-         }
+        // Encrypt sensitive fields if they are being updated
+        if (isset($validated['card_brand'])) {
+            $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
+        }
+        if (isset($validated['card_last4number'])) {
+            $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
+        }
+        if (isset($validated['exp_month'])) {
+            $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
+        }
+        if (isset($validated['exp_year'])) {
+            $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
+        }
 
         $payment->update($validated);
 
