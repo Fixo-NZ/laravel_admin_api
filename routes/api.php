@@ -6,6 +6,9 @@ use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\TradieRecommendationController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\JobController;
 
 // Booking Routes
 Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
@@ -62,3 +65,13 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
         return $request->user();
     });
 });
+
+// Create backend API to fetch recommended tradies for a given job request. (G4 - #52)
+Route::get('/jobs/{jobId}/recommend-tradies', [TradieRecommendationController::class, 'recommend']);
+
+
+// Service API Resource Routes
+Route::apiResource('services', ServiceController::class);
+
+// Job API Resource Routes
+Route::apiResource('jobs', JobController::class);
