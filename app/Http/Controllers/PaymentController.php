@@ -77,6 +77,66 @@ class PaymentController extends Controller
         }
     }
 
+    public function checkPaymentStatus($id)
+    {
+        $payment = Payment::find($id);
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => $payment->status,
+        ]);
+    }
+
+
+    // 2️⃣  Mark a booking as "payment ready"
+    public function updateBookingPaymentStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'booking_id' => 'required|integer',
+            'payment_id' => 'required|integer',
+            'payment_ready' => 'required|boolean',
+        ]);
+
+        $booking = \App\Models\Booking::find($validated['booking_id']);
+
+        if (!$booking) {
+            return response()->json(['error' => 'Booking not found'], 404);
+        }
+
+        // if booking belongs to authenticated user, uncomment:
+        // if ($booking->user_id !== auth()->id()) return response()->json(['error' => 'Unauthorized'], 403);
+
+        $booking->payment_id = $validated['payment_id'];
+        $booking->payment_ready = $validated['payment_ready'];
+        $booking->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking payment status updated successfully',
+        ]);
+    }
+
+
+    // 3️⃣  Return all payments for the logged-in user
+    public function myPayments()
+    {
+        $userId = auth('sanctum')->id();
+
+        $payments = Payment::where('homeowner_id', $userId)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $payments,
+        ]);
+    }
+
     public function deletePayment(Request $request, $id)
     {
 
@@ -134,41 +194,41 @@ class PaymentController extends Controller
             'exp_year' => 'required|string|size:4',
         ]);
 
-        if($validated['exp_month'] < 1 || $validated['exp_month'] > 12){
+        if ($validated['exp_month'] < 1 || $validated['exp_month'] > 12) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration month must be between 01 and 12.',
             ], 400);
-        }elseif($validated['exp_year'] < date('Y')){
+        } elseif ($validated['exp_year'] < date('Y')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration year cannot be in the past.',
             ], 400);
-        }elseif($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')){
+        } elseif ($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration month cannot be in the past for the current year.',
             ], 400);
-        }elseif ($validated['exp_year'] > date('Y') + 20) {
+        } elseif ($validated['exp_year'] > date('Y') + 20) {
             return response()->json([
                 'success' => false,
                 'message' => 'Expiration year is too far in the future.',
             ], 400);
         }
 
-         // Encrypt sensitive fields if they are being updated
-         if (isset($validated['card_brand'])) {
-             $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
-         }
-         if (isset($validated['card_last4number'])) {
-             $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
-         }
-         if (isset($validated['exp_month'])) {
-             $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
-         }
-         if (isset($validated['exp_year'])) {
-             $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
-         }
+        // Encrypt sensitive fields if they are being updated
+        if (isset($validated['card_brand'])) {
+            $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
+        }
+        if (isset($validated['card_last4number'])) {
+            $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
+        }
+        if (isset($validated['exp_month'])) {
+            $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
+        }
+        if (isset($validated['exp_year'])) {
+            $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
+        }
 
         $payment->update($validated);
 

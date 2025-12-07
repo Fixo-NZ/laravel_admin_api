@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('homeowner_id')->constrained('homeowners')->onDelete('cascade');
             $table->foreignId('tradie_id')->constrained('tradies')->onDelete('cascade');
             $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
+            $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
+            $table->boolean('payment_ready')->default(false);
             $table->dateTime('booking_start');
             $table->dateTime('booking_end');
             $table->enum('status', ['pending', 'confirmed', 'completed', 'canceled'])->default('pending');

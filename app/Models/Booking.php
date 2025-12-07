@@ -10,23 +10,34 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'homeowner_id', 'tradie_id', 'service_id',
-        'booking_start', 'booking_end', 'status', 'total_price'
+        'homeowner_id',
+        'tradie_id',
+        'service_id',
+        'booking_start',
+        'booking_end',
+        'status',
+        'total_price',
+        'payment_id',
+        'payment_ready'
     ];
 
-    public function homeowner() {
+    public function homeowner()
+    {
         return $this->belongsTo(Homeowner::class);
     }
 
-    public function tradie() {
+    public function tradie()
+    {
         return $this->belongsTo(Tradie::class);
     }
 
-    public function service() {
+    public function service()
+    {
         return $this->belongsTo(Service::class);
     }
 
-    public function logs() {
+    public function logs()
+    {
         return $this->hasMany(BookingLog::class);
     }
 }

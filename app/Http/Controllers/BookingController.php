@@ -11,13 +11,14 @@ use Carbon\Carbon;
 class BookingController extends Controller
 {
     // Check availability
-    private function isAvailable($tradie_id, $start, $end, $excludeBookingId = null) {
+    private function isAvailable($tradie_id, $start, $end, $excludeBookingId = null)
+    {
         $query = Booking::where('tradie_id', $tradie_id)
-                        ->where('status', '!=', 'canceled')
-                        ->where(function($q) use ($start, $end) {
-                            $q->whereBetween('booking_start', [$start, $end])
-                              ->orWhereBetween('booking_end', [$start, $end]);
-                        });
+            ->where('status', '!=', 'canceled')
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('booking_start', [$start, $end])
+                    ->orWhereBetween('booking_end', [$start, $end]);
+            });
         if ($excludeBookingId) $query->where('id', '!=', $excludeBookingId);
         return $query->count() == 0;
     }
@@ -50,6 +51,13 @@ class BookingController extends Controller
                 'status' => 'pending'
             ]);
 
+            // If payment_id is sent, link it to this booking
+            if ($request->payment_id) {
+                $booking->payment_id = $request->payment_id;
+                $booking->payment_ready = true; // mark ready after a verified payment
+                $booking->save();
+            }
+
             BookingLog::create([
                 'booking_id' => $booking->id,
                 'user_id' => auth()->id(),
@@ -64,7 +72,6 @@ class BookingController extends Controller
                 'message' => 'Booking created successfully.',
                 'booking' => $booking
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -75,29 +82,33 @@ class BookingController extends Controller
     }
 
     // View all bookings for homeowner
-    public function index() {
+    public function index()
+    {
         $bookings = Booking::where('homeowner_id', auth()->id())
-                    ->with(['tradie', 'service', 'logs' => function($q) { $q->orderBy('created_at', 'desc'); }])
-                    ->orderBy('booking_start', 'desc')
-                    ->get();
+            ->with(['tradie', 'service', 'logs' => function ($q) {
+                $q->orderBy('created_at', 'desc');
+            }])
+            ->orderBy('booking_start', 'desc')
+            ->get();
 
         return response()->json($bookings, 200);
     }
 
     // Grouped booking history (upcoming + past)
-    public function history() {
+    public function history()
+    {
         $bookings = Booking::where('homeowner_id', auth()->id())
-                            ->with(['tradie', 'service'])
-                            ->orderBy('booking_start', 'desc')
-                            ->get();
+            ->with(['tradie', 'service'])
+            ->orderBy('booking_start', 'desc')
+            ->get();
 
         $now = Carbon::now();
 
-        $upcoming = $bookings->filter(function($b) use ($now) {
+        $upcoming = $bookings->filter(function ($b) use ($now) {
             return Carbon::parse($b->booking_start)->gt($now);
         })->values();
 
-        $past = $bookings->filter(function($b) use ($now) {
+        $past = $bookings->filter(function ($b) use ($now) {
             return Carbon::parse($b->booking_start)->lte($now);
         })->values();
 
@@ -108,11 +119,12 @@ class BookingController extends Controller
     }
 
     // Show booking details (with logs)
-    public function show($id) {
+    public function show($id)
+    {
         $booking = Booking::where('id', $id)
-                          ->where('homeowner_id', auth()->id())
-                          ->with(['tradie', 'service', 'logs'])
-                          ->firstOrFail();
+            ->where('homeowner_id', auth()->id())
+            ->with(['tradie', 'service', 'logs'])
+            ->firstOrFail();
 
         return response()->json($booking, 200);
     }
@@ -155,7 +167,6 @@ class BookingController extends Controller
                 'message' => 'Booking updated successfully.',
                 'booking' => $booking
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -196,7 +207,6 @@ class BookingController extends Controller
                 'message' => 'Booking canceled successfully.',
                 'booking' => $booking
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

@@ -54,6 +54,9 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function() {
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
     Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);
+    Route::get('/payment-status/{id}', [PaymentController::class, 'checkPaymentStatus']);
+    Route::post('/booking/update-payment-status', [PaymentController::class, 'updateBookingPaymentStatus']);
+    Route::get('/my-payments', [PaymentController::class, 'myPayments']);
 });
 
 // Protected routes (for authenticated users)
