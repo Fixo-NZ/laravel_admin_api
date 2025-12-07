@@ -20,12 +20,10 @@ class ServiceController extends Controller
             'job_description' => 'required|string',
             'location' => 'required|string|max:255',
             'status' => 'required|in:Pending,InProgress,Completed,Cancelled',
-            'createdAt' => 'required|date',
-            'updatedAt' => 'required|date',
             'rating' => 'nullable|integer|min:1|max:5',
         ]);
         $service = Service::create($validated);
-        return response()->json($service, 201);
+        return response()->json($service->load(['homeowner', 'category']), 201);
     }
 
     public function show($id)
@@ -42,12 +40,10 @@ class ServiceController extends Controller
             'job_description' => 'sometimes|string',
             'location' => 'sometimes|string|max:255',
             'status' => 'sometimes|in:Pending,InProgress,Completed,Cancelled',
-            'createdAt' => 'sometimes|date',
-            'updatedAt' => 'sometimes|date',
             'rating' => 'nullable|integer|min:1|max:5',
         ]);
         $service->update($validated);
-        return response()->json($service, 200);
+        return response()->json($service->load(['homeowner', 'category']), 200);
     }
 
     public function destroy($id)

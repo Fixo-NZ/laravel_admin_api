@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->string('category');
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('homeowner_id')->constrained('homeowners')->onDelete('cascade');
+            // job_categoryid will be added in a later migration after categories table exists
+            $table->unsignedBigInteger('job_categoryid')->nullable();
+            $table->text('job_description');
+            $table->string('location');
+            $table->enum('status', ['Pending', 'InProgress', 'Completed', 'Cancelled'])->default('Pending');
+            $table->integer('rating')->nullable();
             $table->timestamps();
             
-            $table->index(['category', 'is_active']);
+            $table->index(['homeowner_id', 'status']);
+            $table->index(['job_categoryid', 'status']);
         });
     }
 

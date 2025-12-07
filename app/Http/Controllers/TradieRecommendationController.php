@@ -32,12 +32,9 @@ class TradieRecommendationController extends Controller
             ->active()
             ->available()
             ->verified()
-            // Match by service category
+            // Match by service category - find tradies that have services matching the job category
             ->whereHas('services', function ($q) use ($categoryId) {
-                $q->where('category', function ($sub) use ($categoryId) {
-                    // If job_categories and services are mapped by name/category
-                    // adapt this to join directly if you have a pivot
-                });
+                $q->where('job_categoryid', $categoryId);
             })
             // Within service radius of the job location
             ->withinServiceRadius($latitude, $longitude);
@@ -52,7 +49,7 @@ class TradieRecommendationController extends Controller
 
         // 3️⃣  Fetch and rank
         $tradies = $query
-            ->with(['services:id,name,category'])
+            ->with(['services:id,job_description,job_categoryid'])
             ->get()
             ->sortByDesc(function ($t) {
                 // Ranking formula: rating first, then experience
@@ -84,7 +81,7 @@ class TradieRecommendationController extends Controller
                 'service_radius_km' => $t->service_radius,
                 'city'              => $t->city,
                 'region'            => $t->region,
-                'services'          => $t->services->pluck('name'),
+                'services'          => $t->services->pluck('job_description'),
                 'avatar'            => $t->avatar,
             ];
         });
