@@ -39,10 +39,21 @@ class BookingController extends Controller
             ], 400);
         }
 
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
         DB::beginTransaction();
         try {
             $booking = Booking::create([
-                'homeowner_id' => auth()->id(),
+                'homeowner_id' => $homeowner->id,
                 'tradie_id' => $request->tradie_id,
                 'service_id' => $request->service_id,
                 'booking_start' => $request->booking_start,
@@ -52,7 +63,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => $homeowner->id,
                 'action' => 'created',
                 'notes' => 'Booking created.'
             ]);
@@ -75,18 +86,43 @@ class BookingController extends Controller
     }
 
     // View all bookings for homeowner
-    public function index() {
-        $bookings = Booking::where('homeowner_id', auth()->id())
+    public function index(Request $request) {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+        
+        // Log for debugging (can be removed in production)
+        //\Log::info("Booking index called by homeowner: {$homeowner->id} ({$homeowner->email})");
+        
+        $bookings = Booking::where('homeowner_id', $homeowner->id)
                     ->with(['tradie', 'service', 'logs' => function($q) { $q->orderBy('created_at', 'desc'); }])
                     ->orderBy('booking_start', 'desc')
                     ->get();
+        
+        //\Log::info("Found {$bookings->count()} bookings for homeowner {$homeowner->id}");
 
         return response()->json($bookings, 200);
     }
 
     // Grouped booking history (upcoming + past)
-    public function history() {
-        $bookings = Booking::where('homeowner_id', auth()->id())
+    public function history(Request $request) {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+        
+        $bookings = Booking::where('homeowner_id', $homeowner->id)
                             ->with(['tradie', 'service'])
                             ->orderBy('booking_start', 'desc')
                             ->get();
@@ -108,9 +144,19 @@ class BookingController extends Controller
     }
 
     // Show booking details (with logs)
-    public function show($id) {
+    public function show(Request $request, $id) {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+        
         $booking = Booking::where('id', $id)
-                          ->where('homeowner_id', auth()->id())
+                          ->where('homeowner_id', $homeowner->id)
                           ->with(['tradie', 'service', 'logs'])
                           ->firstOrFail();
 
@@ -120,7 +166,17 @@ class BookingController extends Controller
     // Update booking
     public function update(Request $request, $id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+        
+        $booking = Booking::where('id', $id)->where('homeowner_id', $homeowner->id)->firstOrFail();
 
         $request->validate([
             'booking_start' => 'required|date|after:now',
@@ -143,7 +199,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => $homeowner->id,
                 'action' => 'updated',
                 'notes' => 'Booking updated.'
             ]);
@@ -166,9 +222,19 @@ class BookingController extends Controller
     }
 
     // Cancel booking
-    public function cancel($id)
+    public function cancel(Request $request, $id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+        
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+        
+        $booking = Booking::where('id', $id)->where('homeowner_id', $homeowner->id)->firstOrFail();
 
         if ($booking->status == 'canceled') {
             return response()->json([
@@ -184,7 +250,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => $homeowner->id,
                 'action' => 'canceled',
                 'notes' => 'Booking canceled.'
             ]);

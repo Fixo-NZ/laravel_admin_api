@@ -70,8 +70,12 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
 Route::get('/jobs/{jobId}/recommend-tradies', [TradieRecommendationController::class, 'recommend']);
 
 
-// Service API Resource Routes
-Route::apiResource('services', ServiceController::class);
+// Service API Resource Routes (Protected - Homeowners can manage their own services)
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::apiResource('services', ServiceController::class);
+});
 
-// Job API Resource Routes
-Route::apiResource('jobs', JobController::class);
+// Job API Resource Routes (Protected - Homeowners can manage their own job requests)
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::apiResource('jobs', JobController::class);
+});

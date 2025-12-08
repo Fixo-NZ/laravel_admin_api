@@ -2,64 +2,60 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Service;
+use App\Models\Homeowner;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 
 class ServiceSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    // public function run(): void
-    // {
-    //     $services = [
-    //         // Electrical
-    //         ['name' => 'Electrical Installation', 'description' => 'New electrical installations and wiring', 'category' => 'Electrical'],
-    //         ['name' => 'Electrical Repair', 'description' => 'Repair and maintenance of electrical systems', 'category' => 'Electrical'],
-    //         ['name' => 'Lighting Installation', 'description' => 'Indoor and outdoor lighting installation', 'category' => 'Electrical'],
-            
-    //         // Plumbing
-    //         ['name' => 'Plumbing Installation', 'description' => 'New plumbing installations and pipe work', 'category' => 'Plumbing'],
-    //         ['name' => 'Plumbing Repair', 'description' => 'Repair leaks, blockages, and plumbing issues', 'category' => 'Plumbing'],
-    //         ['name' => 'Bathroom Renovation', 'description' => 'Complete bathroom renovation and plumbing', 'category' => 'Plumbing'],
-            
-    //         // Building & Construction
-    //         ['name' => 'House Building', 'description' => 'New house construction and building', 'category' => 'Building'],
-    //         ['name' => 'Home Renovation', 'description' => 'Home renovation and extension work', 'category' => 'Building'],
-    //         ['name' => 'Deck Building', 'description' => 'Deck construction and outdoor structures', 'category' => 'Building'],
-            
-    //         // Roofing
-    //         ['name' => 'Roof Installation', 'description' => 'New roof installation and replacement', 'category' => 'Roofing'],
-    //         ['name' => 'Roof Repair', 'description' => 'Roof repairs and maintenance', 'category' => 'Roofing'],
-    //         ['name' => 'Gutter Installation', 'description' => 'Gutter installation and repair', 'category' => 'Roofing'],
-            
-    //         // Painting
-    //         ['name' => 'Interior Painting', 'description' => 'Interior house and room painting', 'category' => 'Painting'],
-    //         ['name' => 'Exterior Painting', 'description' => 'Exterior house and building painting', 'category' => 'Painting'],
-            
-    //         // Landscaping
-    //         ['name' => 'Garden Design', 'description' => 'Garden design and landscaping', 'category' => 'Landscaping'],
-    //         ['name' => 'Lawn Maintenance', 'description' => 'Lawn care and garden maintenance', 'category' => 'Landscaping'],
-    //         ['name' => 'Tree Services', 'description' => 'Tree removal, pruning, and arborist services', 'category' => 'Landscaping'],
-            
-    //         // HVAC
-    //         ['name' => 'Heat Pump Installation', 'description' => 'Heat pump installation and setup', 'category' => 'HVAC'],
-    //         ['name' => 'Air Conditioning', 'description' => 'Air conditioning installation and repair', 'category' => 'HVAC'],
-            
-    //         // Flooring
-    //         ['name' => 'Flooring Installation', 'description' => 'Timber, tile, and carpet flooring installation', 'category' => 'Flooring'],
-    //         ['name' => 'Floor Sanding', 'description' => 'Floor sanding and polishing services', 'category' => 'Flooring'],
-    //     ];
+    public function run(): void
+    {
+        $homeowners = Homeowner::all();
+        $categories = Category::all();
 
-    //     foreach ($services as $service) {
-    //         \DB::table('services')->insert([
-    //             'name' => $service['name'],
-    //             'description' => $service['description'],
-    //             'category' => $service['category'],
-    //             'is_active' => true,
-    //             'created_at' => now(),
-    //             'updated_at' => now(),
-    //         ]);
-    //     }
-    // }
+        if ($homeowners->isEmpty()) {
+            $this->command->error('❌ No homeowners found. Please run HomeownerSeeder first.');
+            return;
+        }
+
+        if ($categories->isEmpty()) {
+            $this->command->error('❌ No categories found. Please run CategorySeeder first.');
+            return;
+        }
+
+        $servicesData = [
+            ['job_description' => 'Plumbing', 'category_name' => 'Plumbing'],
+            ['job_description' => 'Electrical Installation', 'category_name' => 'Electrical'],
+            ['job_description' => 'Carpentry Work', 'category_name' => 'Carpentry'],
+            ['job_description' => 'Painting Interior', 'category_name' => 'Painting'],
+            ['job_description' => 'Roof Repair', 'category_name' => 'Roofing'],
+        ];
+
+        $created = 0;
+
+        foreach ($servicesData as $data) {
+            // Pick a random homeowner
+            $homeowner = $homeowners->random();
+
+            // Find category by name
+            $category = $categories->firstWhere('category_name', $data['category_name']);
+            if (!$category) continue;
+
+            Service::create([
+                'homeowner_id'    => $homeowner->id,
+                'job_categoryid'  => $category->id,
+                'job_description' => $data['job_description'],
+                'location'        => $homeowner->address ?? 'Unknown Address', // ✅ Add location
+                'status'          => 'Pending',
+                'created_at'      => Carbon::now(),
+                'updated_at'      => Carbon::now(),
+            ]);
+
+            $created++;
+        }
+
+        $this->command->info("✅ Created {$created} services with homeowners and location");
+    }
 }

@@ -16,75 +16,86 @@ class TradieRecommendationController extends Controller
      */
     public function recommend($jobId)
     {
-        // 1️⃣  Load job request with required details
+        // 1️⃣ Load job request
         $job = JobRequest::with('category')
             ->where('status', '!=', 'cancelled')
             ->findOrFail($jobId);
 
-        // Extract job details
-        $latitude   = $job->latitude;
-        $longitude  = $job->longitude;
+        $latitude   = $job->latitude ?? -36.8485; // Default Auckland
+        $longitude  = $job->longitude ?? 174.7633;
         $budget     = $job->budget;
-        $categoryId = $job->job_category_id;
+        $jobCategoryId = $job->job_category_id;
 
-        // 2️⃣  Build query to find matching tradies
+        $categoryName = $job->category?->category_name ?? null;
+
+        // 2️⃣ Build tradie query
         $query = Tradie::query()
             ->active()
             ->available()
-            ->verified()
-            // Match by service category - find tradies that have services matching the job category
-            ->whereHas('services', function ($q) use ($categoryId) {
-                $q->where('job_categoryid', $categoryId);
-            })
-            // Within service radius of the job location
-            ->withinServiceRadius($latitude, $longitude);
+            ->verified();
+
+        // Match service category
+        if ($categoryName) {
+            $query->whereHas('services', function ($q) use ($categoryName) {
+                $q->whereHas('category', fn($catQ) => $catQ->where('category_name', $categoryName));
+            });
+        } else {
+            $query->whereHas('services', fn($q) => $q->where('job_categoryid', $jobCategoryId));
+        }
+
+        // Within service radius
+        $query->withinServiceRadius($latitude, $longitude);
 
         // Filter by budget if provided
         if (!is_null($budget)) {
             $query->where(function ($q) use ($budget) {
                 $q->whereNull('hourly_rate')
-                  ->orWhere('hourly_rate', '<=', $budget);
+                    ->orWhere('hourly_rate', '<=', $budget);
             });
         }
 
-        // 3️⃣  Fetch and rank
-        $tradies = $query
-            ->with(['services:id,job_description,job_categoryid'])
-            ->get()
-            ->sortByDesc(function ($t) {
-                // Ranking formula: rating first, then experience
-                return [$t->average_rating, $t->years_experience];
-            })
-            ->take(5) // return max 5
-            ->values();
+        // 3️⃣ Fetch tradies
+        $tradies = $query->with(['services:id,job_description,job_categoryid'])->get();
 
-        // 4️⃣  Return response
+        // 4️⃣ Sort by: distance (asc), average_rating (desc), years_experience (desc)
+        $tradies = $tradies->sort(function ($a, $b) {
+            $distanceA = $a->distance ?? PHP_INT_MAX;
+            $distanceB = $b->distance ?? PHP_INT_MAX;
+
+            if ($distanceA != $distanceB) return $distanceA <=> $distanceB;
+
+            $ratingA = $a->average_rating ?? 0;
+            $ratingB = $b->average_rating ?? 0;
+
+            if ($ratingA != $ratingB) return $ratingB <=> $ratingA;
+
+            return ($b->years_experience ?? 0) <=> ($a->years_experience ?? 0);
+        })->take(5)->values();
+
+        // 5️⃣ Prepare response
         if ($tradies->isEmpty()) {
             return response()->json([
                 'success' => true,
                 'message' => 'No available tradie found for this job request.',
                 'data'    => [],
-            ], 200);
+            ]);
         }
 
-        // Map for frontend (key details)
-        $data = $tradies->map(function ($t) {
-            return [
-                'id'                => $t->id,
-                'name'              => trim("{$t->first_name} {$t->last_name}"),
-                'business_name'     => $t->business_name,
-                'distance_km'       => round($t->distance ?? 0, 2),
-                'average_rating'    => round($t->average_rating, 2),
-                'total_reviews'     => $t->total_reviews,
-                'hourly_rate'       => $t->hourly_rate,
-                'availability'      => $t->availability_status,
-                'service_radius_km' => $t->service_radius,
-                'city'              => $t->city,
-                'region'            => $t->region,
-                'services'          => $t->services->pluck('job_description'),
-                'avatar'            => $t->avatar,
-            ];
-        });
+        $data = $tradies->map(fn($t) => [
+            'id'                => $t->id,
+            'name'              => trim("{$t->first_name} {$t->last_name}"),
+            'business_name'     => $t->business_name,
+            'distance_km'       => round($t->distance ?? 0, 2),
+            'average_rating'    => round($t->average_rating, 2),
+            'total_reviews'     => $t->total_reviews,
+            'hourly_rate'       => $t->hourly_rate,
+            'availability'      => $t->availability_status,
+            'service_radius_km' => $t->service_radius,
+            'city'              => $t->city,
+            'region'            => $t->region,
+            'services'          => $t->services->pluck('job_description'),
+            'avatar'            => $t->avatar,
+        ]);
 
         return response()->json([
             'success' => true,

@@ -138,15 +138,15 @@ class Tradie extends Authenticatable
         return !is_null($this->verified_at);
     }
 
-    public function getAverageRatingAttribute()
-    {
-        return $this->receivedReviews()->avg('rating') ?? 0;
-    }
+    // public function getAverageRatingAttribute()
+    // {
+    //     return $this->receivedReviews()->avg('rating') ?? 0;
+    // }
 
-    public function getTotalReviewsAttribute()
-    {
-        return $this->receivedReviews()->count();
-    }
+    // public function getTotalReviewsAttribute()
+    // {
+    //     return $this->receivedReviews()->count();
+    // }
 
     // Relationships
     public function services()

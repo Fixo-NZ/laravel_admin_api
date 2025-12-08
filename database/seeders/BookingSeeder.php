@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Homeowner;
 use App\Models\Tradie;
 use App\Models\Service;
 use App\Models\Booking;
 use App\Models\BookingLog;
+use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
 class BookingSeeder extends Seeder
@@ -17,58 +17,122 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure there are some services
-        $services = Service::all();
-        if ($services->isEmpty()) {
-            $serviceNames = ['Plumbing', 'Electrical', 'Carpentry', 'Painting', 'Cleaning'];
-            foreach ($serviceNames as $name) {
-                Service::create([
-                    'name' => $name,
-                    'description' => "$name service",
-                    'category' => 'general',
-                    'is_active' => true,
-                ]);
-            }
-            $services = Service::all();
+        // Only run in local or testing environment
+        if (!app()->environment(['local', 'testing'])) {
+            $this->command->warn('Skipping BookingSeeder in non-local environment.');
+            return;
         }
 
         $homeowners = Homeowner::all();
         $tradies = Tradie::all();
+        $services = Service::all();
 
-        if ($homeowners->isEmpty() || $tradies->isEmpty()) {
-            // Nothing to seed bookings for
+        if ($homeowners->isEmpty()) {
+            $this->command->error('❌ No homeowners found. Please run HomeownerSeeder first.');
             return;
         }
 
-        // Create bookings for random pairs
-        $count = 30;
-        for ($i = 0; $i < $count; $i++) {
-            $homeowner = $homeowners->random();
-            $tradie = $tradies->random();
+        if ($tradies->isEmpty()) {
+            $this->command->error('❌ No tradies found. Please run TradieSeeder first.');
+            return;
+        }
+
+        if ($services->isEmpty()) {
+            $this->command->error('❌ No services found. Please run ServiceSeeder first.');
+            return;
+        }
+
+        $created = 0;
+
+        foreach ($homeowners as $homeowner) {
+            $homeownerServices = $services->where('homeowner_id', $homeowner->id);
+
+            if ($homeownerServices->isEmpty()) continue;
+
+            // Create 2–4 bookings per homeowner
+            $bookingCount = rand(2, 4);
+
+            for ($i = 0; $i < $bookingCount; $i++) {
+                $service = $homeownerServices->random();
+                $tradie = $tradies->random();
+
+                $daysOffset = rand(-10, 30); // Past 10 days to future 30 days
+                $start = Carbon::now()->addDays($daysOffset)
+                    ->addHours(rand(9, 17))->minute(0)->second(0);
+                $end = (clone $start)->addHours(rand(1, 4));
+
+                // Status: past = completed/canceled, future = pending/confirmed
+                $status = $start->isPast()
+                    ? (rand(0,1) === 0 ? 'completed' : 'canceled')
+                    : ['pending', 'pending', 'confirmed'][array_rand(['pending', 'pending', 'confirmed'])];
+
+                $booking = Booking::create([
+                    'homeowner_id' => $homeowner->id,
+                    'tradie_id' => $tradie->id,
+                    'service_id' => $service->id,
+                    'booking_start' => $start,
+                    'booking_end' => $end,
+                    'status' => $status,
+                    'total_price' => rand(100, 800),
+                ]);
+
+                BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id' => $homeowner->id,
+                    'action' => 'created',
+                    'notes' => 'Booking created via seeder',
+                ]);
+
+                $created++;
+            }
+        }
+
+        $this->command->info("✅ Created {$created} bookings");
+    }
+
+    /**
+     * Seed sample bookings for a specific homeowner.
+     * Call this when a new homeowner is created.
+     */
+    public static function seedForHomeowner(Homeowner $homeowner)
+    {
+        if (!app()->environment(['local', 'testing'])) return;
+
+        $tradies = Tradie::all();
+        $services = Service::where('homeowner_id', $homeowner->id)->get();
+        if ($tradies->isEmpty() || $services->isEmpty()) return;
+
+        $statuses = ['pending', 'confirmed', 'completed', 'canceled'];
+        $bookingCount = rand(2, 4);
+
+        for ($i = 0; $i < $bookingCount; $i++) {
             $service = $services->random();
+            $tradie = $tradies->random();
 
-            // Randomize start between -10 and +30 days
-            $start = Carbon::now()->addDays(rand(-10, 30))->addHours(rand(0, 23))->addMinutes(rand(0, 59));
-            $end = (clone $start)->addHours(1 + rand(0, 3));
+            $daysOffset = rand(-10, 30);
+            $start = Carbon::now()->addDays($daysOffset)
+                ->addHours(rand(9, 17))->minute(0)->second(0);
+            $end = (clone $start)->addHours(rand(1, 4));
 
-            $statusOptions = ['pending', 'confirmed', 'completed', 'canceled'];
-            $status = $statusOptions[array_rand($statusOptions)];
+            $status = $start->isPast()
+                ? (rand(0,1) === 0 ? 'completed' : 'canceled')
+                : ['pending','pending','confirmed'][array_rand(['pending','pending','confirmed'])];
 
             $booking = Booking::create([
                 'homeowner_id' => $homeowner->id,
                 'tradie_id' => $tradie->id,
                 'service_id' => $service->id,
-                'booking_start' => $start->toDateTimeString(),
-                'booking_end' => $end->toDateTimeString(),
+                'booking_start' => $start,
+                'booking_end' => $end,
                 'status' => $status,
-                'total_price' => rand(50, 500),
+                'total_price' => rand(100,800),
             ]);
 
             BookingLog::create([
                 'booking_id' => $booking->id,
                 'user_id' => $homeowner->id,
                 'action' => 'created',
-                'notes' => 'Seeded booking',
+                'notes' => 'Booking created automatically for new homeowner',
             ]);
         }
     }

@@ -65,8 +65,9 @@ class JobController extends Controller
             'homeowner_id' => 'required|exists:homeowners,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'job_category_id' => 'required|exists:job_categories,id', // Changed from category_id
             'job_type' => 'required|in:urgent,standard,recurring',
+            'status' => 'nullable|in:pending,active,assigned,completed,cancelled',
             'budget' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
