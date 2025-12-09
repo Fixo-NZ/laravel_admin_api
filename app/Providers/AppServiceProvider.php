@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
+use App\Services\EmailService;
+use App\Contracts\EmailServiceInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +16,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(EmailServiceInterface::class, function ($app) {
+            return new EmailService();
+        });
+
+        $this->app->singleton(EmailService::class, function ($app) {
+            return new EmailService();
+        });
     }
 
     /**
