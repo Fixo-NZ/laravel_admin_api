@@ -86,8 +86,8 @@
                                 <div class="p-4 border rounded-md hover:shadow transition">
                                     <div class="flex items-start justify-between gap-4">
                                         <div>
-                                            <p class="font-semibold text-gray-800">{{ $job->title ?? 'Untitled Job' }}</p>
-                                            <p class="text-sm text-gray-600 mt-1">{{ \Illuminate\Support\Str::limit($job->description ?? 'No description provided.', 120) }}</p>
+                                            <p class="font-semibold text-gray-800">{{ $job->title ?? ($job->service->name ?? 'Untitled Job') }}</p>
+                                            <p class="text-sm text-gray-600 mt-1">{{ \Illuminate\Support\Str::limit($job->description ?? ($job->service->description ?? 'No description provided.'), 120) }}</p>
                                         </div>
                                         <div class="text-right">
                                             <p class="text-xs font-semibold px-2 py-1 rounded-full {{ $job->status === 'completed' ? 'bg-green-100 text-green-800' : ($job->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">{{ ucfirst($job->status ?? 'unknown') }}</p>
