@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Pages;
 use Filament\Pages\Page;
 use App\Filament\Admin\Widgets\HomeownerStatsWidget;
 use App\Filament\Admin\Widgets\TradieStatsWidget;
+use App\Filament\Admin\Widgets\ServiceResourceStatsWidget;
 
 class Dashboard extends Page
 {
@@ -22,6 +23,7 @@ class Dashboard extends Page
         return [
            // HomeownerStatsWidget::class,
             TradieStatsWidget::class,
+            ServiceResourceStatsWidget::class,
         ];
     }
 }

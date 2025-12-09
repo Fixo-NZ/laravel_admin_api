@@ -47,6 +47,8 @@ class ServiceResource extends Resource
     // Auto-refresh interval (in seconds)
     protected static int $pollingInterval = 5;
 
+
+
     // ============================================================
     // FORM DEFINITION
     // ============================================================

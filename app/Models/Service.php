@@ -17,7 +17,7 @@ class Service extends Model
     ];
 
     protected $casts = [
-        'status' => 'string',
+       
     ];
 
     // Relationships
