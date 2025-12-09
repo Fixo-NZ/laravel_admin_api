@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Filament\Admin\Pages;
+
+use Filament\Pages\Page;
+use App\Filament\Admin\Widgets\HomeownerStatsWidget;
+use App\Filament\Admin\Widgets\TradieStatsWidget;
+
+class Dashboard extends Page
+{
+    protected static ?string $navigationIcon = 'heroicon-o-home';
+
+    protected static ?string $navigationLabel = 'Dashboard';
+
+    protected static ?string $title = 'Dashboard';
+
+    protected static string $view = 'filament.admin.pages.dashboard';
+
+    // Display the homeowner stats widget in the page header area
+    protected function getHeaderWidgets(): array
+    {
+        return [
+           // HomeownerStatsWidget::class,
+            TradieStatsWidget::class,
+        ];
+    }
+}

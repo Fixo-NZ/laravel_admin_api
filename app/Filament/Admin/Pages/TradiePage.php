@@ -25,6 +25,16 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
     protected static int $pollingInterval = 5;
 
     // =========================================================================
+    // HEADER WIDGETS
+    // =========================================================================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\TradieStatsWidget::class,
+        ];
+    }
+
+    // =========================================================================
     // TABLE DEFINITION
     // =========================================================================
          public function table(Table $table): Table
@@ -81,6 +91,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     'success' => fn ($state) => $state === 'active',
                     'danger' => fn ($state) => $state === 'inactive',
                     'warning' => fn ($state) => $state === 'suspended',
+                    'info'    => fn ($state) => $state === 'pending',
                 ])
                 ->formatStateUsing(fn ($state) => ucfirst($state))
                 ->extraAttributes(['class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs'])
@@ -96,6 +107,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     'active' => 'Active',
                     'inactive' => 'Inactive',
                     'suspended' => 'Suspended',
+                    'pending' => 'Pending',
                 ]),
             SelectFilter::make('availability_status')
                 ->label('Filter by Availability')

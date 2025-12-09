@@ -37,6 +37,16 @@ class AdminPage extends Page implements Tables\Contracts\HasTable
     protected static string $view = 'filament.admin.pages.admin-page';
 
     // =========================================================================
+    // HEADER WIDGETS
+    // =========================================================================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\AdminStatsWidget::class,
+        ];
+    }
+
+    // =========================================================================
     // TABLE DEFINITION
     // =========================================================================
 

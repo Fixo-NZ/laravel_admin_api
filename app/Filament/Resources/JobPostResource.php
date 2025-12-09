@@ -290,11 +290,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
                     ->label('Status')
                     ->badge()
                     ->colors([
-                        'success' => fn($state) => strtolower($state) === 'open',
-                        'danger'  => fn($state) => in_array(strtolower($state), ['cancelled', 'expired']),
-                        'warning' => fn($state) => strtolower($state) === 'pending',
-                        'primary' => fn($state) => strtolower($state) === 'completed',
-                        'info'    => fn($state) => strtolower($state) === 'in_progress',
+                        'info'    => fn ($state) => strtolower($state) === 'pending',
+                        'success' => fn ($state) => strtolower($state) === 'open',
+                        'warning' => fn ($state) => strtolower($state) === 'in_progress',
+                        'primary' => fn ($state) => strtolower($state) === 'completed',
+                        'danger'  => fn ($state) => strtolower($state) === 'cancelled',
+                        'gray'    => fn ($state) => strtolower($state) === 'expired',
                     ])
                     ->formatStateUsing(function ($state) {
                         return Str::of($state)->replace('_', ' ')->title();
