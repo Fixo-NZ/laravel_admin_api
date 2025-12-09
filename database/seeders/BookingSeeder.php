@@ -7,6 +7,7 @@ use App\Models\Homeowner;
 use App\Models\Tradie;
 use App\Models\Service;
 use App\Models\Booking;
+use App\Models\User;
 use App\Models\BookingLog;
 use Carbon\Carbon;
 
@@ -17,6 +18,13 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
+        User::factory()->create([
+            'first_name' => 'Admin User',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+        ]);
+
         // Ensure there are some services
         $services = Service::all();
         if ($services->isEmpty()) {

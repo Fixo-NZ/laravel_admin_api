@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Booking;
 
 class Homeowner extends Authenticatable
 {
@@ -112,6 +113,12 @@ class Homeowner extends Authenticatable
     // {
     //     return $this->hasMany(Booking::class);
     // }
+
+    // Alias for bookings used by the admin UI (keeps template naming `jobs`)
+    public function jobs()
+    {
+        return $this->hasMany(Booking::class, 'homeowner_id');
+    }
 
     // public function favoriteTradies()
     // {
