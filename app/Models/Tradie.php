@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 
 class Tradie extends Authenticatable
@@ -42,7 +43,10 @@ class Tradie extends Authenticatable
 
     protected $hidden = [
         'password',
+        'email_verified_at',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -150,6 +154,11 @@ class Tradie extends Authenticatable
         }
 
         return round($rate, 2);
+    }
+
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        return [$this->email => $this->first_name . ' ' . $this->last_name];
     }
 
     // Scopes
