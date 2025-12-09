@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Job extends Model
@@ -12,13 +13,14 @@ class Job extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'provider_id',
+        'homeowner_id',
+        'tradie_id',
         'title',
         'description',
         'status',
         'price',
-        // Add other fields as needed
+        'user_id',
+        'provider_id',
     ];
 
     protected $casts = [
@@ -26,6 +28,17 @@ class Job extends Model
     ];
 
     // Relationships
+    public function homeowner(): BelongsTo
+    {
+        return $this->belongsTo(Homeowner::class);
+    }
+
+    public function tradie(): BelongsTo
+    {
+        return $this->belongsTo(Tradie::class);
+    }
+
+    // Backward compatibility relationships
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -39,6 +52,11 @@ class Job extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     // Scopes
