@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Models\HomeownerJobOffer;
 use Illuminate\Support\Facades\Storage;
+use App\Events\ScheduleDisplayed;
 
 class JobOfferController extends Controller
 {
@@ -52,6 +53,10 @@ class JobOfferController extends Controller
                 'services.*' => 'exists:services,id',
                 'photos' => 'nullable|array|max:8',
                 'photos.*' => 'string',
+
+                'start_time' => 'nullable|required_if:job_type,recurrent|date',
+                'end_time' => 'nullable|required_if:job_type,recurrent|date|after_or_equal:start_time',
+                'tradie_id' => 'nullable|exists:tradies,id'
             ]);
 
             $homeowner = $request->user();
@@ -67,10 +72,41 @@ class JobOfferController extends Controller
                 }
             }
 
+            // Load the job offer with relationships
+            $jobOffer->load(['category', 'services', 'photos', 'homeowner:id,first_name,last_name,middle_name,email,address,phone']);
+
+            // Add debug logging before the broadcast
+            \Log::info('JobOffer created', [
+                'job_id' => $jobOffer->id,
+                'tradie_id' => $jobOffer->tradie_id,
+                'has_tradie_id' => !is_null($jobOffer->tradie_id)
+            ]);
+            
+            // Debug output
+            error_log("DEBUG: JobOffer created - ID: {$jobOffer->id}, Tradie ID: {$jobOffer->tradie_id}");
+
+            // 🔥 BROADCAST NOTIFICATION (Flutter app will fetch fresh data via API)
+            if ($jobOffer->tradie_id) {
+                \Log::info('Broadcasting schedule update notification', [
+                    'tradie_id' => $jobOffer->tradie_id,
+                    'job_id' => $jobOffer->id,
+                    'action' => 'created'
+                ]);
+
+                broadcast(new ScheduleDisplayed([
+                    'tradie_id' => $jobOffer->tradie_id,
+                    'job_id' => $jobOffer->id,
+                    'action' => 'created',
+                    'message' => 'New job offer created',
+                ]));
+            } else {
+                \Log::info('No tradie_id, skipping broadcast');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Job offer created successfully.',
-                'data' => $jobOffer->load(['services', 'photos']),
+                'data' => $jobOffer,
             ], 201);
 
         } catch (ValidationException $e) {
@@ -128,10 +164,23 @@ class JobOfferController extends Controller
                 }
             }
 
+            // Load the job offer with relationships
+            $jobOffer->load(['category', 'services', 'photos', 'homeowner:id,first_name,last_name,middle_name,email,address,phone']);
+
+            // 🔥 BROADCAST NOTIFICATION (Flutter app will fetch fresh data via API)
+            if ($jobOffer->tradie_id) {
+                broadcast(new ScheduleDisplayed([
+                    'tradie_id' => $jobOffer->tradie_id,
+                    'job_id' => $jobOffer->id,
+                    'action' => 'updated',
+                    'message' => 'Job offer updated',
+                ]));
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Job offer updated successfully.',
-                'data' => $jobOffer->load(['services', 'photos']),
+                'data' => $jobOffer,
             ]);
 
         } catch (ValidationException $e) {
@@ -157,12 +206,25 @@ class JobOfferController extends Controller
             abort(403, 'You do not have permission to delete this job offer.');
         }
 
+        // Store tradie_id before deletion
+        $tradieId = $jobOffer->tradie_id;
+
         foreach ($jobOffer->photos as $photo) {
             Storage::disk('public')->delete($photo->file_path);
             $photo->delete();
         }
 
         $jobOffer->delete();
+
+        // 🔥 BROADCAST NOTIFICATION (Flutter app will fetch fresh data via API)
+        if ($tradieId) {
+            broadcast(new ScheduleDisplayed([
+                'tradie_id' => $tradieId,
+                'job_id' => $id,
+                'action' => 'deleted',
+                'message' => 'Job offer deleted',
+            ]));
+        }
 
         return response()->json(['success' => true, 'message' => 'Job offer deleted successfully.']);
     }

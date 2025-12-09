@@ -504,11 +504,16 @@ class HomeownerAuthController extends Controller
 
         // Return success response with token
         return response()->json([
-            'success' => true,
-            'data'    => [
-                'user'  => $homeowner,
-                'token' => $token,
-            ],
+            // 'success' => true,
+            // 'data'    => [
+            //     'user'  => $homeowner,
+            //     'token' => $token,
+            // ],
+
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'expires_in' => 86400,
+            'user' => $homeowner
         ], 200);
     }
 

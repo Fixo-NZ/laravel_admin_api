@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Push Notification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .log {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔔 Firebase Push Notification Test</h1>
+
+        <div class="section info">
+            <h3>📱 How to Get FCM Token</h3>
+            <p>1. Install your Flutter app on a device/emulator</p>
+            <p>2. Get the FCM token from your app (usually printed in console or logs)</p>
+            <p>3. Copy the token and paste it below</p>
+            <p>4. Click "Send Test Notification"</p>
+        </div>
+
+        <div class="section">
+            <h3>🧪 Test Push Notification</h3>
+            <label>FCM Token:</label>
+            <textarea id="fcmToken" rows="3" placeholder="Paste your FCM token here..."></textarea>
+
+            <label>Title:</label>
+            <input type="text" id="title" value="Test Notification" placeholder="Notification title">
+
+            <label>Body:</label>
+            <input type="text" id="body" value="Hello from Laravel backend!" placeholder="Notification body">
+
+            <button onclick="sendTestNotification()">Send Test Notification</button>
+            <button onclick="sendScheduleNotification()">Send Schedule Notification</button>
+        </div>
+
+        <div class="section">
+            <h3>📋 Test Results</h3>
+            <div id="results"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔧 Quick Tests</h3>
+            <button onclick="testFirebaseConnection()">Test Firebase Connection</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+    </div>
+
+    <script>
+        function addLog(message, type = 'info') {
+            const results = document.getElementById('results');
+            const log = document.createElement('div');
+            log.className = `log ${type}`;
+            log.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            results.insertBefore(log, results.firstChild);
+        }
+
+        function sendTestNotification() {
+            const token = document.getElementById('fcmToken').value.trim();
+            const title = document.getElementById('title').value;
+            const body = document.getElementById('body').value;
+
+            if (!token) {
+                addLog('❌ Please enter an FCM token', 'error');
+                return;
+            }
+
+            addLog('🚀 Sending test notification...', 'info');
+
+            fetch('http://localhost:8000/api/test-push-custom', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    token: token,
+                    title: title,
+                    body: body
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog('✅ Notification sent successfully!', 'success');
+                        addLog(`📱 Result: ${JSON.stringify(data.result)}`, 'info');
+                    } else {
+                        addLog(`❌ Failed: ${data.message}`, 'error');
+                        if (data.error) {
+                            addLog(`🔍 Error details: ${data.error}`, 'error');
+                        }
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ Network error: ${error.message}`, 'error');
+                });
+        }
+
+        function sendScheduleNotification() {
+            const token = document.getElementById('fcmToken').value.trim();
+
+            if (!token) {
+                addLog('❌ Please enter an FCM token', 'error');
+                return;
+            }
+
+            addLog('📅 Sending schedule notification...', 'info');
+
+            fetch('http://localhost:8000/api/test-push-custom', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    token: token,
+                    title: 'New Schedule Update',
+                    body: 'You have a new job offer available!',
+                    data: {
+                        type: 'schedule_update',
+                        job_id: '123',
+                        action: 'created'
+                    }
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog('✅ Schedule notification sent!', 'success');
+                    } else {
+                        addLog(`❌ Failed: ${data.message}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ Network error: ${error.message}`, 'error');
+                });
+        }
+
+        function testFirebaseConnection() {
+            addLog('🔍 Testing Firebase connection...', 'info');
+
+            fetch('http://localhost:8000/api/test-firebase-connection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog('✅ Firebase connection successful!', 'success');
+                    } else {
+                        addLog(`❌ Firebase connection failed: ${data.message}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ Connection test failed: ${error.message}`, 'error');
+                });
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function getCSRFToken() {
+            // For testing purposes, we'll skip CSRF token
+            return '';
+        }
+
+        // Auto-load some sample data
+        window.onload = function () {
+            addLog('🔔 Push notification test page loaded', 'info');
+            addLog('📱 Make sure your Flutter app is running to get the FCM token', 'info');
+        };
+    </script>
+</body>
+
+</html>

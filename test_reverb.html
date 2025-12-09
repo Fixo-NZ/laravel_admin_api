@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Reverb Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .event {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Laravel Reverb WebSocket Test</h1>
+
+    <div id="status" class="status disconnected">Status: Disconnected</div>
+
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <button onclick="testBroadcast()">Test Broadcast</button>
+    <button onclick="clearEvents()">Clear Events</button>
+
+    <h3>Received Events:</h3>
+    <div id="events"></div>
+
+    <script>
+        let socket = null;
+        let connected = false;
+
+        function updateStatus(status) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = `Status: ${status}`;
+            statusDiv.className = `status ${status.toLowerCase() === 'connected' ? 'connected' : 'disconnected'}`;
+            connected = status.toLowerCase() === 'connected';
+        }
+
+        function addEvent(event) {
+            const eventsDiv = document.getElementById('events');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            eventDiv.innerHTML = `
+                <strong>Event:</strong> ${event.event || 'Unknown'}<br>
+                <strong>Time:</strong> ${new Date().toLocaleString()}<br>
+                <strong>Data:</strong> <pre>${JSON.stringify(event.data || {}, null, 2)}</pre>
+            `;
+            eventsDiv.insertBefore(eventDiv, eventsDiv.firstChild);
+        }
+
+        function connect() {
+            if (socket) {
+                socket.close();
+            }
+
+            const wsUrl = 'ws://127.0.0.1:8080/app/wjnobqtydgun94yxiqhq';
+            console.log('Attempting to connect to:', wsUrl);
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function (event) {
+                console.log('✅ WebSocket connected successfully!');
+                updateStatus('Connected');
+
+                // Subscribe to schedule-updates channel
+                const subscribeMessage = {
+                    event: 'pusher:subscribe',
+                    data: {
+                        channel: 'schedule-updates'
+                    }
+                };
+                console.log('Sending subscription:', subscribeMessage);
+                socket.send(JSON.stringify(subscribeMessage));
+            };
+
+            socket.onmessage = function (event) {
+                console.log('📨 Message received:', event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    // Handle ping/pong to keep connection alive
+                    if (data.event === 'pusher:ping') {
+                        console.log('🏓 Received ping, sending pong');
+                        socket.send(JSON.stringify({ event: 'pusher:pong', data: {} }));
+                        return;
+                    }
+                    
+                    addEvent(data);
+                } catch (e) {
+                    console.error('❌ Failed to parse message:', e);
+                }
+            };
+
+            socket.onclose = function (event) {
+                console.log('❌ WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+                updateStatus('Disconnected');
+            };
+
+            socket.onerror = function (error) {
+                console.error('❌ WebSocket error:', error);
+                updateStatus('Error');
+            };
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+        }
+
+        function testBroadcast() {
+            console.log('Triggering broadcast...');
+            
+            // Make HTTP request to trigger broadcast (using relative URL)
+            fetch('/test-broadcast', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Broadcast triggered successfully:', data);
+                    alert(`Broadcast triggered! ${data.message}`);
+                })
+                .catch(error => {
+                    console.error('Error triggering broadcast:', error);
+                    alert(`Error triggering broadcast: ${error.message}`);
+                });
+        }
+
+        function clearEvents() {
+            document.getElementById('events').innerHTML = '';
+        }
+
+        // Auto-connect on page load
+        window.onload = function () {
+            connect();
+        };
+    </script>
+</body>
+
+</html>

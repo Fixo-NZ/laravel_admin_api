@@ -8,6 +8,9 @@ use App\Models\HomeownerJobOffer;
 use App\Notifications\ScheduleNotification;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\FCMService;
+use App\Events\ScheduleUpdated;
+use App\Events\ScheduleCancelled;
+use App\Events\ScheduleDisplayed;
 
 class ScheduleController extends Controller
 {
@@ -45,78 +48,92 @@ class ScheduleController extends Controller
      * Reschedule an existing job offer
      */
     public function reschedule(Request $request, HomeownerJobOffer $schedule)
-    {
-        try {
-            $messages = [
-                'start_time.required' => 'Start time is required.',
-                'start_time.date' => 'Start time must be a valid date.',
-                'start_time.after_or_equal' => 'Start time must be in the future.',
-                'end_time.required' => 'End time is required.',
-                'end_time.date' => 'End time must be a valid date.',
-                'end_time.after' => 'End time must be after start time.',
-            ];
+{
+    try {
+        $messages = [
+            'start_time.required' => 'Start time is required.',
+            'start_time.date' => 'Start time must be a valid date.',
+            'start_time.after_or_equal' => 'Start time must be in the future.',
+            'end_time.required' => 'End time is required.',
+            'end_time.date' => 'End time must be a valid date.',
+            'end_time.after' => 'End time must be after start time.',
+        ];
 
-            $validated = $request->validate([
-                'start_time' => 'required|date|after_or_equal:now',
-                'end_time' => 'required|date|after:start_time',
-            ], $messages);
+        $validated = $request->validate([
+            'start_time' => 'required|date|after_or_equal:now',
+            'end_time' => 'required|date|after:start_time',
+        ], $messages);
 
-            $schedule->update([
-                'start_time' => $validated['start_time'],
-                'end_time' => $validated['end_time'],
-                'status' => 'in_progress',           // or 'rescheduled' if you prefer
-                'rescheduled_at' => now(),
-            ]);
+        $schedule->update([
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'status' => 'in_progress',
+            'rescheduled_at' => now(),
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Schedule successfully rescheduled',
-                'schedule' => $schedule
-            ], Response::HTTP_OK);
+        // Load the updated schedule with relationships
+        $schedule->load(['homeowner:id,first_name,last_name,middle_name,email,address,phone', 'category:id,name,description,icon,status']);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        // Fire the ScheduleUpdated event
+        broadcast(new ScheduleUpdated([
+            'action' => 'rescheduled',
+            'schedule' => $schedule,
+            'tradie_id' => $schedule->tradie_id,
+            'homeowner_id' => $schedule->homeowner_id,
+        ]));
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule successfully rescheduled',
+            'schedule' => $schedule
+        ], Response::HTTP_OK);
 
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while rescheduling the schedule.',
-                'error' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors(),
+        ], Response::HTTP_UNPROCESSABLE_ENTITY);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while rescheduling the schedule.',
+            'error' => $e->getMessage(),
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+}
 
-    /**
-     * Cancel a job offer schedule
-     */
     public function cancel(HomeownerJobOffer $schedule)
-    {
-        try {
-            $schedule->update([
-                'status' => 'cancelled',
-            ]);
+{
+    try {
+        $schedule->update([
+            'status' => 'cancelled',
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Schedule successfully cancelled',
-                'schedule' => $schedule
-            ], Response::HTTP_OK);
+        // Load the updated schedule with relationships
+        $schedule->load(['homeowner:id,first_name,last_name,middle_name,email,address,phone', 'category:id,name,description,icon,status']);
 
-        } catch (\Exception $e) {
+        // Fire the ScheduleCancelled event
+        broadcast(new ScheduleCancelled([
+            'schedule' => $schedule,
+            'tradie_id' => $schedule->tradie_id,
+            'homeowner_id' => $schedule->homeowner_id,
+        ]));
 
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while cancelling the schedule.',
-                'error' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule successfully cancelled',
+            'schedule' => $schedule
+        ], Response::HTTP_OK);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while cancelling the schedule.',
+            'error' => $e->getMessage(),
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+}
 
     // Update FCM token for tradie
     public function updateFcmToken(Request $request)

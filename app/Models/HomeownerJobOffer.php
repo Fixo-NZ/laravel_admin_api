@@ -28,6 +28,8 @@ class HomeownerJobOffer extends Model
         'start_time',
         'end_time',
         'rescheduled_at',
+        
+        'tradie_id'
     ];
 
     protected $casts = [

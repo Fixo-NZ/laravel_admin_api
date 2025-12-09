@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\Auth\UserAuthController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\JobOfferController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ScheduleController; 
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\BroadcastTestController; 
+use App\Services\FCMService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 /*
@@ -111,4 +113,97 @@ Route::prefix('jobs')->middleware('auth:sanctum')->group(function () {
     Route::get('/job-offers/{id}', [JobOfferController::class, 'show']);
     Route::put('/job-offers/{id}', [JobOfferController::class, 'update']);
     Route::delete('/job-offers/{id}', [JobOfferController::class, 'destroy']);
+});
+
+// Firebase Test Routes (No CSRF protection needed)
+Route::get('/test-firebase-connection', function () {
+    try {
+        $fcmService = app(FCMService::class);
+        
+        // Just test if we can create the service without errors
+        \Log::info('Firebase connection test successful');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Firebase connection is working!'
+        ])->header('Access-Control-Allow-Origin', '*')
+          ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+          ->header('Access-Control-Allow-Headers', 'Content-Type');
+        
+    } catch (\Exception $e) {
+        \Log::error('Firebase connection test failed', [
+            'error' => $e->getMessage()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Firebase connection failed',
+            'error' => $e->getMessage()
+        ], 500)->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type');
+    }
+});
+
+Route::post('/test-push-custom', function (\Illuminate\Http\Request $request) {
+    try {
+        $fcmService = app(FCMService::class);
+        
+        $token = $request->input('token');
+        $title = $request->input('title', 'Test Notification');
+        $body = $request->input('body', 'Test message from Laravel');
+        $data = $request->input('data', [
+            'type' => 'test',
+            'timestamp' => now()->toISOString(),
+        ]);
+        
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'FCM token is required'
+            ], 400)->header('Access-Control-Allow-Origin', '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type');
+        }
+        
+        // For testing with invalid tokens, let's add some validation
+        if ($token === 'test_token' || strlen($token) < 50) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid FCM token (test_token is not valid)',
+                'note' => 'Get a real FCM token from your Flutter app'
+            ], 400)->header('Access-Control-Allow-Origin', '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type');
+        }
+        
+        $result = $fcmService->send($token, $title, $body, $data);
+        
+        \Log::info('Custom push notification sent', [
+            'token' => substr($token, 0, 20) . '...',
+            'title' => $title,
+            'result' => $result
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification sent successfully!',
+            'result' => $result
+        ])->header('Access-Control-Allow-Origin', '*')
+          ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+          ->header('Access-Control-Allow-Headers', 'Content-Type');
+        
+    } catch (\Exception $e) {
+        \Log::error('Custom push notification failed', [
+            'error' => $e->getMessage()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send notification',
+            'error' => $e->getMessage()
+        ], 500)->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type');
+    }
 });
