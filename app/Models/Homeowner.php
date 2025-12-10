@@ -9,6 +9,7 @@ use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\HomeownerVerifyEmail;
 
 class Homeowner extends Authenticatable implements MustVerifyEmail
 {
@@ -56,6 +57,14 @@ class Homeowner extends Authenticatable implements MustVerifyEmail
     public function routeNotificationForMail(Notification $notification): array|string
     {
         return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new HomeownerVerifyEmail());
     }
 
     // ─── Boot Method ────────────────────────────────────────────

@@ -49,7 +49,6 @@ class HomeownerRegistrationTest extends TestCase
                         'region',
                         'postal_code',
                         'status',
-                        'user_type',
                     ],
                     'token',
                 ],
@@ -204,8 +203,6 @@ class HomeownerRegistrationTest extends TestCase
 
         $response = $this->postJson('/api/homeowner/register', $data);
 
-        dump($response->json());
-
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -223,7 +220,7 @@ class HomeownerRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'homeowner.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $homeowner->id,
@@ -246,7 +243,7 @@ class HomeownerRegistrationTest extends TestCase
     public function email_verification_fails_with_invalid_user()
     {
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'homeowner.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => 99999,
@@ -273,7 +270,7 @@ class HomeownerRegistrationTest extends TestCase
             'email_verified_at' => null,
         ]);
 
-        $url = route('verification.verify', [
+        $url = route('homeowner.verification.verify', [
             'id' => $homeowner->id,
             'hash' => sha1($homeowner->email),
         ]);
@@ -294,7 +291,7 @@ class HomeownerRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'homeowner.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $homeowner->id,
@@ -322,7 +319,7 @@ class HomeownerRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'homeowner.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $homeowner->id,

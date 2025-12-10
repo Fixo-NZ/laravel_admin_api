@@ -210,8 +210,6 @@ class TradieRegistrationTest extends TestCase
 
         $response = $this->postJson('/api/tradie/register', $data);
 
-        dump($response->json());
-
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -229,7 +227,7 @@ class TradieRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'tradie.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $tradie->id,
@@ -252,7 +250,7 @@ class TradieRegistrationTest extends TestCase
     public function email_verification_fails_with_invalid_user()
     {
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'tradie.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => 99999,
@@ -279,7 +277,7 @@ class TradieRegistrationTest extends TestCase
             'email_verified_at' => null,
         ]);
 
-        $url = route('verification.verify', [
+        $url = route('tradie.verification.verify', [
             'id' => $tradie->id,
             'hash' => sha1($tradie->email),
         ]);
@@ -300,7 +298,7 @@ class TradieRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'tradie.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $tradie->id,
@@ -328,7 +326,7 @@ class TradieRegistrationTest extends TestCase
         ]);
 
         $url = URL::temporarySignedRoute(
-            'verification.verify',
+            'tradie.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $tradie->id,

@@ -29,10 +29,10 @@ Route::prefix('homeowner')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::get('verify-email/{id}/{hash}', [HomeownerAuthController::class, 'verifyEmail'])
             ->middleware('signed')
-            ->name('verification.verify');
+            ->name('homeowner.verification.verify');
 
         Route::post('resend-email-verification', [HomeownerAuthController::class, 'resendEmailVerification'])
-            ->name('verification.resend');
+            ->name('homeowner.verification.resend');
     });
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -53,10 +53,10 @@ Route::prefix('tradie')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::get('verify-email/{id}/{hash}', [TradieAuthController::class, 'verifyEmail'])
             ->middleware('signed')
-            ->name('verification.verify');
+            ->name('tradie.verification.verify');
 
         Route::post('resend-email-verification', [TradieAuthController::class, 'resendEmailVerification'])
-            ->name('verification.resend');
+            ->name('tradie.verification.resend');
     });
 
     Route::middleware(['auth:sanctum', 'verified'])->group(function () {
