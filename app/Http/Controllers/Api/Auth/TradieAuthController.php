@@ -114,26 +114,13 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation Error",
+     *         description="Validation Error or User Not Found",
      *         @OA\JsonContent(
-     *             @OA\Schema(
-     *                 oneOf={
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
-     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
-     *                         )
-     *                     ),
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a user."),
-     *                         )
-     *                     )
-     *                 }
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
+     *                 @OA\Property(property="details", type="object", example={"email": ["The email field is required."]}, description="Present only for validation errors")
      *             )
      *         )
      *     ),
@@ -428,25 +415,12 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Invalid or Signature or Hash Mismatch",
+     *         description="Invalid Signature or Hash Mismatch",
      *         @OA\JsonContent(
-     *             @OA\Schema(
-     *                 oneOf={
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="INVALID_SIGNATURE"),
-     *                             @OA\Property(property="message", type="string", example="Invalid or expired verification link."),
-     *                         )
-     *                     ),
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="INVALID_VERIFICATION"),
-     *                             @OA\Property(property="message", type="string", example="Verification details do not match."),
-     *                         )
-     *                     )
-     *                 }
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="INVALID_SIGNATURE", description="Can be INVALID_SIGNATURE or INVALID_VERIFICATION"),
+     *                 @OA\Property(property="message", type="string", example="Invalid or expired verification link.", description="Error message varies based on error type")
      *             )
      *         )
      *     ),
@@ -463,20 +437,10 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Email Verified Successfully / is Already Verified",
+     *         description="Email Verified Successfully or Already Verified",
      *         @OA\JsonContent(
-     *             @OA\Schema(
-     *                 oneOf={
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=true),
-     *                         @OA\Property(property="message", type="string", example="Email verified successfully."),
-     *                     ),
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=true),
-     *                         @OA\Property(property="message", type="string", example="Email already verified."),
-     *                     )
-     *                 }
-     *             )
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Email verified successfully.", description="Can be 'Email verified successfully.' or 'Email already verified.'")
      *         )
      *     ),
      * )
@@ -551,26 +515,13 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation Error",
+     *         description="Validation Error or User Not Found",
      *         @OA\JsonContent(
-     *             @OA\Schema(
-     *                 oneOf={
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
-     *                             @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *                             @OA\Property(property="details", type="object", example="{ email: ['The email field is required.'] }"),
-     *                         )
-     *                     ),
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="This user does not exist."),
-     *                         )
-     *                     )
-     *                 }
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
+     *                 @OA\Property(property="details", type="object", example={"email": ["The email field is required."]}, description="Present only for validation errors")
      *             )
      *         )
      *    ),
@@ -587,20 +538,10 @@ class TradieAuthController extends Controller
      *    ),
      *    @OA\Response(
      *        response=200,
-     *        description="Verification Email Resent Successfully / Email Already Verified",
+     *        description="Verification Email Resent Successfully or Email Already Verified",
      *        @OA\JsonContent(
-     *            @OA\Schema(
-     *                oneOf={
-     *                    @OA\Schema(
-     *                        @OA\Property(property="success", type="boolean", example=true),
-     *                        @OA\Property(property="message", type="string", example="Verification email resent successfully."),
-     *                    ),
-     *                    @OA\Schema(
-     *                        @OA\Property(property="success", type="boolean", example=true),
-     *                        @OA\Property(property="message", type="string", example="Email already verified."),
-     *                    )
-     *                }
-     *            )
+     *            @OA\Property(property="success", type="boolean", example=true),
+     *            @OA\Property(property="message", type="string", example="Verification email resent successfully.", description="Can be 'Verification email resent successfully.' or 'Email already verified.'")
      *        )
      *    )
      * )
@@ -699,23 +640,10 @@ class TradieAuthController extends Controller
      *         response=403,
      *         description="Account Inactive or Email Not Verified",
      *         @OA\JsonContent(
-     *             @OA\Schema(
-     *                 oneOf={
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
-     *                             @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
-     *                         )
-     *                     ),
-     *                     @OA\Schema(
-     *                         @OA\Property(property="success", type="boolean", example=false),
-     *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="EMAIL_NOT_VERIFIED"),
-     *                             @OA\Property(property="message", type="string", example="Please verify your email before logging in."),
-     *                         )
-     *                     )
-     *                 }
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE", description="Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED"),
+     *                 @OA\Property(property="message", type="string", example="Your account is not active. Please contact support.", description="Error message varies based on error type")
      *             )
      *         )
      *     ),
