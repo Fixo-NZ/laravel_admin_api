@@ -298,7 +298,7 @@ class HomeownerAuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'middle_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:homeowners,email',
+            'email' => 'required|string|email|max:255|unique:homeowners',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'address' => 'nullable|string|max:500',
@@ -314,9 +314,9 @@ class HomeownerAuthController extends Controller
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
-                    'details' => $validator->errors(), // Detailed field errors
+                    'details' => $validator->errors(),
                 ],
-            ], 422); // 422 Unprocessable Entity
+            ], 422);
         }
 
         try {
@@ -335,17 +335,29 @@ class HomeownerAuthController extends Controller
                 'status' => 'active',
             ]);
 
-            // Generate API token using Laravel Sanctum
+            event(new Registered($homeowner));
+
             $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
-            // Return success response with user data and token
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'user' => $homeowner,
+                    'user' => [
+                        'id' => $homeowner->id,
+                        'first_name' => $homeowner->first_name,
+                        'last_name' => $homeowner->last_name,
+                        'middle_name' => $homeowner->middle_name,
+                        'email' => $homeowner->email,
+                        'phone' => $homeowner->phone,
+                        'address' => $homeowner->address,
+                        'city' => $homeowner->city,
+                        'region' => $homeowner->region,
+                        'postal_code' => $homeowner->postal_code,
+                        'status' => $homeowner->status,
+                    ],
                     'token' => $token,
                 ],
-            ], 201); // 201 Created
+            ], 201);
 
         } catch (\Exception $e) {
             // Handle any unexpected errors during registration
@@ -748,7 +760,19 @@ class HomeownerAuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $homeowner,
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'last_name' => $homeowner->last_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'email' => $homeowner->email,
+                    'phone' => $homeowner->phone,
+                    'address' => $homeowner->address,
+                    'city' => $homeowner->city,
+                    'region' => $homeowner->region,
+                    'postal_code' => $homeowner->postal_code,
+                    'status' => $homeowner->status,
+                ],
                 'token' => $token,
             ],
         ], 200);
@@ -1012,7 +1036,23 @@ class HomeownerAuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $homeowner,
+                'user' => [
+                    'id' => $homeowner->id,
+                    'first_name' => $homeowner->first_name,
+                    'last_name' => $homeowner->last_name,
+                    'middle_name' => $homeowner->middle_name,
+                    'email' => $homeowner->email,
+                    'phone' => $homeowner->phone,
+                    'avatar' => $homeowner->avatar,
+                    'bio' => $homeowner->bio,
+                    'address' => $homeowner->address,
+                    'city' => $homeowner->city,
+                    'region' => $homeowner->region,
+                    'postal_code' => $homeowner->postal_code,
+                    'latitude' => $homeowner->latitude,
+                    'longitude' => $homeowner->longitude,
+                    'status' => $homeowner->status,
+                ],
             ],
         ], 200);
     }
