@@ -157,10 +157,40 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -384,6 +414,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -477,11 +511,11 @@
                                             "properties": {
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "HOMEOWNER_NOT_FOUND"
+                                                    "example": "USER_NOT_FOUND"
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "Homeowner does not exist."
+                                                    "example": "This user does not exist."
                                                 }
                                             },
                                             "type": "object"
@@ -493,10 +527,33 @@
                         }
                     },
                     "403": {
-                        "description": "Invalid or Signature or Hash Mismatch",
+                        "description": "Invalid Signature or Hash Mismatch",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be INVALID_SIGNATURE or INVALID_VERIFICATION",
+                                                    "type": "string",
+                                                    "example": "INVALID_SIGNATURE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Invalid or expired verification link."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -530,10 +587,23 @@
                         }
                     },
                     "200": {
-                        "description": "Email Verified Successfully / is Already Verified",
+                        "description": "Email Verified Successfully or Already Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Email verified successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Email verified successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     }
@@ -565,10 +635,40 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -602,10 +702,23 @@
                         }
                     },
                     "200": {
-                        "description": "Verification Email Resent Successfully / Email Already Verified",
+                        "description": "Verification Email Resent Successfully or Email Already Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Verification email resent successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Verification email resent successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     }
@@ -707,7 +820,30 @@
                         "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED",
+                                                    "type": "string",
+                                                    "example": "ACCOUNT_INACTIVE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Your account is not active. Please contact support."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -768,6 +904,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -1118,6 +1258,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -1277,10 +1421,40 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -1647,11 +1821,11 @@
                                             "properties": {
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "TRADIE_NOT_FOUND"
+                                                    "example": "USER_NOT_FOUND"
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "Tradie does not exist."
+                                                    "example": "This user does not exist."
                                                 }
                                             },
                                             "type": "object"
@@ -1663,10 +1837,33 @@
                         }
                     },
                     "403": {
-                        "description": "Invalid or Signature or Hash Mismatch",
+                        "description": "Invalid Signature or Hash Mismatch",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be INVALID_SIGNATURE or INVALID_VERIFICATION",
+                                                    "type": "string",
+                                                    "example": "INVALID_SIGNATURE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Invalid or expired verification link."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -1700,10 +1897,23 @@
                         }
                     },
                     "200": {
-                        "description": "Email Verified Successfully / is Already Verified",
+                        "description": "Email Verified Successfully or Already Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Email verified successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Email verified successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     }
@@ -1735,10 +1945,40 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },
@@ -1772,10 +2012,23 @@
                         }
                     },
                     "200": {
-                        "description": "Verification Email Resent Successfully / Email Already Verified",
+                        "description": "Verification Email Resent Successfully or Email Already Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Verification email resent successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Verification email resent successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     }
@@ -1877,7 +2130,30 @@
                         "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED",
+                                                    "type": "string",
+                                                    "example": "ACCOUNT_INACTIVE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Your account is not active. Please contact support."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     },

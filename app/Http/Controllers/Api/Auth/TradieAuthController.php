@@ -120,7 +120,7 @@ class TradieAuthController extends Controller
      *             @OA\Property(property="error", type="object",
      *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
      *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
-     *                 @OA\Property(property="details", type="object", example={"email": ["The email field is required."]}, description="Present only for validation errors")
+     *                 @OA\Property(property="details", type="object", example={"email": "The email field is required."}, description="Present only for validation errors")
      *             )
      *         )
      *     ),
@@ -521,7 +521,7 @@ class TradieAuthController extends Controller
      *             @OA\Property(property="error", type="object",
      *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
      *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
-     *                 @OA\Property(property="details", type="object", example={"email": ["The email field is required."]}, description="Present only for validation errors")
+     *                 @OA\Property(property="details", type="object", example={"email": "The email field is required."}, description="Present only for validation errors")
      *             )
      *         )
      *    ),
