@@ -14,7 +14,9 @@ class HomeownerAuthTest extends TestCase
     public function test_homeowner_can_register()
     {
         $response = $this->postJson('/api/homeowner/register', [
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'middle_name' => 'M',
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -29,11 +31,15 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'last_name',
+                        'middle_name',
                         'email',
                         'phone',
+                        'address',
                         'city',
                         'region',
+                        'postal_code',
                         'status',
                         'user_type',
                     ],
@@ -43,7 +49,8 @@ class HomeownerAuthTest extends TestCase
 
         $this->assertDatabaseHas('homeowners', [
             'email' => 'john@example.com',
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
         ]);
     }
 
@@ -65,8 +72,16 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'last_name',
+                        'middle_name',
                         'email',
+                        'phone',
+                        'address',
+                        'city',
+                        'region',
+                        'postal_code',
+                        'status',
                         'user_type',
                     ],
                     'token'
@@ -126,8 +141,20 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
-                        'name',
+                        'first_name',
+                        'last_name',
+                        'middle_name',
                         'email',
+                        'phone',
+                        'avatar',
+                        'bio',
+                        'address',
+                        'city',
+                        'region',
+                        'postal_code',
+                        'latitude',
+                        'longitude',
+                        'status',
                         'user_type',
                     ]
                 ]

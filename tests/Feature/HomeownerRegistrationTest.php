@@ -49,6 +49,7 @@ class HomeownerRegistrationTest extends TestCase
                         'region',
                         'postal_code',
                         'status',
+                        'user_type',
                     ],
                     'token',
                 ],

@@ -230,6 +230,7 @@ class TradieResetPasswordTest extends TestCase
             ]);
     }
 
+    #[Test]
     public function it_fails_otp_verification_when_user_not_found_for_tradie()
     {
         $response = $this->postJson('/api/tradie/verify-otp', [
@@ -241,11 +242,12 @@ class TradieResetPasswordTest extends TestCase
             ->assertJson([
                 'success' => false,
                 'error' => [
-                    'code' => 'TRADIE_NOT_FOUND'
+                    'code' => 'USER_NOT_FOUND'
                 ]
             ]);
     }
 
+    #[Test]
     public function it_deletes_existing_password_reset_tokens_on_otp_verification_for_tradie()
     {
         $tradie = Tradie::factory()->create([

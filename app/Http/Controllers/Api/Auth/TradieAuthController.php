@@ -129,8 +129,8 @@ class TradieAuthController extends Controller
      *                     @OA\Schema(
      *                         @OA\Property(property="success", type="boolean", example=false),
      *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a tradie."),
+     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a user."),
      *                         )
      *                     )
      *                 }
@@ -224,7 +224,8 @@ class TradieAuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/tradie/register",
-     *     summary="Register a new user",
+     *     summary="Register a new tradie user",
+     *     description="Register a new tradie account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
      *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -420,8 +421,8 @@ class TradieAuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
-     *                 @OA\Property(property="message", type="string", example="Tradie does not exist."),
+     *                 @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="This user does not exist."),
      *             )
      *         )
      *     ),
@@ -565,8 +566,8 @@ class TradieAuthController extends Controller
      *                     @OA\Schema(
      *                         @OA\Property(property="success", type="boolean", example=false),
      *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="TRADIE_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="Tradie does not exist."),
+     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="This user does not exist."),
      *                         )
      *                     )
      *                 }
@@ -662,6 +663,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/login",
      *     summary="Login tradie",
+     *     description="Authenticate a tradie user. The user must have verified their email address before they can log in.",
      *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -695,12 +697,25 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Account Inactive",
+     *         description="Account Inactive or Email Not Verified",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
-     *                 @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
+     *                             @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="EMAIL_NOT_VERIFIED"),
+     *                             @OA\Property(property="message", type="string", example="Please verify your email before logging in."),
+     *                         )
+     *                     )
+     *                 }
      *             )
      *         )
      *     ),
@@ -776,6 +791,17 @@ class TradieAuthController extends Controller
             ], 403);
         }
 
+        // Check if email is verified
+        if (!$tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'message' => 'Please verify your email before logging in.',
+                ]
+            ], 403);
+        }
+
         // Revoke existing tokens
         $tradie->tokens()->delete();
 
@@ -786,7 +812,9 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'name' => $tradie->name,
+                    'first_name' => $tradie->first_name,
+                    'last_name' => $tradie->last_name,
+                    'middle_name' => $tradie->middle_name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
                     'business_name' => $tradie->business_name,

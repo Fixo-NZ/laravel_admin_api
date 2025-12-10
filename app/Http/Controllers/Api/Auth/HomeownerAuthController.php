@@ -130,8 +130,8 @@ class HomeownerAuthController extends Controller
      *                     @OA\Schema(
      *                         @OA\Property(property="success", type="boolean", example=false),
      *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a homeowner."),
+     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="The given email does not exist as a user."),
      *                         )
      *                     )
      *                 }
@@ -225,7 +225,8 @@ class HomeownerAuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/homeowner/register",
-     *     summary="Register a new user",
+     *     summary="Register a new homeowner user",
+     *     description="Register a new homeowner account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
      *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -273,6 +274,7 @@ class HomeownerAuthController extends Controller
      *                     @OA\Property(property="region", type="string", example="State"),
      *                     @OA\Property(property="postal_code", type="string", example="12345"),
      *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="user_type", type="string", example="homeowner"),
      *                 ),
      *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
      *             )
@@ -354,6 +356,7 @@ class HomeownerAuthController extends Controller
                         'region' => $homeowner->region,
                         'postal_code' => $homeowner->postal_code,
                         'status' => $homeowner->status,
+                        'user_type' => 'homeowner',
                     ],
                     'token' => $token,
                 ],
@@ -396,8 +399,8 @@ class HomeownerAuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
-     *                 @OA\Property(property="message", type="string", example="Homeowner does not exist."),
+     *                 @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="This user does not exist."),
      *             )
      *         )
      *     ),
@@ -541,8 +544,8 @@ class HomeownerAuthController extends Controller
      *                     @OA\Schema(
      *                         @OA\Property(property="success", type="boolean", example=false),
      *                         @OA\Property(property="error", type="object",
-     *                             @OA\Property(property="code", type="string", example="HOMEOWNER_NOT_FOUND"),
-     *                             @OA\Property(property="message", type="string", example="Homeowner does not exist."),
+     *                             @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                             @OA\Property(property="message", type="string", example="This user does not exist."),
      *                         )
      *                     )
      *                 }
@@ -638,6 +641,7 @@ class HomeownerAuthController extends Controller
      * @OA\Post(
      *     path="/api/homeowner/login",
      *     summary="Login homeowner",
+     *     description="Authenticate a homeowner user. The user must have verified their email address before they can log in.",
      *     tags={"Homeowner Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -671,12 +675,25 @@ class HomeownerAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Account Inactive",
+     *         description="Account Inactive or Email Not Verified",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
-     *                 @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
+     *             @OA\Schema(
+     *                 oneOf={
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
+     *                             @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
+     *                         )
+     *                     ),
+     *                     @OA\Schema(
+     *                         @OA\Property(property="success", type="boolean", example=false),
+     *                         @OA\Property(property="error", type="object",
+     *                             @OA\Property(property="code", type="string", example="EMAIL_NOT_VERIFIED"),
+     *                             @OA\Property(property="message", type="string", example="Please verify your email before logging in."),
+     *                         )
+     *                     )
+     *                 }
      *             )
      *         )
      *     ),
@@ -698,6 +715,7 @@ class HomeownerAuthController extends Controller
      *                     @OA\Property(property="region", type="string", example="State"),
      *                     @OA\Property(property="postal_code", type="string", example="12345"),
      *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="user_type", type="string", example="homeowner"),
      *                 ),
      *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
      *             )
@@ -750,6 +768,17 @@ class HomeownerAuthController extends Controller
             ], 403); // 403 Forbidden
         }
 
+        // Check if email is verified
+        if (!$homeowner->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'message' => 'Please verify your email before logging in.',
+                ],
+            ], 403); // 403 Forbidden
+        }
+
         // Revoke any previous tokens to prevent session hijacking
         $homeowner->tokens()->delete();
 
@@ -772,6 +801,7 @@ class HomeownerAuthController extends Controller
                     'region' => $homeowner->region,
                     'postal_code' => $homeowner->postal_code,
                     'status' => $homeowner->status,
+                    'user_type' => 'homeowner',
                 ],
                 'token' => $token,
             ],
@@ -1023,6 +1053,7 @@ class HomeownerAuthController extends Controller
      *                     @OA\Property(property="region", type="string", example="State"),
      *                     @OA\Property(property="postal_code", type="string", example="12345"),
      *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="user_type", type="string", example="homeowner"),
      *                 )
      *             )
      *         )
@@ -1052,6 +1083,7 @@ class HomeownerAuthController extends Controller
                     'latitude' => $homeowner->latitude,
                     'longitude' => $homeowner->longitude,
                     'status' => $homeowner->status,
+                    'user_type' => 'homeowner',
                 ],
             ],
         ], 200);

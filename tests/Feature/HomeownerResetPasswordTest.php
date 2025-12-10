@@ -231,6 +231,7 @@ class HomeownerResetPasswordTest extends TestCase
             ]);
     }
 
+    #[Test]
     public function it_fails_otp_verification_when_user_not_found_for_homeowner()
     {
         $response = $this->postJson('/api/homeowner/verify-otp', [
@@ -242,11 +243,12 @@ class HomeownerResetPasswordTest extends TestCase
             ->assertJson([
                 'success' => false,
                 'error' => [
-                    'code' => 'TRADIE_NOT_FOUND'
+                    'code' => 'USER_NOT_FOUND'
                 ]
             ]);
     }
 
+    #[Test]
     public function it_deletes_existing_password_reset_tokens_on_otp_verification_for_homeowner()
     {
         $homeowner = Homeowner::factory()->create([

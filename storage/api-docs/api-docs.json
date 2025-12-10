@@ -234,7 +234,8 @@
                 "tags": [
                     "Homeowner Authentication"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register a new homeowner user",
+                "description": "Register a new homeowner account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
                 "operationId": "fddb0b641f10a4948da0fc9b8a91e29e",
                 "requestBody": {
                     "required": true,
@@ -617,6 +618,7 @@
                     "Homeowner Authentication"
                 ],
                 "summary": "Login homeowner",
+                "description": "Authenticate a homeowner user. The user must have verified their email address before they can log in.",
                 "operationId": "bd064dcd4282ba044e690c30b8211b1d",
                 "requestBody": {
                     "required": true,
@@ -702,31 +704,10 @@
                         }
                     },
                     "403": {
-                        "description": "Account Inactive",
+                        "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "error": {
-                                            "properties": {
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "ACCOUNT_INACTIVE"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Your account is not active. Please contact support."
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                                "schema": {}
                             }
                         }
                     },
@@ -1373,7 +1354,8 @@
                 "tags": [
                     "Tradie Authentication"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register a new tradie user",
+                "description": "Register a new tradie account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
                 "operationId": "c73bab9bc18c6d51745e541906739dab",
                 "requestBody": {
                     "required": true,
@@ -1806,6 +1788,7 @@
                     "Tradie Authentication"
                 ],
                 "summary": "Login tradie",
+                "description": "Authenticate a tradie user. The user must have verified their email address before they can log in.",
                 "operationId": "37330f2cabb0decf1322507772c2edfb",
                 "requestBody": {
                     "required": true,
@@ -1891,31 +1874,10 @@
                         }
                     },
                     "403": {
-                        "description": "Account Inactive",
+                        "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "error": {
-                                            "properties": {
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "ACCOUNT_INACTIVE"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Your account is not active. Please contact support."
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                                "schema": {}
                             }
                         }
                     },
