@@ -16,8 +16,8 @@ class TradieLoginTest extends TestCase
         $tradie = Tradie::factory()->create([
             'email' => 'john@example.com',
             'password' => bcrypt('password123'),
-            'email_verified_at' => now(), // Ensure email is verified
-            'status' => 'active', // Ensure account is active
+            'email_verified_at' => now(),
+            'status' => 'active',
         ]);
 
         $response = $this->postJson('/api/tradie/login', [
@@ -133,8 +133,8 @@ class TradieLoginTest extends TestCase
         $tradie = Tradie::factory()->create([
             'email' => 'john@example.com',
             'password' => bcrypt('password123'),
-            'email_verified_at' => null, // Email not verified
-            'status' => 'active', // Ensure account is active so we test email verification specifically
+            'email_verified_at' => null,
+            'status' => 'active',
         ]);
 
         $response = $this->postJson('/api/tradie/login', [
