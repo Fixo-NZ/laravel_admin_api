@@ -78,6 +78,9 @@ Route::prefix('schedules')->middleware('auth:sanctum')->group(function () {
     // Fetch values for calendar
     Route::get('/', [ScheduleController::class, 'index']);
 
+    // Fetch homeowner schedules
+    Route::get('/homeowner', [ScheduleController::class, 'indexHomeowner']);
+
     // Reschedule for calendar
     Route::post('/{schedule}/reschedule', [ScheduleController::class, 'reschedule']);
 
