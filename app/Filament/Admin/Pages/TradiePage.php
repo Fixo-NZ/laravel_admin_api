@@ -105,18 +105,12 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     'unavailable' => 'Unavailable',
                 ]),
         ])
-        ->recordAction('viewProfile')
+        // Redirect to TradieProfile page when a row is clicked
+        ->recordUrl(fn (Tradie $record) => url('/tradies/profile/' . $record->id))
         ->actions([
             Action::make('viewProfile')
                 ->label('')
-                ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close')
-                ->modalWidth('xl')
-                ->modalHeading(fn (Tradie $record) => $record->name . ' Profile')
-                ->modalContent(fn (Tradie $record) => view(
-                    'filament.admin.pages.tradie-profile-modal',
-                    ['tradie' => $record]
-                )),
+                ->url(fn (Tradie $record) => url('/tradies/profile/' . $record->id)),
         ])
         ->bulkActions([]);
 }
