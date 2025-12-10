@@ -187,8 +187,8 @@ class HomeownerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'HOMEOWNER_NOT_FOUND',
-                    'message' => 'The given email does not exist as a homeowner.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
                 ]
             ], 422);
         }
@@ -452,8 +452,8 @@ class HomeownerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'HOMEOWNER_NOT_FOUND',
-                    'message' => 'This homeowner does not exist.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
                 ]
             ], 404);
         }
@@ -591,8 +591,8 @@ class HomeownerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'HOMEOWNER_NOT_FOUND',
-                    'message' => 'This homeowner does not exist.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
                 ]
             ], 422);
         }
@@ -903,7 +903,7 @@ class HomeownerAuthController extends Controller
      *     )
      * )
      */
-    public function resetPassword(Request $request, $id)
+    public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'new_password' => 'required|string|min:8|confirmed',

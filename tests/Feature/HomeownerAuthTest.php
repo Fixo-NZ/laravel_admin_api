@@ -107,7 +107,7 @@ class HomeownerAuthTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Successfully logged out'
+                'message' => 'Logged out successfully',
             ]);
     }
 

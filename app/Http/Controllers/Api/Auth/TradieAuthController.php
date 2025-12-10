@@ -186,8 +186,8 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'TRADIE_NOT_FOUND',
-                    'message' => 'The given email does not exist as a tradie.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
                 ]
             ], 422);
         }
@@ -488,8 +488,8 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'TRADIE_NOT_FOUND',
-                    'message' => 'Tradie does not exist.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
                 ]
             ], 404);
         }
@@ -627,8 +627,8 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'TRADIE_NOT_FOUND',
-                    'message' => 'Tradie does not exist.',
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
                 ]
             ], 422);
         }
