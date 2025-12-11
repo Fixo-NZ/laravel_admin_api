@@ -81,8 +81,12 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user-circle')
                     ->collapsible() // makes it expandable/collapsible
                     ->collapsed(),  // starts collapsed by default
+                    
+                \Filament\Navigation\NavigationGroup::make('Payments')
+                    ->icon('heroicon-o-wallet')
+                    ->collapsible() // makes it expandable/collapsible
+                    ->collapsed(),  // starts collapsed by default
             ])
-
             ->authMiddleware([
                 Authenticate::class,
             ]);

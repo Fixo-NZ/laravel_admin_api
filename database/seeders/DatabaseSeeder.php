@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Homeowner;
+use App\Models\Payment;
 use App\Models\Tradie;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,6 +18,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        User::factory()->create([
+            'first_name' => 'Admin User',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+        ]);
+
+        Payment::factory(20)->create();
         User::factory(10)->create();
         Homeowner::factory(10)->create();
         Tradie::factory(10)->create();
