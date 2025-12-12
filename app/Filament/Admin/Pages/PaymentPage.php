@@ -7,8 +7,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Actions\Action;
 use App\Models\Payment;
+use App\Models\Homeowner;
+use Illuminate\Database\Eloquent\Builder;
 
 class PaymentPage extends Page implements Tables\Contracts\HasTable
 {
@@ -30,39 +31,68 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Payment::query()->with('homeowner')) // Eager load homeowner
+            ->query(Payment::query()->with('homeowner'))
 
             ->columns([
-                TextColumn::make('id')->label('ID')->sortable()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make(name: 'homeowner.first_name')->label('Homeowner')->sortable()->searchable(),
-                TextColumn::make('amount')->label('Amount')->sortable(),
-                TextColumn::make('currency')->label('Currency')->sortable(),
-                TextColumn::make('card_brand')->label('Card Brand')->toggleable(),
-                TextColumn::make('card_last4number')->label('Last 4')->toggleable(),
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('homeowner.first_name')
+                    ->label('Homeowner')
+                    ->searchable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderBy(
+                            Homeowner::select('first_name')
+                                ->whereColumn('homeowners.id', 'payments.homeowner_id'),
+                            $direction
+                        );
+                    }),
+
+                TextColumn::make('amount')
+                    ->label('Amount')
+                    ->sortable(),
+
+                TextColumn::make('currency')
+                    ->label('Currency')
+                    ->sortable(),
+
+                TextColumn::make('card_brand')
+                    ->label('Card Brand')
+                    ->toggleable(),
+
+                TextColumn::make('card_last4number')
+                    ->label('Last 4')
+                    ->toggleable(),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->colors([
-                        'success' => fn($state) => $state === 'succeeded',
-                        'danger' => fn($state) => $state === 'failed',
-                        'warning' => fn($state) => $state === 'pending',
+                        'success' => fn ($state) => $state === 'succeeded',
+                        'danger'  => fn ($state) => $state === 'failed',
+                        'warning' => fn ($state) => $state === 'pending',
                     ])
-                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->sortable(),
-                TextColumn::make('created_at')->label('Created At')->dateTime()->sortable()->toggleable(),
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
             ])
 
             ->filters([
                 SelectFilter::make('status')
                     ->label('Filter by Status')
                     ->options([
-                        'pending' => 'Pending',
+                        'pending'   => 'Pending',
                         'succeeded' => 'Succeeded',
-                        'failed' => 'Failed',
+                        'failed'    => 'Failed',
                     ]),
             ])
-
-            
 
             ->bulkActions([]);
     }
