@@ -99,7 +99,7 @@ class SchedulePage extends Page implements Tables\Contracts\HasTable
                     ->modalCancelActionLabel('Close')
                     ->modalWidth('4xl')
                     ->modalContent(fn (HomeownerJobOffer $record) => view(
-                        'filament.admin.pages.job-offer-details-modal',
+                        'filament.admin.pages.schedule-details-modal',
                         ['offer' => $record]
                     )),
             ])
