@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -24,12 +25,15 @@ class User extends Authenticatable implements FilamentUser
         'last_name',
         'middle_name',
         'email',
+        'role',
         'password',
         'role',
         'status',
         'phone',
         'location',
     ];
+    protected $guard_name = 'web';
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -39,6 +43,8 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     /**

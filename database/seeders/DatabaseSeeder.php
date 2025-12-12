@@ -4,11 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Homeowner;
+use App\Models\Payment;
 use App\Models\Tradie;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,9 +18,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
-        // Seed admin user
         User::factory()->create([
             'first_name' => 'Eizler ',
             'last_name' => 'Martin',   
@@ -37,6 +36,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make("password"),
         ]);
 
+        Payment::factory(20)->create();
         User::factory(10)->create();
         // Seed other users
         Homeowner::factory(20)->create();
@@ -46,5 +46,9 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             HomeownerJobOfferSeeder::class,
         ]);
+        Homeowner::factory(10)->create();
+        Tradie::factory(10)->create();
+        // Seed bookings after homeowners, tradies and services exist
+        $this->call(BookingSeeder::class);
     }
 }
