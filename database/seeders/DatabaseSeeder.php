@@ -17,10 +17,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        User::factory()->create([
+            'first_name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+        ]);
+
         User::factory(10)->create();
         Homeowner::factory(10)->create();
         Tradie::factory(10)->create();
+
         // Seed bookings after homeowners, tradies and services exist
         $this->call(BookingSeeder::class);
+
+        Tradie::factory()->create([
+            'first_name' => 'John',
+            'email' => 'john.example@email.com',
+            'phone' => '09987654321',
+            'password' => Hash::make("tradie123"),
+            'status' => 'active'
+        ]);
     }
 }

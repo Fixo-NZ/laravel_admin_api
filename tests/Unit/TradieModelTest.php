@@ -10,7 +10,6 @@ class TradieModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
     public function it_has_expected_fillable_fields()
     {
         $tradie = new Tradie();
@@ -41,7 +40,6 @@ class TradieModelTest extends TestCase
         ], $tradie->getFillable());
     }
 
-    /** @test */
     public function it_can_be_created_via_factory()
     {
         $tradie = Tradie::factory()->create([
@@ -63,7 +61,6 @@ class TradieModelTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function it_returns_full_name_fields_for_page_columns()
     {
         $tradie = Tradie::factory()->create([
@@ -77,7 +74,6 @@ class TradieModelTest extends TestCase
         $this->assertEquals('B', $tradie->middle_name);
     }
 
-    /** @test */
     public function status_field_can_be_active_inactive_or_suspended()
     {
         $active = Tradie::factory()->create(['status' => 'active']);
@@ -89,7 +85,6 @@ class TradieModelTest extends TestCase
         $this->assertEquals('suspended', $suspended->status);
     }
 
-    /** @test */
     public function search_query_filters_tradies_by_multiple_fields()
     {
         Tradie::factory()->create([

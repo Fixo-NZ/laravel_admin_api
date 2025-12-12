@@ -44,6 +44,10 @@ return [
             'driver' => 'sanctum', // or 'token' if not using Sanctum
             'provider' => 'homeowners',
         ],
+        'tradies' => [
+            'driver' => 'sanctum', // or 'token' if not using Sanctum
+            'provider' => 'tradies',
+        ]
     ],
 
     /*
@@ -73,11 +77,12 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Homeowner::class,
         ],
-        
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+
+        'tradies' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tradie::class,
+        ],
+
     ],
 
     /*

@@ -4,12 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\HomeownerVerifyEmail;
 
-class Homeowner extends Authenticatable
+class Homeowner extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, AuthMustVerifyEmail;
 
     // ─── Fillable ────────────────────────────────────────────────
     // These are the attributes you can mass assign (e.g., Homeowner::create()).
@@ -49,6 +53,19 @@ class Homeowner extends Authenticatable
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
     ];
+
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new HomeownerVerifyEmail());
+    }
 
     // ─── Boot Method ────────────────────────────────────────────
     // Automatically sets default status to 'active' when a new homeowner is created.
