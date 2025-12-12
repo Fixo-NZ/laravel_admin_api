@@ -34,7 +34,7 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
 
             ->columns([
                 TextColumn::make('id')->label('ID')->sortable()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('homeowner.first_name')->label('Homeowner')->sortable()->searchable(),
+                TextColumn::make(name: 'homeowner.first_name')->label('Homeowner')->sortable()->searchable(),
                 TextColumn::make('amount')->label('Amount')->sortable(),
                 TextColumn::make('currency')->label('Currency')->sortable(),
                 TextColumn::make('card_brand')->label('Card Brand')->toggleable(),
