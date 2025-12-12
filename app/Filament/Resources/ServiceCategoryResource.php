@@ -105,7 +105,7 @@ class ServiceCategoryResource extends Resource
                     ->label('Category Name')
                     ->searchable()
                     ->sortable(),
-
+                
                 // Description Column (separate)
                 TextColumn::make('description')
                     ->label('Description')

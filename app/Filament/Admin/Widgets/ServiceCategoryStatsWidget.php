@@ -13,7 +13,7 @@ class ServiceCategoryStatsWidget extends BaseWidget
     {
         return [
              // SERVICE LIST
-            Stat::make('Total Services', ServiceCategory::count())
+            Stat::make('Total Services Categories', ServiceCategory::count())
                 ->description('All registered services')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('primary')
@@ -30,7 +30,7 @@ class ServiceCategoryStatsWidget extends BaseWidget
                  */
 
             // ACTIVE SERVICES
-            Stat::make('Active Services', ServiceCategory::where('status', 'active')->count())
+            Stat::make('Active Service Categories', ServiceCategory::where('status', 'active')->count())
                 ->description('Currently active services')
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success')
@@ -44,13 +44,13 @@ class ServiceCategoryStatsWidget extends BaseWidget
                  */
 
             // INACTIVE SERVICES
-            Stat::make('Inactive Services', ServiceCategory::where('status', 'inactive')->count())
+            Stat::make('Inactive Service Categories', ServiceCategory::where('status', 'inactive')->count())
                 ->description('Inactive services')
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->color('danger')
                 ->url(ServiceCategoryResource::getUrl() . '?status=inactive'),
             // SUSPENDED SERVICES
-            Stat::make('Suspended Services', ServiceCategory::where('status', 'suspended')->count())
+            Stat::make('Suspended Service Categories', ServiceCategory::where('status', 'suspended')->count())
                 ->description('Suspended services')
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->color('warning')

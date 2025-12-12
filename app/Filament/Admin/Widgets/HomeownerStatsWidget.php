@@ -38,7 +38,7 @@ class HomeownerStatsWidget extends BaseWidget
                 ->color('warning')
                 ->url(HomeownerPage::getUrl(['status' => 'suspended'])),
 
- 
+                
         ];
     }
 }

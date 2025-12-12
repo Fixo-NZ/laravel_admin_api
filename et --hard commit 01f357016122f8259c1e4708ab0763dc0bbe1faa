@@ -1,0 +1,120 @@
+[33mcommit 01f357016122f8259c1e4708ab0763dc0bbe1faa[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mworking-dashboard-page-A/H/T[m[33m)[m
+Author: theacezhrtm <helenaricamahinay@gmail.com>
+Date:   Tue Dec 9 16:01:22 2025 +0800
+
+    Upgraded A/T/H v2
+
+[33mcommit 97402954771c42ac95044555d1ad63c1b6b471b6[m
+Author: theacezhrtm <helenaricamahinay@gmail.com>
+Date:   Tue Dec 9 12:56:32 2025 +0800
+
+    Fixed Dashboard page + A/H/T Stats Widget
+
+[33mcommit 11a7662ec76e122e17e7b4673e14dad8f39c05a3[m[33m ([m[1;31morigin/g2/job_posting[m[33m, [m[1;32mg2/job_posting[m[33m)[m
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Mon Dec 1 15:30:52 2025 +0800
+
+    Resource Page Navigation Update
+
+[33mcommit 5e8ec7ac42c3b2698f1f974b1d46d03cb3588fee[m
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Mon Dec 1 13:05:13 2025 +0800
+
+    Integration from Main Branch & Updated Changes : [Migration, Resource, Controller, Test]
+
+[33mcommit 2a53b07e3001ce45a605fc959c09a19af1d1b458[m
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Mon Nov 24 13:44:25 2025 +0800
+
+    Proper SVG Assets
+
+[33mcommit 15c3069aecd6fb4406ea2eb734c68c0ba719fc3a[m
+Merge: afd7dfd 4635889
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Tue Nov 18 14:08:57 2025 +0800
+
+    Merge remote-tracking branch 'origin/main' into g2/job_posting
+
+[33mcommit afd7dfdb0aeaa10a838fccd245c1d1dd25942883[m
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Wed Nov 5 11:59:13 2025 +0800
+
+    Added Icons in Storage
+
+[33mcommit e9b07a8e9007eca8d494135a3b91b2af0f367876[m
+Author: Eizrath <eizlerdylan.martin@lorma.edu>
+Date:   Tue Nov 4 21:15:49 2025 +0800
+
+    Job Posting(Resource and API)
+
+[33mcommit 463588986ea0c53d983c40bd99273df2c1777f30[m
+Merge: c514358 9988c7a
+Author: John Verz <113103492+johnverz22@users.noreply.github.com>
+Date:   Tue Oct 21 15:32:39 2025 +0800
+
+    Merge pull request #168 from Fixo-NZ/g8/user-overview-dashboard
+    
+    G8/user overview dashboard
+
+[33mcommit 9988c7a3a041af588e2634e1e8c23fd57b711cd9[m
+Author: theacezhrtm <helenaricamahinay@gmail.com>
+Date:   Tue Oct 21 15:06:42 2025 +0800
+
+    Complete admin dashboard for viewing admins, tradies, and homeowners
+
+[33mcommit c514358a28093bc08c64644ed9625b06080bfc33[m[33m ([m[1;31morigin/g7/Serrano[m[33m, [m[1;31morigin/g5/tradie_and_homeowners-sending-chats[m[33m)[m
+Merge: 9252140 21f331f
+Author: John Verz <113103492+johnverz22@users.noreply.github.com>
+Date:   Mon Sep 8 14:12:13 2025 +0800
+
+    Merge pull request #108 from Fixo-NZ/johnverz22-patch-1
+    
+    Added migration guide to readme.md
+
+[33mcommit 21f331f0f4022ba89fc6d5730b62c5d4f25e1a84[m
+Author: John Verz <113103492+johnverz22@users.noreply.github.com>
+Date:   Mon Sep 8 14:11:36 2025 +0800
+
+    Added migration guide to readme.md
+
+[33mcommit 92521407f5c72c0e3cabcacf81f1f9d4a921ba55[m
+Author: johnverz22 <johnny.verzola@lorma.edu>
+Date:   Tue Sep 2 14:17:44 2025 +0800
+
+    Fix bugs on Review model not found, disabled attribute
+
+[33mcommit 90cc0b9bf2f33bdb45b136f23d880772e101d9e8[m[33m ([m[1;31morigin/g8/mahinay[m[33m)[m
+Author: theacezhrtm <helenaricamahinay@gmail.com>
+Date:   Tue Sep 2 08:49:51 2025 +0800
+
+    initial commit
+
+[33mcommit f36dd82b21d2aa98ffa02a792361dd90a7e593a2[m
+Author: theacezhrtm <helenaricamahinay@gmail.com>
+Date:   Tue Sep 2 08:48:46 2025 +0800
+
+    initial commit
+
+[33mcommit 0041b8d675e6c90e6cb82617b4279d6c26c78957[m[33m ([m[1;31morigin/g6/almodovar[m[33m)[m
+Author: johnverz22 <johnny.verzola@lorma.edu>
+Date:   Mon Sep 1 13:41:02 2025 +0800
+
+    downgrade to php8.0
+
+[33mcommit 135ec24325a57aabc79cdc436ffd55e0178a0ccc[m[33m ([m[1;31morigin/g2/Bustamante[m[33m, [m[1;31morigin/g2/Bergantin[m[33m, [m[1;31morigin/g1/Trinidad[m[33m, [m[1;31morigin/g1/Mabutas[m[33m)[m
+Author: johnverz22 <johnny.verzola@lorma.edu>
+Date:   Mon Sep 1 10:18:28 2025 +0800
+
+    Edited Tradie Seeder
+
+[33mcommit a06a52cc6993fe4399fb20290fb694e5eb00ee4b[m
+Author: johnverz22 <johnny.verzola@lorma.edu>
+Date:   Sun Aug 31 22:09:34 2025 +0800
+
+    changed name ot fname, mname, lname
+
+[33mcommit 6d6f05743aee7b26ca71bd073b4489a467b693cf[m
+Author: johnverz22 <johnny.verzola@lorma.edu>
+Date:   Sun Aug 31 21:45:14 2025 +0800
+
+    Initial commit with starter code

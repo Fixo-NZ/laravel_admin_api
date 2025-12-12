@@ -152,8 +152,8 @@ class ServiceResource extends Resource
             ->actions([
                 // Custom modal: View Details
                 Action::make('viewDetails')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
+                    ->label('')
+                    ->icon(null)
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
                     ->modalHeading(fn($record) => 'Service Details: ' . $record->name)
@@ -162,6 +162,9 @@ class ServiceResource extends Resource
                         'filament.modals.service-details',
                         ['service' => $record]
                     )),
+
+
+                // Edit act   
 
                 // Edit action (only through action button)
                 EditAction::make()
