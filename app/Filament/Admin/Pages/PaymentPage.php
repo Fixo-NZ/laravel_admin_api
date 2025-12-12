@@ -37,11 +37,8 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
                 TextColumn::make('homeowner.first_name')->label('Homeowner')->sortable()->searchable(),
                 TextColumn::make('amount')->label('Amount')->sortable(),
                 TextColumn::make('currency')->label('Currency')->sortable(),
-                TextColumn::make('payment_method_id')->label('Payment Method')->toggleable(),
                 TextColumn::make('card_brand')->label('Card Brand')->toggleable(),
                 TextColumn::make('card_last4number')->label('Last 4')->toggleable(),
-                TextColumn::make('exp_month')->label('Exp Month')->toggleable(),
-                TextColumn::make('exp_year')->label('Exp Year')->toggleable(),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()

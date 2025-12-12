@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Payment extends Model
 {
@@ -32,9 +33,18 @@ class Payment extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function getCardBrandAttribute($value)
+    {
+        return $value ? Crypt::decryptString($value) : null;
+    }
+
+    public function getCardLast4numberAttribute($value)
+    {
+        return $value ? Crypt::decryptString($value) : null;
+    }
     public function homeowner()
     {
         return $this->belongsTo(Homeowner::class);
     }
 }
-
