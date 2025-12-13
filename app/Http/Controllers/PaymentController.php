@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Stripe\Stripe;
 use App\Models\Payment;
+use App\Models\SavedCards;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Illuminate\Http\Request;
@@ -20,8 +21,8 @@ class PaymentController extends Controller
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
             $user = $request->user();
-            // Step 1: Check if the user already has a Stripe customer via payments table
-            $existingPayment = Payment::where('homeowner_id', $user->id)
+            // Step 1: Check if the user already has a Stripe customer via savedCards table
+            $existingPayment = SavedCards::where('homeowner_id', $user->id)
                 ->whereNotNull('customer_id')
                 ->first();
 
@@ -62,8 +63,8 @@ class PaymentController extends Controller
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
-            // Step 1: Retrieve the Stripe Customer from the payments table
-            $existingPayment = Payment::where('homeowner_id', $user->id)
+            // Step 1: Retrieve the Stripe Customer from the savedCars table
+            $existingPayment = SavedCards::where('homeowner_id', $user->id)
                 ->whereNotNull('customer_id')
                 ->first();
 
@@ -96,7 +97,7 @@ class PaymentController extends Controller
             $encExpYear = Crypt::encryptString($paymentMethod->card->exp_year);
 
             // Step 5: Save the payment method in DB
-            $payment = Payment::create([
+            $payment = SavedCards::create([
                 'homeowner_id' => $user->id,
                 'customer_id' => $customerId,
                 'payment_method_id' => $paymentMethod->id,
@@ -132,10 +133,25 @@ class PaymentController extends Controller
         $paymentIntent = \Stripe\PaymentIntent::create([
             'amount' => $request->amount * 100,
             'currency' => $request->currency ?? 'usd',
-            'customer' => $user->stripe_customer_id,
-            'payment_method' => $request->payment_method_id,
+            'customer' => 'cus_Tb3aecQvErAbBv',
+            'payment_method' => 'pm_1SdrTCJO8ywAD8tRtKAm1Xqw',
             'off_session' => true, // charge saved card
             'confirm' => true,
+        ]);
+
+        $paymentMethod = \Stripe\PaymentMethod::retrieve(
+            $paymentIntent->payment_method
+        );
+
+        $payment = Payment::create([
+            'homeowner_id' => $user->id,
+            'customer_id' => $paymentIntent->customer,
+            'payment_method_id' => $paymentIntent->payment_method,
+            'amount' => $request->amount,
+            'currency' => 'NZD',
+            'card_brand' => $paymentMethod->card->brand,
+            'card_last4number' => $paymentMethod->card->last4,
+            'status' => $paymentIntent->status,
         ]);
 
         return response()->json([

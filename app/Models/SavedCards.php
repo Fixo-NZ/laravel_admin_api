@@ -4,32 +4,17 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Payment extends Model
+class SavedCards extends Model
 {
-    use HasFactory;
     protected $fillable = [
         'homeowner_id',
-        'customer_id',
-        'payment_method_id',
-        'status',
-        'card_brand',
-        'card_last4number',
-    ];
-
-    /**
-     * Hide sensitive fields from JSON serialization by default.
-     */
-    protected $hidden = [
         'customer_id',
         'payment_method_id',
         'card_brand',
         'card_last4number',
         'exp_month',
-        'exp_year',
-        'created_at',
-        'updated_at',
+        'exp_year'
     ];
 
     public function getCardBrandAttribute($value)
