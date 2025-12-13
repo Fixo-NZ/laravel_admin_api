@@ -52,7 +52,7 @@ Route::prefix('tradie')->group(function () {
 Route::middleware(['auth:sanctum','throttle:api'])->group(function() {
     Route::post('/payment/process', [PaymentController::class, 'processPayment']);
     Route::post('/payment/charge-saved-card', [PaymentController::class, 'chargeSavedCard']);//new
-    Route::get('/payments/save-payment-method', [PaymentController::class, 'savePaymentMethod']);
+    Route::get('/payments/save-payment-method', [PaymentController::class, 'savePaymentMethod']);//new
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
     Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);
