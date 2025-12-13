@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('homeowner_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('customer_id')->nullable();
             $table->string('payment_method_id');
-            $table->decimal('amount', 10, 2);
-            $table->string('currency')->default('usd');
             $table->string('status')->default('pending');
             $table->text('card_brand')->nullable();
             $table->text('card_last4number', 4)->nullable();
