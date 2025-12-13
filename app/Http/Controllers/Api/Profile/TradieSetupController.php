@@ -10,17 +10,26 @@ use Illuminate\Support\Facades\Storage;
 
 class TradieSetupController extends Controller
 {
+    //Update basic information of the Tradie profile
     public function updateBasicInfo(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Validate the incoming request
+        $validator = Validator::make(
+            $request->all(), 
+            [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:tradies,email,' . auth()->id(),
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^\+64\s?\d{1,2}\s?\d{3,4}\s?\d{3}$/'
+            ],
             'business_name' => 'required|string|max:255',
             'professional_bio' => 'nullable|string|max:1000',
         ]);
 
+        // Return validation errors if any
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -33,9 +42,11 @@ class TradieSetupController extends Controller
         }
 
         try {
+            // Get authenticated user
             $tradie = auth()->user();
             $data = $validator->validated();
 
+            // Update user's basic details
             $tradie->update([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
@@ -60,9 +71,49 @@ class TradieSetupController extends Controller
         }
     }
 
+    public function uploadLicenseFiles(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:10240',
+                'file_type' => 'required|in:license,id',
+            ]);
+
+            $tradie = $request->user();
+
+            $folder = $request->file_type === 'license' ? 'licenses' : 'ids';
+            $path = $request->file('file')->store($folder, 'public');
+
+            if ($request->file_type === 'license') {
+                $current = $tradie->license_files ?? [];
+                $current[] = $path;
+                $tradie->license_files = $current;
+            } else {
+                $current = $tradie->id_files ?? [];
+                $current[] = $path;
+                $tradie->id_files = $current;
+            }
+
+            $tradie->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst($request->file_type) . ' file uploaded successfully!',
+                'file_url' => asset('storage/' . $path),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File upload failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    
+    // Update tradie skills and service location
     public function updateSkillsAndService(Request $request)
     {
-
+        // Convert JSON string inputs to actual arrays
         if ($request->has('skills') && is_string($request->skills)) {
             $decodedSkills = json_decode($request->skills, true);
         if (json_last_error() === JSON_ERROR_NONE) {
@@ -76,6 +127,8 @@ class TradieSetupController extends Controller
                 $request->merge(['service_location' => $decodedLocation]);
             }
         }
+
+        // Validate input
         $validator = Validator::make($request->all(), [
             'skills' => 'nullable|array',
             'skills.*' => 'integer',
@@ -116,6 +169,10 @@ class TradieSetupController extends Controller
 
             $updateData = [];
 
+            // Map service location values to DB columns
+            //NOTE: This will be updated. Implement backend support for user-pinned map locations coming from the mobile app.
+            //----- Since the mobile requirement states that the location should not rely on the user’s hardware GPS, 
+            //----- the backend must accept and store manually pinned coordinates provided by the mobile app.
             if (isset($data['service_location'])) {
                 $updateData['address'] = $data['service_location']['address'] ?? null;
                 $updateData['city'] = $data['service_location']['city'] ?? null;
@@ -125,14 +182,17 @@ class TradieSetupController extends Controller
                 $updateData['longitude'] = $data['service_location']['longitude'] ?? null;
             }
 
+            // Save service radius
             if (isset($data['service_radius'])) {
                 $updateData['service_radius'] = $data['service_radius'];
             }
 
+            // Save skills as JSON
             if (isset($data['skills'])) {
                 $updateData['skills'] = json_encode($data['skills']); 
             }
 
+            // Log update for debugging
             \Log::info('Skills update data:', $updateData);
 
             $tradie->update($updateData);
@@ -153,9 +213,10 @@ class TradieSetupController extends Controller
         }
     }
 
-
+    // Update tradie's availability information
     public function updateAvailability(Request $request)
     {
+        // Validate working hours, emergency availability, and optional calendar
         $validator = Validator::make($request->all(), [
             'working_hours' => 'nullable|array',
             'working_hours.*.day' => 'nullable|integer|min:0|max:6',
@@ -182,11 +243,12 @@ class TradieSetupController extends Controller
             $tradie = auth()->user();
             $data = $validator->validated();
 
+            // Update availability-related fields
             $tradie->update([
                 'working_hours' => $data['working_hours'] ?? null,
                 'emergency_available' => $data['emergency_available'] ?? null,
-                // 'availability_calendar' => $data['availability_calendar'] ?? null,
-                'availability_status' => 'available'
+                // 'availability_calendar' => $data['availability_calendar'] ?? null, //Do not remove this line
+                'availability_status' => 'available' // Mark as available when updated
             ]);
 
             return response()->json([
@@ -194,7 +256,7 @@ class TradieSetupController extends Controller
                 'message' => 'Availability updated successfully'
             ]);
                     } catch (\Exception $e) {
-                \Log::error('❌ Update availability failed', [
+                \Log::error('Update availability failed', [
                     'error' => $e->getMessage(),
                     'line' => $e->getLine(),
                     'file' => $e->getFile(),
@@ -205,166 +267,98 @@ class TradieSetupController extends Controller
                     'success' => false,
                     'error' => [
                         'code' => 'UPDATE_ERROR',
-                        'message' => $e->getMessage(), // show actual message instead of generic
+                        'message' => $e->getMessage(), 
                     ]
                 ], 500);
             }
     }
 
-   public function updatePortfolio(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'portfolio_images' => 'sometimes|nullable|array',
-        'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
-        'rate_type' => 'nullable|in:hourly,fixed_price,both',
-        'standard_rate' => 'nullable|numeric|min:0',
-        // 'minimum_hours' => 'nullable|integer|min:1',
-        'standard_rate_description' => 'nullable|string|max:1000',
-        'after_hours_enabled' => 'nullable|boolean',
-        'after_hours_rate' => 'nullable|numeric|min:0',
-        'call_out_fee_enabled' => 'nullable|boolean',
-        'call_out_fee' => 'nullable|numeric|min:0',
-    ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'VALIDATION_ERROR',
-                'message' => 'Invalid portfolio data',
-                'details' => $validator->errors()
-            ]
-        ], 422);
-    }
-
-    try {
-        $tradie = auth()->user();
-        $data = $validator->validated();
-
-        $portfolioImages = [];
-        if ($request->hasFile('portfolio_images')) {
-            foreach ($request->file('portfolio_images') as $image) {
-                $path = $image->store('portfolio', 'public');
-                $portfolioImages[] = $path;
-            }
-        }
-
-        // $updateData = [
-        //     'rate_type' => $data['rate_type'],
-        //     'standard_rate' => $data['standard_rate'],
-        //     'minimum_hours' => $data['minimum_hours'],
-        //     'standard_rate_description' => $data['standard_rate_description'] ?? null,
-        //     'after_hours_enabled' => $data['after_hours_enabled'] ?? false,
-        //     'after_hours_rate' => $data['after_hours_rate'] ?? null,
-        //     'call_out_fee_enabled' => $data['call_out_fee_enabled'] ?? false,
-        //     'call_out_fee' => $data['call_out_fee'] ?? null
-        // ];
-        $updateData = [
-            'hourly_rate' => $data['standard_rate'] ?? null,
-            // 'minimum_hours' => $data['minimum_hours'] ?? null,
-            'description' => $data['standard_rate_description'] ?? null,
-            'after_hours' => $data['after_hours_enabled'] ?? false,
-            'call_out_fee' => $data['call_out_fee_enabled'] ?? false,
-        ];
-
-
-        if (!empty($portfolioImages)) {
-            $updateData['portfolio_images'] = $portfolioImages;
-        }
-
-        $tradie->update($updateData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Portfolio updated successfully'
+    // Update portfolio information including images and pricing
+    public function updatePortfolio(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'portfolio_images' => 'sometimes|nullable|array',
+            'portfolio_images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:10240',
+            'rate_type' => 'nullable|in:hourly,fixed_price,both',
+            'standard_rate' => 'nullable|numeric|min:0',
+            // 'minimum_hours' => 'nullable|integer|min:1', //Do not remove this line
+            'standard_rate_description' => 'nullable|string|max:1000',
+            'after_hours_enabled' => 'nullable|boolean',
+            'after_hours_rate' => 'nullable|numeric|min:0',
+            'call_out_fee_enabled' => 'nullable|boolean',
+            'call_out_fee' => 'nullable|numeric|min:0',
         ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'UPDATE_ERROR',
-                'message' => $e->getMessage(), 
-                'trace' => $e->getTraceAsString(), 
-            ]
-        ], 500);
-    }
-}
 
-public function updateAvatar(Request $request)
-{
-    \Log::info('📸 Avatar upload received', [
-        'has_file' => $request->hasFile('avatar'),
-        'file' => $request->file('avatar'),
-        'all_inputs' => $request->all(),
-        'auth_user' => auth()->user()?->id,
-    ]);
-
-    // ✅ Validate file (5MB limit)
-    $validator = Validator::make($request->all(), [
-        'avatar' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'VALIDATION_ERROR',
-                'message' => 'Invalid avatar file',
-                'details' => $validator->errors(),
-            ]
-        ], 422);
-    }
-
-    try {
-        $tradie = auth()->user();
-
-        if (!$tradie) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'Tradie not found',
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Invalid portfolio data',
+                    'details' => $validator->errors()
                 ]
-            ], 404);
+            ], 422);
         }
 
-        // ✅ Delete old avatar if it exists
-        if ($tradie->avatar && Storage::disk('public')->exists($tradie->avatar)) {
-            Storage::disk('public')->delete($tradie->avatar);
+        try {
+            $tradie = auth()->user();
+            $data = $validator->validated();
+
+            // Save uploaded images
+            $portfolioImages = [];
+            if ($request->hasFile('portfolio_images')) {
+                foreach ($request->file('portfolio_images') as $image) {
+                    $path = $image->store('portfolio', 'public');
+                    $portfolioImages[] = $path;
+                }
+            }
+
+            //Do not remove this block
+            // $updateData = [
+            //     'rate_type' => $data['rate_type'],
+            //     'standard_rate' => $data['standard_rate'],
+            //     'minimum_hours' => $data['minimum_hours'],
+            //     'standard_rate_description' => $data['standard_rate_description'] ?? null,
+            //     'after_hours_enabled' => $data['after_hours_enabled'] ?? false,
+            //     'after_hours_rate' => $data['after_hours_rate'] ?? null,
+            //     'call_out_fee_enabled' => $data['call_out_fee_enabled'] ?? false,
+            //     'call_out_fee' => $data['call_out_fee'] ?? null
+            // ];
+
+            // Prepare update data
+            $updateData = [
+                'hourly_rate' => $data['standard_rate'] ?? null,
+                // 'minimum_hours' => $data['minimum_hours'] ?? null,
+                'description' => $data['standard_rate_description'] ?? null,
+                'after_hours' => $data['after_hours_enabled'] ?? false,
+                'call_out_fee' => $data['call_out_fee_enabled'] ?? false,
+            ];
+
+            // Add images if uploaded
+            if (!empty($portfolioImages)) {
+                $updateData['portfolio_images'] = $portfolioImages;
+            }
+
+            $tradie->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Portfolio updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UPDATE_ERROR',
+                    'message' => $e->getMessage(), 
+                    'trace' => $e->getTraceAsString(), 
+                ]
+            ], 500);
         }
-
-        // ✅ Store new avatar under "storage/app/public/avatars"
-        $path = $request->file('avatar')->store('avatars', 'public');
-
-        // ✅ Save new avatar path
-        $tradie->update(['avatar' => $path]);
-
-        // ✅ Return public URL using Storage::url()
-        $avatarUrl = $tradie->avatar ? asset(Storage::url($tradie->avatar)) : null;
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                ...$tradie->toArray(),
-                'avatar_url' => $avatarUrl,
-            ],
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('❌ Avatar upload failed: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'UPDATE_ERROR',
-                'message' => $e->getMessage(),
-            ]
-        ], 500);
     }
-}
 
-
-
-
+    // Complete profile setup once all required fields are filled
     public function completeSetup(Request $request)
     {
         try {
@@ -404,80 +398,76 @@ public function updateAvatar(Request $request)
     }
 
 
-public function getProfile(Request $request)
-{
-    try {
-        $tradie = auth()->user();
+    public function getProfile(Request $request)
+    {
+        try {
+            
+            $tradie = auth()->user();
 
-        if (!$tradie) {
+            if (!$tradie) {
+                return response()->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NOT_FOUND',
+                        'message' => 'No tradie profile found.'
+                    ]
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $tradie
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'No tradie profile found.'
+                    'code' => 'FETCH_ERROR',
+                    'message' => 'Failed to retrieve profile.',
+                    'details' => $e->getMessage()
                 ]
-            ], 404);
+            ], 500);
         }
-
-        $data = $tradie->toArray();
-        $data['avatar_url'] = $tradie->avatar
-            ? asset('storage/' . $tradie->avatar)
-            : null;
-
-        return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'FETCH_ERROR',
-                'message' => 'Failed to retrieve profile.',
-                'details' => $e->getMessage()
-            ]
-        ], 500);
     }
-}
 
 
-public function getSkills(Request $request)
-{
-    try {
-         $tradie = auth()->user();
+    public function getSkills(Request $request)
+    {
+        try {
+            $tradie = auth()->user();
 
-        if (!$tradie) {
+            if (!$tradie) {
+                return response()->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NOT_FOUND',
+                        'message' => 'No tradie record found.'
+                    ]
+                ], 404);
+            }
+
+            $skills = json_decode($tradie->skills, true) ?? [];
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'skills' => $skills
+                ]
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'No tradie record found.'
+                    'code' => 'FETCH_ERROR',
+                    'message' => 'Failed to retrieve skills.',
+                    'details' => $e->getMessage()
                 ]
-            ], 404);
+            ], 500);
         }
-
-        $skills = json_decode($tradie->skills, true) ?? [];
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'skills' => $skills
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 'FETCH_ERROR',
-                'message' => 'Failed to retrieve skills.',
-                'details' => $e->getMessage()
-            ]
-        ], 500);
     }
-}
 
 
-
+    // Helper method to check if profile has all required fields completed
     private function isProfileComplete(Tradie $tradie)
     {
         return $tradie->first_name 

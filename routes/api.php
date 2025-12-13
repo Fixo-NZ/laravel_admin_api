@@ -35,7 +35,7 @@ Route::prefix('tradie')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
-        Route::post('upload-avatar', [TradieAuthController::class, 'uploadAvatar']);
+        Route::post('upload-avatar', [TradieAuthController::class, 'uploadAvatar']); //Upload Avatar Route (Profile Setup)
 
         // Profile Setup Routes
         Route::prefix('profile-setup')->group(function () {
@@ -46,8 +46,7 @@ Route::prefix('tradie')->group(function () {
             Route::post('complete', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'completeSetup']);
             Route::get('get-profile', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getProfile']);
             Route::get('get-skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getSkills']);
-            Route::post('upload-avatar', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateAvatar']);
-            
+            Route::post('licenses', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'uploadLicenseFiles']);
         });
     });
 });

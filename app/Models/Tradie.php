@@ -34,10 +34,10 @@ class Tradie extends Authenticatable
         'insurance_details',
         'years_experience',
         'hourly_rate',
-        'minimum_hours',     // ✅ add this
-        'description',       // ✅ add this
-        'after_hours',       // ✅ add this
-        'call_out_fee',      // ✅ add this
+        'minimum_hours',     
+        'description',      
+        'after_hours',       
+        'call_out_fee',     
         'availability_status',
         'working_hours',
         'emergency_available',
@@ -45,7 +45,9 @@ class Tradie extends Authenticatable
         'service_radius',
         'status',
         'profile_completed',
-        'profile_completed_at'
+        'profile_completed_at',
+        'license_files',
+        'id_files',
     ];
 
     protected $hidden = [
@@ -68,6 +70,8 @@ class Tradie extends Authenticatable
         'profile_completed_at' => 'datetime',
         'after_hours' => 'boolean',
         'call_out_fee' => 'boolean',
+        'license_files' => 'array',
+        'id_files' => 'array',
     ];
 
     // Scopes
