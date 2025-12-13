@@ -42,11 +42,6 @@ class PaymentController extends Controller
                 'usage' => 'off_session',
             ]);
 
-            $setupIntent->confirm([
-                'payment_method' => 'pm_card_3ds', // triggers 3DS flow in test
-            ]);
-
-
             return response()->json([
                 'client_secret' => $setupIntent->client_secret,
             ]);
