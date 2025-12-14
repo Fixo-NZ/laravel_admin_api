@@ -784,10 +784,10 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'first_name' => $tradie->first_name,
-                    'last_name' => $tradie->last_name,
+                    'first_name' => $tradie->first_name ?? '',
                     'middle_name' => $tradie->middle_name,
-                    'email' => $tradie->email,
+                    'last_name' => $tradie->last_name ?? '',
+                    'email' => $tradie->email ?? '',
                     'phone' => $tradie->phone,
                     'avatar' => $tradie->avatar,
                     'bio' => $tradie->bio,
@@ -802,8 +802,8 @@ class TradieAuthController extends Controller
                     'postal_code' => $tradie->postal_code,
                     'latitude' => $tradie->latitude,
                     'longitude' => $tradie->longitude,
-                    'service_radius' => $tradie->service_radius,
-                    'availability_status' => $tradie->availability_status,
+                    'service_radius' => $tradie->service_radius ?? 50,
+                    'availability_status' => $tradie->availability_status ?? 'available',
                     'status' => $tradie->status,
                     'user_type' => 'tradie',
                 ]
