@@ -50,27 +50,8 @@ Route::prefix('tradie')->group(function () {
         Route::get('me', [TradieAuthController::class, 'me']);
 
 
-        // Profile Setup Routes
-        Route::prefix('profile-setup')->group(function () {
-            Route::post('basic-info', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateBasicInfo']);
-            Route::post('skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateSkillsAndService']);
-            Route::post('availability', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateAvailability']);
-            Route::post('portfolio', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updatePortfolio']);
-            Route::post('complete', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'completeSetup']);
-            Route::get('get-profile', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getProfile']);
-            Route::get('get-skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getSkills']);
-            Route::post('licenses', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'uploadLicenseFiles']);
-        });
-    });
+   });
 });
-
-// Protected routes for authenticated users
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-});
-
 
 // Public payment route (protected + rate limited)
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
