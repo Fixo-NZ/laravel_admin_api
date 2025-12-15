@@ -10,6 +10,7 @@ use App\Http\Controllers\TradieRecommendationController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\TradieProfileController;
+use App\Http\Controllers\NotificationController;
 
 // Booking Routes
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -51,8 +52,7 @@ Route::prefix('tradie')->group(function () {
         Route::get('me', [TradieAuthController::class, 'me']);
 
         Route::put('profile', [TradieProfileController::class, 'update']);
-
-   });
+    });
 });
 
 // Public payment route (protected + rate limited)
@@ -83,3 +83,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('jobs', JobController::class);
 });
+
+// Notification Routes (Protected)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+});
+
