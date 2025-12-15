@@ -71,13 +71,21 @@ class TradieSetupController extends Controller
         }
     }
 
+    //Upload license or ID files
     public function uploadLicenseFiles(Request $request)
     {
         try {
             $request->validate([
-                'file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:10240',
-                'file_type' => 'required|in:license,id',
+                'file' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+                'file_type' => 'nullable|in:license,id',
             ]);
+
+            if (!$request->hasFile('file')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No file uploaded (optional step)',
+                ], 200);
+            }
 
             $tradie = $request->user();
 
@@ -116,7 +124,7 @@ class TradieSetupController extends Controller
         // Convert JSON string inputs to actual arrays
         if ($request->has('skills') && is_string($request->skills)) {
             $decodedSkills = json_decode($request->skills, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
+            if (json_last_error() === JSON_ERROR_NONE) {
             $request->merge(['skills' => $decodedSkills]);
             }   
         }
@@ -133,13 +141,17 @@ class TradieSetupController extends Controller
             'skills' => 'nullable|array',
             'skills.*' => 'integer',
             'service_radius' => 'nullable|integer|min:1|max:200',
+
             'service_location' => 'nullable|array',
             'service_location.address' => 'nullable|string|max:500',
             'service_location.city' => 'nullable|string|max:100',
             'service_location.region' => 'nullable|string|max:100',
-            'service_location.postal_code' => 'nullable|string|max:10',
-            'service_location.latitude' => 'nullable|numeric',
-            'service_location.longitude' => 'nullable|numeric',
+            'service_location.postal_code' => 'nullable|string|max:20',
+
+            'service_location.latitude' => 'nullable|numeric|between:-90,90',
+            'service_location.longitude' => 'nullable|numeric|between:-180,180',
+            //'service_location.latitude' => 'nullable|numeric',
+            //'service_location.longitude' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -166,20 +178,37 @@ class TradieSetupController extends Controller
             ], 404);
         }
             $data = $validator->validated();
-
             $updateData = [];
 
             // Map service location values to DB columns
             //NOTE: This will be updated. Implement backend support for user-pinned map locations coming from the mobile app.
             //----- Since the mobile requirement states that the location should not rely on the user’s hardware GPS, 
             //----- the backend must accept and store manually pinned coordinates provided by the mobile app.
-            if (isset($data['service_location'])) {
+           /*  if (isset($data['service_location'])) {
                 $updateData['address'] = $data['service_location']['address'] ?? null;
                 $updateData['city'] = $data['service_location']['city'] ?? null;
                 $updateData['region'] = $data['service_location']['region'] ?? null;
                 $updateData['postal_code'] = $data['service_location']['postal_code'] ?? null;
                 $updateData['latitude'] = $data['service_location']['latitude'] ?? null;
                 $updateData['longitude'] = $data['service_location']['longitude'] ?? null;
+            } */
+
+            if (!empty($data['service_location'])) {
+                $location = $data['service_location'];
+
+                $updateData['address'] = $location['address'] ?? null;
+                $updateData['city'] = $location['city'] ?? null;
+                $updateData['region'] = $location['region'] ?? null;
+                $updateData['postal_code'] = $location['postal_code'] ?? null;
+
+                // Store exactly what the user pinned or geocoded
+                $updateData['latitude'] = isset($location['latitude'])
+                    ? (float) $location['latitude']
+                    : null;
+
+                $updateData['longitude'] = isset($location['longitude'])
+                    ? (float) $location['longitude']
+                    : null;
             }
 
             // Save service radius
