@@ -9,6 +9,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\TradieRecommendationController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\TradieProfileController;
 
 // Booking Routes
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -49,6 +50,7 @@ Route::prefix('tradie')->group(function () {
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
 
+        Route::put('profile', [TradieProfileController::class, 'update']);
 
    });
 });
