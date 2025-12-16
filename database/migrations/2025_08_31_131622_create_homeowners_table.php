@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('homeowners', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('middle_name');
             $table->string('email')->unique();
-            $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('phone')->nullable();
             $table->string('avatar')->nullable();
             $table->text('bio')->nullable();
             $table->text('address')->nullable();
@@ -27,9 +29,8 @@ return new class extends Migration
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
-            $table->rememberToken();
+            $table->rememberToken();    
             $table->timestamps();
-            
             $table->index(['latitude', 'longitude']);
             $table->index(['city', 'region']);
         });
