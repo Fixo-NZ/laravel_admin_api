@@ -10,8 +10,8 @@ class TradieProfile extends Page
     // Do not show this page in navigation
     protected static ?string $navigationLabel = null;
 
-    // Register route under a safe path that won't collide with the public controller route
-    protected static ?string $route = 'tradies/profile/{record}';
+    // Register route under Filament admin (match slug expected by Filament views)
+    protected static ?string $route = 'tradie-profile/{record}';
 
     protected static string $view = 'filament.admin.pages.tradie-profile-page';
 
@@ -25,6 +25,6 @@ class TradieProfile extends Page
             abort(404);
         }
 
-        $this->tradie = Tradie::with('jobs')->findOrFail($id);
+        $this->tradie = Tradie::with(['bookings.service'])->findOrFail($id);
     }
 }

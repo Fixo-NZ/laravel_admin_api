@@ -105,12 +105,12 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     'unavailable' => 'Unavailable',
                 ]),
         ])
-        // Redirect to TradieProfile page when a row is clicked
-        ->recordUrl(fn (Tradie $record) => url('/tradies/profile/' . $record->id))
+        // Open the TradieProfile page within Filament
+        ->recordUrl(fn (Tradie $record) => url('/admin/tradies/profile/' . $record->id))
         ->actions([
             Action::make('viewProfile')
                 ->label('')
-                ->url(fn (Tradie $record) => url('/tradies/profile/' . $record->id)),
+                ->url(fn (Tradie $record) => url('/admin/tradies/profile/' . $record->id)),
         ])
         ->bulkActions([]);
 }

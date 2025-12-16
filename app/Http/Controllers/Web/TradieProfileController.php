@@ -9,9 +9,16 @@ use App\Http\Controllers\Controller;
 
 class TradieProfileController extends Controller
 {
-    public function show($id)
+    public function show()
     {
-        $tradie = Tradie::with(['bookings.service'])->findOrFail($id);
+        $id = request('record');
+
+        if (! $id) {
+            abort(404);
+        }
+
+        $tradie = \App\Models\Tradie::with(['bookings.service'])->findOrFail($id);
+
         return view('filament.admin.pages.tradie-profile-page', compact('tradie'));
     }
 }
