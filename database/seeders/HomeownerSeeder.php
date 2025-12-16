@@ -89,7 +89,10 @@ class HomeownerSeeder extends Seeder
         ];
 
         foreach ($homeowners as $homeowner) {
-            Homeowner::create($homeowner);
+            Homeowner::updateOrCreate(
+                ['email' => $homeowner['email']],
+                $homeowner
+            );
         }
 
         $this->command->info('✅ Created ' . count($homeowners) . ' homeowners');

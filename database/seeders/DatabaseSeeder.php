@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Homeowner;
+use App\Models\Tradie;
 
 class DatabaseSeeder extends Seeder
 {
@@ -64,9 +67,6 @@ class DatabaseSeeder extends Seeder
         // Step 8: Bookings (needs homeowners + tradies + services)
         $this->command->info('📅 Seeding Bookings...');
         
-        User::factory(10)->create();
-        Homeowner::factory(10)->create();
-        Tradie::factory(10)->create();
         // Seed bookings after homeowners, tradies and services exist
         $this->call(BookingSeeder::class);
         $this->command->newLine();

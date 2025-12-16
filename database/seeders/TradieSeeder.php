@@ -73,13 +73,16 @@ class TradieSeeder extends Seeder
                 $data['longitude'] = $lng;
             }
 
-            $tradie = Tradie::create($data);
+            $tradie = Tradie::updateOrCreate(
+                ['email' => $data['email']],
+                $data
+            );
             $created++;
 
             // Attach 2-3 services from existing services
             $services = Service::inRandomOrder()->limit(rand(2, 3))->get();
             foreach ($services as $service) {
-                $tradie->services()->attach($service->id, ['base_rate' => rand(50, 150)]);
+                $tradie->services()->syncWithoutDetaching([$service->id => ['base_rate' => rand(50, 150)]]);
             }
         }
 

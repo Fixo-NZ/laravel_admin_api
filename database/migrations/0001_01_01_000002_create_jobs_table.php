@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('queue')->index();
             $table->longText('payload');
-            $table->decimal('budget_min', 8, 2)->nullable()->after('status');
-            $table->decimal('budget_max', 8, 2)->nullable()->after('budget_min');
+            $table->decimal('budget_min', 8, 2)->nullable();
+            $table->decimal('budget_max', 8, 2)->nullable();
             $table->unsignedTinyInteger('attempts');
             $table->unsignedInteger('reserved_at')->nullable();
             $table->unsignedInteger('available_at');
@@ -52,12 +52,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jobs');
-        Schema::dropIfExists('job_batches');
         Schema::dropIfExists('failed_jobs');
-        // Remove budget columns from jobs table if they exist
-        Schema::table('jobs', function (Blueprint $table) {
-            $table->dropColumn(['budget_min', 'budget_max']);
-        });
+        Schema::dropIfExists('job_batches');
+        Schema::dropIfExists('jobs');
     }
 };
