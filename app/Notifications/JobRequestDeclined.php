@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -9,30 +10,22 @@ class JobRequestDeclined extends Notification
 {
     use Queueable;
 
-    private $job;
-    private $tradie;
-
-    
-
-    public function __construct($job, $tradie)
-    {
-        $this->job = $job;
-        $this->tradie = $tradie;
-    }
+    public function __construct(public Booking $booking) {}
 
     public function via($notifiable)
     {
         return ['database'];
     }
 
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
+            'type' => 'job_declined',
             'title' => 'Job Request Declined',
-            'message' => "{$this->tradie->full_name} declined your job request",
-            'job_title' => $this->job->title,
-            'job_type' => $this->job->category,
-            'timestamp' => now(),
+            'message' => $this->booking->tradie->first_name .
+                ' declined your job request.',
+            'booking_id' => $this->booking->id,
+            'tradie_id' => $this->booking->tradie_id,
         ];
     }
 }

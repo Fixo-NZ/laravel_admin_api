@@ -21,11 +21,21 @@ class NotificationController extends Controller
             $query->whereNull('read_at');
         }
 
-        $notifications = $query->get()->map(function (DatabaseNotification $notification) {
+        $notifications = $query->get()->map(function ($notification) {
+            $data = $notification->data;
+
+            // Ensure data is always an array
+            if (is_string($data)) {
+                $data = json_decode($data, true) ?? [];
+            } elseif (!is_array($data)) {
+                $data = [];
+            }
+
             return [
                 'id' => $notification->id,
                 'type' => class_basename($notification->type),
-                'data' => $notification->data,
+                'data' => $data,
+                'isRead' => $notification->read_at !== null,
                 'read_at' => $notification->read_at,
                 'created_at' => $notification->created_at,
             ];

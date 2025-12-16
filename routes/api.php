@@ -11,6 +11,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\TradieProfileController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BookedTradieController as TradieBookingController;
 
 // Booking Routes
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -21,6 +22,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']); // Create booking
     Route::put('/bookings/{id}', [BookingController::class, 'update']); // Update booking
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']); // Cancel booking
+
+    // Notification Routes (Protected)
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+    // booked tradie Actions and Notifications
+    Route::post('bookings/{id}/accept', [TradieBookingController::class, 'accept']);
+    Route::post('bookings/{id}/decline', [TradieBookingController::class, 'decline']);
 });
 
 // Homeowner Authentication Routes
@@ -53,6 +62,7 @@ Route::prefix('tradie')->group(function () {
 
         Route::put('profile', [TradieProfileController::class, 'update']);
     });
+
 });
 
 // Public payment route (protected + rate limited)
@@ -83,10 +93,3 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('jobs', JobController::class);
 });
-
-// Notification Routes (Protected)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-});
-
