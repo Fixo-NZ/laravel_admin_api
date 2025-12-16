@@ -52,9 +52,7 @@ class TradieComplaintResource extends Resource
     {
         return [
             'index' => ListTradieComplaints::route('/'),
-            'create' => CreateTradieComplaint::route('/create'),
             'view' => ViewTradieComplaint::route('/{record}'),
-            'edit' => EditTradieComplaint::route('/{record}/edit'),
         ];
     }
 }

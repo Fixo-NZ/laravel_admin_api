@@ -62,19 +62,6 @@ class AdminPanelProvider extends PanelProvider
             ])
 
             // ================================================================
-            // NON-COLLAPSIBLE VERSION (Commented Out)
-            // ================================================================
-            // ->navigationGroups([
-            //     \Filament\Navigation\NavigationGroup::make()
-            //         ->label('User Overview')
-            //         ->icon('heroicon-o-user-circle')
-            //         ->collapsed(false)
-            //         ->items([
-            //             // Add your pages manually here if needed
-            //         ]),
-            // ])
-
-            // ================================================================
             // COLLAPSIBLE VERSION (Default Active)
             // ================================================================
             ->navigationGroups([
