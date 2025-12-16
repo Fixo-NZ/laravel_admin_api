@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Pages;
 
+use App\Filament\Admin\Widgets\HighValuePayments;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -10,6 +11,9 @@ use Filament\Tables\Filters\SelectFilter;
 use App\Models\Payment;
 use App\Models\Homeowner;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Admin\Widgets\PaymentStatsWidget;
+use App\Filament\Admin\Widgets\PaymentStatusChart;
+use App\Filament\Admin\Widgets\PaymentRevenueChart;
 
 class PaymentPage extends Page implements Tables\Contracts\HasTable
 {
@@ -18,12 +22,25 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
     // ===============================
     // NAVIGATION / PAGE CONFIGURATION
     // ===============================
-    protected static ?string $navigationGroup = 'Payments';
-    protected static ?string $navigationLabel = 'Payment';
+    protected static ?string $navigationGroup = 'Payments Management';
+    protected static ?string $navigationLabel = 'Payments';
     protected static ?string $navigationIcon = null;
     protected static ?string $title = 'Payments';
     protected static bool $shouldRegisterNavigation = true;
     protected static string $view = 'filament.admin.pages.payment-page';
+
+    // ===============================
+    // HEADER WIDGETS
+    // ===============================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PaymentStatsWidget::class,
+            PaymentStatusChart::class,
+            HighValuePayments::class,
+            PaymentRevenueChart::class,
+        ];
+    }
 
     // ===============================
     // TABLE CONFIGURATION
@@ -31,8 +48,9 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Payment::query()->with('homeowner'))
-
+            ->query(
+                Payment::query()->with('homeowner')
+            )
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
@@ -83,7 +101,6 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
                     ->sortable()
                     ->toggleable(),
             ])
-
             ->filters([
                 SelectFilter::make('status')
                     ->label('Filter by Status')
@@ -93,7 +110,6 @@ class PaymentPage extends Page implements Tables\Contracts\HasTable
                         'failed'    => 'Failed',
                     ]),
             ])
-
             ->bulkActions([]);
     }
 }

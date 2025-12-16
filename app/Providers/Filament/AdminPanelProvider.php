@@ -88,7 +88,7 @@ class AdminPanelProvider extends PanelProvider
                     ->collapsible()
                     ->collapsed(),
                     
-                \Filament\Navigation\NavigationGroup::make('Payments')
+                \Filament\Navigation\NavigationGroup::make('Payments Management')
                     ->icon('heroicon-o-wallet')
                     ->collapsible() // makes it expandable/collapsible
                     ->collapsed(),  // starts collapsed by default
