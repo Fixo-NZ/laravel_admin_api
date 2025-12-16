@@ -43,7 +43,7 @@ jobs:
 
       # --- 4. NPM Dependencies & Build ---
       - name: Install NPM dependencies
-        run: npm ci
+        run: npm install
 
       # [FIX] Force install the missing libraries directly in the pipeline
       - name: Force install missing libs
