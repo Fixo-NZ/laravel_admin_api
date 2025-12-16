@@ -165,26 +165,20 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
                         'suspended' => 'Suspended',
                     ]),
             ])
-
             // -----------------------------
             // Row Click / Double-Click Action
             // -----------------------------
-            ->recordAction('viewProfile')
+            // Navigate to the Filament profile page when a row is clicked (pass id via query).
+            ->recordUrl(fn (Homeowner $record) => url('/homeowner-profile?record=' . $record->id))
 
             // -----------------------------
             // Row Actions
             // -----------------------------
             ->actions([
+                // Action that navigates to the Filament profile page
                 Action::make('viewProfile')
-                    ->label('') // Hidden label (triggered by row click)
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->modalWidth('xl')
-                    ->modalHeading(fn (Homeowner $record) => $record->name . ' Profile')
-                    ->modalContent(fn (Homeowner $record) => view(
-                        'filament.admin.pages.homeowner-profile-modal',
-                        ['homeowner' => $record]
-                    )),
+                    ->label('')
+                    ->url(fn (Homeowner $record) => url('/homeowner-profile?record=' . $record->id)),
             ])
 
             // -----------------------------

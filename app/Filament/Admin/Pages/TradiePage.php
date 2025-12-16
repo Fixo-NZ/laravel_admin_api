@@ -2,32 +2,23 @@
 
 namespace App\Filament\Admin\Pages;
 
+use App\Models\Tradie;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
-use App\Models\Tradie;
 
 class TradiePage extends Page implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-
-    // =========================================================================
-    // PAGE CONFIGURATION
-    // =========================================================================
 
     protected static ?string $navigationGroup = 'User Overview';
     protected static ?string $navigationIcon = null;
     protected static ?string $navigationLabel = 'Tradies';
     protected static ?string $title = 'Registered Tradies';
     protected static string $view = 'filament.admin.pages.tradie-page';
-    protected static int $pollingInterval = 5;
-
-    // =========================================================================
-    // HEADER WIDGETS
-    // =========================================================================
 
     protected function getHeaderWidgets(): array
     {
@@ -36,43 +27,15 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
         ];
     }
 
-    // =========================================================================
-    // TABLE DEFINITION
-    // =========================================================================
-
     public function table(Table $table): Table
     {
         return $table
             ->query(
                 Tradie::query()
-                    // Filter from widget: ?status=active/inactive/suspended/pending
-                    ->when(request('status'), fn ($query, $status) =>
-                        $query->where('status', $status)
-                    )
-
-                    // Filter from widget: ?availability_status=available/busy/unavailable
-                    ->when(request('availability_status'), fn ($query, $availability) =>
-                        $query->where('availability_status', $availability)
-                    )
-
-                    // Text search (table_search)
-                    ->when(request('table_search'), function ($query, $search) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('first_name', 'like', "%{$search}%")
-                                ->orWhere('last_name', 'like', "%{$search}%")
-                                ->orWhere('middle_name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%")
-                                ->orWhere('phone', 'like', "%{$search}%")
-                                ->orWhere('address', 'like', "%{$search}%")
-                                ->orWhere('city', 'like', "%{$search}%")
-                                ->orWhere('region', 'like', "%{$search}%")
-                                ->orWhere('postal_code', 'like', "%{$search}%")
-                                ->orWhere('trade_type', 'like', "%{$search}%")
-                                ->orWhere('availability_status', 'like', "%{$search}%");
-                        });
-                    })
+                    ->when(request('status'), fn ($query, $status) => $query->where('status', $status))
+                    ->when(request('availability_status'), fn ($query, $availability) => $query->where('availability_status', $availability))
             )
-
+            ->poll('5s')
             ->columns([
                 TextColumn::make('first_name')
                     ->label('First Name')
@@ -87,7 +50,8 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                 TextColumn::make('middle_name')
                     ->label('Middle Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('email')
                     ->label('Email')
@@ -102,7 +66,8 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                 TextColumn::make('address')
                     ->label('Address')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('city')
                     ->label('City')
@@ -122,22 +87,22 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                TextColumn::make('trade_type')
+                    ->label('Trade Type')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('availability_status')
                     ->label('Availability')
                     ->badge()
                     ->colors([
-                        'success'   => fn ($state) => strtolower($state) === 'available',
-                        'danger'    => fn ($state) => strtolower($state) === 'unavailable',
-                        'warning'   => fn ($state) => strtolower($state) === 'busy',
-                        'secondary' => fn ($state) =>
-                            ! in_array(strtolower($state), ['available', 'unavailable', 'busy']),
+                        'success'   => fn ($state) => strtolower((string) $state) === 'available',
+                        'warning'   => fn ($state) => strtolower((string) $state) === 'busy',
+                        'danger'    => fn ($state) => strtolower((string) $state) === 'unavailable',
+                        'secondary' => fn ($state) => ! in_array(strtolower((string) $state), ['available', 'busy', 'unavailable']),
                     ])
-                    ->formatStateUsing(fn ($state) => $state ? ucfirst($state) : 'Unavailable')
-                    ->extraAttributes([
-                        'class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs',
-                    ])
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->formatStateUsing(fn ($state) => $state ? ucfirst((string) $state) : 'Unavailable')
+                    ->sortable(),
 
                 TextColumn::make('status')
                     ->label('Status')
@@ -148,18 +113,9 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                         'warning' => fn ($state) => $state === 'suspended',
                         'info'    => fn ($state) => $state === 'pending',
                     ])
-                    ->formatStateUsing(fn ($state) => ucfirst($state))
-                    ->extraAttributes([
-                        'class' => 'px-3 py-1 rounded-full text-white font-semibold text-xs',
-                    ])
-                    ->sortable(),
-
-                TextColumn::make('trade_type')
-                    ->label('Trade Type')
-                    ->searchable()
+                    ->formatStateUsing(fn ($state) => $state ? ucfirst((string) $state) : '-')
                     ->sortable(),
             ])
-
             ->filters([
                 SelectFilter::make('status')
                     ->label('Filter by Status')
@@ -178,36 +134,21 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                         'unavailable' => 'Unavailable',
                     ]),
             ])
-
+            // clicking row opens this action (modal)
             ->recordAction('viewProfile')
-
             ->actions([
                 Action::make('viewProfile')
                     ->label('')
+                    ->icon('heroicon-m-eye')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
                     ->modalWidth('xl')
-                    ->modalHeading(fn (Tradie $record) => $record->name . ' Profile')
+                    ->modalHeading(fn (Tradie $record) => trim(($record->first_name ?? '') . ' ' . ($record->last_name ?? '')) . ' Profile')
                     ->modalContent(fn (Tradie $record) => view(
                         'filament.admin.pages.tradie-profile-modal',
                         ['tradie' => $record]
                     )),
             ])
-
             ->bulkActions([]);
     }
-
-     // =========================================================================
-        // NOTES
-        // =========================================================================
-        // 1. Clicking or double-clicking a row opens the tradie profile modal.
-        // 2. The View Profile icon column was removed since double-clicking handles it.
-        // 3. Only safe fields are displayed; sensitive data is never exposed.
-        // 4. Status uses badge colors (green=active, red=inactive, yellow=suspended).
-        // 5. Availability uses badge colors (green=available, red=unavailable, yellow=busy).
-        // 6. Polling every 5 seconds keeps the table live-updated.
-        // 7. Filters allow quick status-based sorting without modifying the query.
-        // 8. Column visibility toggles let admins hide less critical data.
-        // 9. Modal displays tradie details using a dedicated Blade view.
-        // 10. Trade Type helps identify each tradie’s specialization or profession.
 }
