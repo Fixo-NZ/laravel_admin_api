@@ -2,185 +2,247 @@
 
 namespace App\Http\Controllers;
 
-use Stripe\Stripe;
 use App\Models\Payment;
 use App\Models\SavedCards;
-use Stripe\PaymentIntent;
-use Stripe\PaymentMethod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+use Stripe\SetupIntent;
+use Stripe\PaymentMethod;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    /**
+     * Create a SetupIntent for saving payment methods
+     * Called by: POST /payment/process
+     * 
+     * NOTE: This only creates a SetupIntent and returns client_secret.
+     * It does NOT save anything to the database yet - that happens in savePaymentMethod()
+     */
     public function processPayment(Request $request)
     {
-
         try {
-            // Set Stripe secret key from .env
-            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-
+            Stripe::setApiKey(config('services.stripe.secret'));
             $user = $request->user();
-            // Step 1: Check if the user already has a Stripe customer via savedCards table
-            $existingPayment = SavedCards::where('homeowner_id', $user->id)
-                ->whereNotNull('customer_id')
-                ->first();
 
-            if ($existingPayment) {
-                // Retrieve the Stripe Customer from the existing payment
-                $customer = \Stripe\Customer::retrieve($existingPayment->customer_id);
+            // Get existing customer ID, or create new customer
+            $saved = SavedCards::where('homeowner_id', $user->id)->first();
+
+            if ($saved && $saved->customer_id) {
+                $customerId = $saved->customer_id;
+                Log::info('Using existing Stripe customer', ['customer_id' => $customerId]);
             } else {
-                // Create a new Stripe Customer
+                // Create new Stripe customer (will be linked to SavedCards in savePaymentMethod)
                 $customer = \Stripe\Customer::create([
                     'email' => $user->email,
-                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'name'  => $user->first_name . ' ' . $user->last_name,
                 ]);
+                $customerId = $customer->id;
+                Log::info('Created new Stripe customer', ['customer_id' => $customerId, 'user_id' => $user->id]);
             }
 
-            $setupIntent = \Stripe\SetupIntent::create([
-                'customer' => $customer->id,
+            // Create SetupIntent for saving card
+            $setupIntent = SetupIntent::create([
+                'customer' => $customerId,
                 'payment_method_types' => ['card'],
                 'usage' => 'off_session',
+            ]);
+
+            Log::info('SetupIntent created successfully', [
+                'customer_id' => $customerId,
+                'client_secret' => $setupIntent->client_secret,
             ]);
 
             return response()->json([
                 'client_secret' => $setupIntent->client_secret,
             ]);
         } catch (\Stripe\Exception\CardException $e) {
+            Log::error('Stripe Card Error in processPayment', ['error' => $e->getMessage()]);
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
+            Log::error('SetupIntent Error in processPayment', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
+    /**
+     * Save a payment method (called after user confirms card)
+     * Called by: POST /payments/save-payment-method
+     */
     public function savePaymentMethod(Request $request)
     {
         $request->validate([
             'payment_method_id' => 'required|string',
+            'card_holder' => 'nullable|string',
         ]);
 
-        $user = $request->user();
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-
         try {
-            // Step 1: Retrieve the Stripe Customer from the savedCars table
-            $existingPayment = SavedCards::where('homeowner_id', $user->id)
-                ->whereNotNull('customer_id')
-                ->first();
+            Stripe::setApiKey(config('services.stripe.secret'));
+            $user = $request->user();
 
-            if ($existingPayment) {
-                $customerId = $existingPayment->customer_id;
-                $customer = \Stripe\Customer::retrieve($customerId);
-            } else {
-                // Safety check: If somehow no customer exists, create one
-                $customer = \Stripe\Customer::create([
-                    'email' => $user->email,
-                    'name' => $user->first_name . ' ' . $user->last_name,
-                ]);
-                $customerId = $customer->id;
+            // Get customer from saved cards
+            $saved = SavedCards::where('homeowner_id', $user->id)->first();
+            if (!$saved || !$saved->customer_id) {
+                Log::warning('Customer not found for user', ['user_id' => $user->id]);
+                return response()->json(['error' => 'Customer not found'], 404);
             }
 
-            // Step 2: Retrieve the PaymentMethod
-            $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
+            $customerId = $saved->customer_id;
 
-            // Step 3: Attach the PaymentMethod to the Customer if not already attached
+            // Retrieve payment method from Stripe
+            $paymentMethod = PaymentMethod::retrieve($request->payment_method_id);
+
+            // Attach to customer if not already attached
             if (!$paymentMethod->customer) {
                 $paymentMethod->attach([
                     'customer' => $customerId,
                 ]);
             }
 
-            // Step 4: Encrypt card details
-            $encryptBrand = Crypt::encryptString($paymentMethod->card->brand);
-            $encryptLast4 = Crypt::encryptString($paymentMethod->card->last4);
-            $encExpMonth = Crypt::encryptString($paymentMethod->card->exp_month);
-            $encExpYear = Crypt::encryptString($paymentMethod->card->exp_year);
+            // Extract card details
+            $cardBrand = $paymentMethod->card->brand ?? null;
+            $cardLast4 = $paymentMethod->card->last4 ?? null;
+            $expMonth = $paymentMethod->card->exp_month ?? null;
+            $expYear = $paymentMethod->card->exp_year ?? null;
 
-            // Step 5: Save the payment method in DB
-            $payment = SavedCards::create([
-                'homeowner_id' => $user->id,
-                'customer_id' => $customerId,
+            // Encrypt sensitive card details
+            $encryptedBrand = $cardBrand ? Crypt::encryptString($cardBrand) : null;
+            $encryptedLast4 = $cardLast4 ? Crypt::encryptString($cardLast4) : null;
+            $encryptedExpMonth = $expMonth ? Crypt::encryptString((string)$expMonth) : null;
+            $encryptedExpYear = $expYear ? Crypt::encryptString((string)$expYear) : null;
+
+            // Save or update card in database
+            $savedCard = SavedCards::updateOrCreate(
+                ['homeowner_id' => $user->id],
+                [
+                    'customer_id' => $customerId,
+                    'payment_method_id' => $paymentMethod->id,
+                    'card_brand' => $encryptedBrand,
+                    'card_last4number' => $encryptedLast4,
+                    'exp_month' => $encryptedExpMonth,
+                    'exp_year' => $encryptedExpYear,
+                ]
+            );
+
+            Log::info('Payment method saved', [
+                'user_id' => $user->id,
                 'payment_method_id' => $paymentMethod->id,
-                'card_brand' => $encryptBrand,
-                'card_last4number' => $encryptLast4,
-                'exp_month' => $encExpMonth,
-                'exp_year' => $encExpYear,
+                'card_last4' => $cardLast4,
             ]);
 
+            // Return response in format that matches PaymentModel
             return response()->json([
                 'message' => 'Payment method saved successfully',
-                'payment' => $payment,
+                'payment' => [
+                    'id' => (string) $savedCard->id,
+                    'status' => 'saved',
+                    'card_brand' => $cardBrand,
+                    'card_last4number' => $cardLast4,
+                    'created_at' => $savedCard->created_at->toIso8601String(),
+                ]
             ]);
         } catch (\Stripe\Exception\CardException $e) {
+            Log::error('Stripe Card Error in savePaymentMethod', ['error' => $e->getMessage()]);
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
+            Log::error('Error saving payment method', ['error' => $e->getMessage()]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
+    /**
+     * Charge a saved card
+     * Called by: POST /payment/charge-saved-card
+     */
     public function chargeSavedCard(Request $request)
     {
         $request->validate([
-            'payment_method_id' => 'required|string',
             'amount' => 'required|numeric|min:0.5',
             'currency' => 'nullable|string|size:3',
         ]);
 
-        $user = $request->user();
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+            $user = $request->user();
 
-        $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount' => $request->amount * 100,
-            'currency' => $request->currency ?? 'usd',
-            'customer' => 'cus_Tb3aecQvErAbBv',
-            'payment_method' => 'pm_1SdrTCJO8ywAD8tRtKAm1Xqw',
-            'off_session' => true, // charge saved card
-            'confirm' => true,
-        ]);
+            // Get saved card
+            $saved = SavedCards::where('homeowner_id', $user->id)->first();
+            if (!$saved || !$saved->payment_method_id) {
+                return response()->json(['error' => 'No saved card found'], 404);
+            }
 
-        $paymentMethod = \Stripe\PaymentMethod::retrieve(
-            $paymentIntent->payment_method
-        );
+            // Create PaymentIntent
+            $intent = PaymentIntent::create([
+                'amount' => (int) ($request->amount * 100),
+                'currency' => $request->currency ?? 'nzd',
+                'customer' => $saved->customer_id,
+                'payment_method' => $saved->payment_method_id,
+                'off_session' => true,
+                'confirm' => true,
+            ]);
 
-        $payment = Payment::create([
-            'homeowner_id' => $user->id,
-            'customer_id' => $paymentIntent->customer,
-            'payment_method_id' => $paymentIntent->payment_method,
-            'amount' => $request->amount,
-            'currency' => 'NZD',
-            'card_brand' => $paymentMethod->card->brand,
-            'card_last4number' => $paymentMethod->card->last4,
-            'status' => $paymentIntent->status,
-        ]);
+            // Get payment method details for logging
+            $paymentMethod = PaymentMethod::retrieve($saved->payment_method_id);
 
-        return response()->json([
-            'message' => 'Payment successful',
-            'payment_intent' => $paymentIntent->id,
-            'status' => $paymentIntent->status,
-        ]);
+            // Save transaction
+            $payment = Payment::create([
+                'homeowner_id' => $user->id,
+                'customer_id' => $saved->customer_id,
+                'payment_method_id' => $saved->payment_method_id,
+                'amount' => $request->amount,
+                'currency' => $request->currency ?? 'nzd',
+                'card_brand' => $paymentMethod->card->brand,
+                'card_last4number' => $paymentMethod->card->last4,
+                'status' => $intent->status,
+            ]);
+
+            Log::info('Payment processed', [
+                'user_id' => $user->id,
+                'amount' => $request->amount,
+                'intent_id' => $intent->id,
+                'status' => $intent->status,
+            ]);
+
+            return response()->json([
+                'message' => 'Payment successful',
+                'payment_intent' => $intent->id,
+                'status' => $intent->status,
+                'payment' => [
+                    'id' => (string) $payment->id,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'status' => $payment->status,
+                    'card_last4number' => $paymentMethod->card->last4,
+                ]
+            ]);
+        } catch (\Stripe\Exception\CardException $e) {
+            Log::error('Card Error in chargeSavedCard', ['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (\Exception $e) {
+            Log::error('Error charging saved card', ['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-
+    /**
+     * Delete a payment method
+     * Called by: DELETE /payments/{id}/delete
+     */
     public function deletePayment(Request $request, $id)
     {
-
         $user = $request->user();
 
-        $payment = \App\Models\Payment::where('id', $id)
+        $payment = Payment::where('id', $id)
             ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
             return response()->json([
                 'success' => false,
-                'message' => 'Payment not found or you do not have access to this record.',
+                'message' => 'Payment not found or you do not have access.',
             ], 404);
-        }
-
-        // Only allow if the user is the owner
-        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
         $payment->delete();
@@ -190,70 +252,34 @@ class PaymentController extends Controller
             'message' => 'Payment deleted successfully.',
         ]);
     }
+
+    /**
+     * Update a payment record
+     * Called by: PUT /payments/{id}/update
+     */
     public function updatePayment(Request $request, $id)
     {
         $user = $request->user();
 
-        $payment = \App\Models\Payment::where('id', $id)
+        $payment = Payment::where('id', $id)
             ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
             return response()->json([
                 'success' => false,
-                'message' => 'Payment not found or you do not have access to this record.',
+                'message' => 'Payment not found or you do not have access.',
             ], 404);
-        }
-
-        // Only allow if the user is the owner
-        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.5',
             'currency' => 'required|string|size:3',
-            'card_brand' => 'required|string|max:40',
-            'card_last4number' => 'required|numeric|digits:4',
-            'exp_month' => 'required|string|size:2',
-            'exp_year' => 'required|string|size:4',
+            'card_brand' => 'nullable|string|max:40',
+            'card_last4number' => 'nullable|numeric|digits:4',
+            'exp_month' => 'nullable|string|size:2',
+            'exp_year' => 'nullable|string|size:4',
         ]);
-
-        if ($validated['exp_month'] < 1 || $validated['exp_month'] > 12) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Expiration month must be between 01 and 12.',
-            ], 400);
-        } elseif ($validated['exp_year'] < date('Y')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Expiration year cannot be in the past.',
-            ], 400);
-        } elseif ($validated['exp_year'] == date('Y') && $validated['exp_month'] < date('m')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Expiration month cannot be in the past for the current year.',
-            ], 400);
-        } elseif ($validated['exp_year'] > date('Y') + 20) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Expiration year is too far in the future.',
-            ], 400);
-        }
-
-        // Encrypt sensitive fields if they are being updated
-        if (isset($validated['card_brand'])) {
-            $validated['card_brand'] = Crypt::encryptString($validated['card_brand']);
-        }
-        if (isset($validated['card_last4number'])) {
-            $validated['card_last4number'] = Crypt::encryptString($validated['card_last4number']);
-        }
-        if (isset($validated['exp_month'])) {
-            $validated['exp_month'] = Crypt::encryptString($validated['exp_month']);
-        }
-        if (isset($validated['exp_year'])) {
-            $validated['exp_year'] = Crypt::encryptString($validated['exp_year']);
-        }
 
         $payment->update($validated);
 
@@ -264,90 +290,28 @@ class PaymentController extends Controller
         ]);
     }
 
+    /**
+     * View decrypted payment data
+     * Called by: GET /payments/{id}/decrypt
+     */
     public function viewDecryptedPayment(Request $request, $id)
     {
         $user = $request->user();
 
-        $payment = \App\Models\Payment::where('id', $id)
+        $payment = Payment::where('id', $id)
             ->where('homeowner_id', $user->id)
             ->first();
 
         if (!$payment) {
             return response()->json([
                 'success' => false,
-                'message' => 'Payment not found or you do not have access to this record.',
+                'message' => 'Payment not found or you do not have access.',
             ], 404);
         }
 
-        if ($user->id !== $payment->homeowner_id && $user->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized access'], 403);
-        }
-
-        // Initialize decrypted array
-        $decrypted = [
-            'amount' => $payment->amount,
-            'currency' => $payment->currency,
-            'card_brand' => null,
-            'card_last4number' => null,
-            'exp_month' => null,
-            'exp_year' => null,
-        ];
-
-        try {
-            // Attempt decryption for each field individually
-            if ($payment->card_brand) {
-                try {
-                    $decrypted['card_brand'] = Crypt::decryptString($payment->card_brand);
-                } catch (\Exception $e) {
-                    $decrypted['card_brand'] = $payment->card_brand; // fallback to raw
-                }
-            }
-            if ($payment->card_last4number) {
-                try {
-                    $decrypted['card_last4number'] = Crypt::decryptString($payment->card_last4number);
-                } catch (\Exception $e) {
-                    $decrypted['card_last4number'] = $payment->card_last4number;
-                }
-            }
-            if ($payment->exp_month) {
-                try {
-                    $decrypted['exp_month'] = Crypt::decryptString($payment->exp_month);
-                } catch (\Exception $e) {
-                    $decrypted['exp_month'] = $payment->exp_month;
-                }
-            }
-            if ($payment->exp_year) {
-                try {
-                    $decrypted['exp_year'] = Crypt::decryptString($payment->exp_year);
-                } catch (\Exception $e) {
-                    $decrypted['exp_year'] = $payment->exp_year;
-                }
-            }
-
-            // Log successful access
-            \App\Models\PaymentAccessLog::create([
-                'homeowner_id' => $user->id,
-                'payment_id' => $payment->id,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'success' => true,
-            ]);
-
-            return response()->json([
-                'message' => 'Decrypted data accessed successfully',
-                'data' => $decrypted,
-            ]);
-        } catch (\Exception $e) {
-            // Log failed access
-            \App\Models\PaymentAccessLog::create([
-                'homeowner_id' => $user->id ?? null,
-                'payment_id' => $payment->id,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'success' => false,
-            ]);
-
-            return response()->json(['error' => 'Failed to decrypt data'], 500);
-        }
+        return response()->json([
+            'message' => 'Decrypted data accessed successfully',
+            'data' => $payment,
+        ]);
     }
 }
