@@ -13,6 +13,8 @@ class Payment extends Model
         'homeowner_id',
         'customer_id',
         'payment_method_id',
+        'amount',
+        'currency',
         'status',
         'card_brand',
         'card_last4number',
@@ -24,10 +26,10 @@ class Payment extends Model
     protected $hidden = [
         'customer_id',
         'payment_method_id',
+        'amount',
+        'currency',
         'card_brand',
         'card_last4number',
-        'exp_month',
-        'exp_year',
         'created_at',
         'updated_at',
     ];

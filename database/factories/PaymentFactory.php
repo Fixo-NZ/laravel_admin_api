@@ -23,8 +23,6 @@ class PaymentFactory extends Factory
             'status' => $this->faker->randomElement(['pending', 'succeeded', 'failed']),
             'card_brand' => Crypt::encryptString($this->faker->randomElement(['Visa', 'MasterCard', 'Amex', 'Discover'])),
             'card_last4number' => Crypt::encryptString($this->faker->numerify('####')),
-            'exp_month' => $this->faker->numberBetween(1, 12),
-            'exp_year' => $this->faker->numberBetween(date('Y'), date('Y') + 5),
         ];
     }
 }
