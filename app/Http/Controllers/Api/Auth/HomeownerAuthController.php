@@ -9,6 +9,9 @@ use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+// include App and Db
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 
 class HomeownerAuthController extends Controller
 {
@@ -317,7 +320,7 @@ class HomeownerAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name'  => 'required|string|max:255',
             'last_name'   => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',   
+            'middle_name' => 'required|string|max:255',
             'email'       => 'required|string|email|max:255|unique:homeowners,email',
             'phone'       => 'nullable|string|max:20',
             'password'    => 'required|string|min:8|confirmed',
@@ -327,16 +330,15 @@ class HomeownerAuthController extends Controller
             'postal_code' => 'nullable|string|max:10',
         ]);
 
-        // Return errors if validation fails
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'error'   => [
                     'code'    => 'VALIDATION_ERROR',
                     'message' => 'The given data was invalid.',
-                    'details' => $validator->errors(), // Detailed field errors
+                    'details' => $validator->errors(),
                 ],
-            ], 422); // 422 Unprocessable Entity
+            ], 422);
         }
 
         try {
@@ -352,32 +354,86 @@ class HomeownerAuthController extends Controller
                 'city'        => $request->city,
                 'region'      => $request->region,
                 'postal_code' => $request->postal_code,
-                'status'      => 'active', 
+                'status'      => 'active',
             ]);
 
-            // Generate API token using Laravel Sanctum
+            // Generate API token
             $token = $homeowner->createToken('homeowner-token')->plainTextToken;
 
-            // Return success response with user data and token
+            // --- ONLY CREATE SAMPLE SERVICES/BOOKINGS IN LOCAL OR STAGING ---
+            if (App::environment(['local', 'staging'])) {
+                $existingTradies = \App\Models\Tradie::all();
+                $jobCategories = \App\Models\JobCategories::all();
+
+                if ($existingTradies->count() > 0 && $jobCategories->count() > 0) {
+                    $serviceCount = rand(2, 4);
+                    for ($i = 0; $i < $serviceCount; $i++) {
+                        $category = $jobCategories->shuffle()->first();
+                        $service = \App\Models\Service::create([
+                            'homeowner_id'   => $homeowner->id,
+                            'job_categoryid' => $category->id,
+                            'job_description' => 'Sample service for ' . $category->name,
+                            'location'       => $homeowner->city . ', ' . $homeowner->region,
+                            'status'         => 'pending',
+                        ]);
+
+                        // Assign 1-3 random tradies
+                        $assignedTradies = $existingTradies->shuffle()->take(rand(1, 3));
+                        foreach ($assignedTradies as $tradie) {
+                            DB::table('tradie_services')->insert([
+                                'tradie_id' => $tradie->id,
+                                'service_id' => $service->id,
+                                'base_rate' => rand(50, 200),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+
+                            // Optional: create booking
+                            $start = now()->addDays(rand(0, 7))->addHours(rand(9, 17))->minute(0)->second(0);
+                            $end = (clone $start)->addHours(rand(1, 4));
+                            $status = $start->isPast() ? (rand(0, 1) ? 'completed' : 'canceled') : 'pending';
+
+                            $booking = \App\Models\Booking::create([
+                                'homeowner_id' => $homeowner->id,
+                                'tradie_id'    => $tradie->id,
+                                'service_id'   => $service->id,
+                                'booking_start' => $start,
+                                'booking_end'  => $end,
+                                'status'       => $status,
+                                'total_price'  => rand(100, 800),
+                            ]);
+
+                            \App\Models\BookingLog::create([
+                                'booking_id' => $booking->id,
+                                'user_id'    => $homeowner->id,
+                                'action'     => 'created',
+                                'notes'      => 'Booking created via registration',
+                            ]);
+                        }
+                    }
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'data'    => [
                     'user'  => $homeowner,
                     'token' => $token,
                 ],
-            ], 201); // 201 Created
-
+            ], 201);
         } catch (\Exception $e) {
-            // Handle any unexpected errors during registration
             return response()->json([
                 'success' => false,
                 'error'   => [
                     'code'    => 'REGISTRATION_ERROR',
                     'message' => 'Failed to register user. Please try again.',
+                    'details' => $e->getMessage(),
                 ],
-            ], 500); // 500 Internal Server Error
+            ], 500);
         }
     }
+
+
 
 
     /**
@@ -578,7 +634,7 @@ class HomeownerAuthController extends Controller
 
         // Find homeowner by email
         $homeowner = Homeowner::where('email', $request->email)->first();
-        
+
         // Generate OTP
         $otp = $this->otpService->generateOtp($homeowner->phone);
 
@@ -592,8 +648,7 @@ class HomeownerAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             // OTP generation failed
             return response()->json([
                 'success' => false,

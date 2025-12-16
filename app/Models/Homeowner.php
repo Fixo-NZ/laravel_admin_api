@@ -109,10 +109,10 @@ class Homeowner extends Authenticatable
     // ─── Relationships (commented out as requested) ───────────────
     // These are kept here for later use but are currently disabled.
 
-    // public function bookings()
-    // {
-    //     return $this->hasMany(Booking::class);
-    // }
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 
     // Alias for bookings used by the admin UI (keeps template naming `jobs`)
     public function jobs()
@@ -124,4 +124,22 @@ class Homeowner extends Authenticatable
     // {
     //     return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
     // }
+
+    // App/Models/Homeowner.php
+    // protected static function booted()
+    // {
+    //     static::created(function ($homeowner) {
+    //         \Database\Seeders\BookingSeeder::seedForHomeowner($homeowner);
+    //     });
+    // }
+
+    protected static function booted()
+    {
+        static::created(function ($homeowner) {
+            // Only create sample bookings in local or testing environments
+            if (app()->environment(['local', 'testing'])) {
+                \Database\Seeders\BookingSeeder::seedForHomeowner($homeowner);
+            }
+        });
+    }
 }

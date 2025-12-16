@@ -7,17 +7,23 @@ use App\Models\BookingLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Tradie;
+use App\Notifications\JobBookedNotification;
+// imports fo Log
+use Illuminate\Support\Facades\Log;
+
 
 class BookingController extends Controller
 {
     // Check availability
-    private function isAvailable($tradie_id, $start, $end, $excludeBookingId = null) {
+    private function isAvailable($tradie_id, $start, $end, $excludeBookingId = null)
+    {
         $query = Booking::where('tradie_id', $tradie_id)
-                        ->where('status', '!=', 'canceled')
-                        ->where(function($q) use ($start, $end) {
-                            $q->whereBetween('booking_start', [$start, $end])
-                              ->orWhereBetween('booking_end', [$start, $end]);
-                        });
+            ->where('status', '!=', 'canceled')
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('booking_start', [$start, $end])
+                    ->orWhereBetween('booking_end', [$start, $end]);
+            });
         if ($excludeBookingId) $query->where('id', '!=', $excludeBookingId);
         return $query->count() == 0;
     }
@@ -32,72 +38,127 @@ class BookingController extends Controller
             'booking_end' => 'required|date|after:booking_start'
         ]);
 
-        if (!$this->isAvailable($request->tradie_id, $request->booking_start, $request->booking_end)) {
+        // Check tradie availability
+        if (!$this->isAvailable(
+            $request->tradie_id,
+            $request->booking_start,
+            $request->booking_end
+        )) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tradie not available in the selected time slot.'
             ], 400);
         }
 
+        // Authenticated homeowner
+        $homeowner = $request->user();
+        if (!$homeowner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
         DB::beginTransaction();
+
         try {
+            // 1️⃣ Create booking
             $booking = Booking::create([
-                'homeowner_id' => auth()->id(),
-                'tradie_id' => $request->tradie_id,
-                'service_id' => $request->service_id,
+                'homeowner_id'  => $homeowner->id,
+                'tradie_id'     => $request->tradie_id,
+                'service_id'    => $request->service_id,
                 'booking_start' => $request->booking_start,
-                'booking_end' => $request->booking_end,
-                'status' => 'pending'
+                'booking_end'   => $request->booking_end,
+                'status'        => 'pending',
             ]);
 
+            // 2️⃣ Create booking log
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
-                'action' => 'created',
-                'notes' => 'Booking created.'
+                'user_id'    => $homeowner->id,
+                'action'     => 'created',
+                'notes'      => 'Booking created.',
             ]);
+
+            // 3️⃣ Notify the tradie
+            $tradie = Tradie::findOrFail($booking->tradie_id);
+            $tradie->notify(new \App\Notifications\JobBookedNotification($booking));
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Booking created successfully.',
-                'booking' => $booking
+                'booking' => $booking,
             ], 201);
-
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+
+            Log::error('Booking creation failed', [
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create booking.'
+                'message' => 'Failed to create booking.',
             ], 500);
         }
     }
 
+
     // View all bookings for homeowner
-    public function index() {
-        $bookings = Booking::where('homeowner_id', auth()->id())
-                    ->with(['tradie', 'service', 'logs' => function($q) { $q->orderBy('created_at', 'desc'); }])
-                    ->orderBy('booking_start', 'desc')
-                    ->get();
+    public function index(Request $request)
+    {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
+        // Log for debugging (can be removed in production)
+        //\Log::info("Booking index called by homeowner: {$homeowner->id} ({$homeowner->email})");
+
+        $bookings = Booking::where('homeowner_id', $homeowner->id)
+            ->with(['tradie', 'service', 'logs' => function ($q) {
+                $q->orderBy('created_at', 'desc');
+            }])
+            ->orderBy('booking_start', 'desc')
+            ->get();
+
+        //\Log::info("Found {$bookings->count()} bookings for homeowner {$homeowner->id}");
 
         return response()->json($bookings, 200);
     }
 
     // Grouped booking history (upcoming + past)
-    public function history() {
-        $bookings = Booking::where('homeowner_id', auth()->id())
-                            ->with(['tradie', 'service'])
-                            ->orderBy('booking_start', 'desc')
-                            ->get();
+    public function history(Request $request)
+    {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
+        $bookings = Booking::where('homeowner_id', $homeowner->id)
+            ->with(['tradie', 'service'])
+            ->orderBy('booking_start', 'desc')
+            ->get();
 
         $now = Carbon::now();
 
-        $upcoming = $bookings->filter(function($b) use ($now) {
+        $upcoming = $bookings->filter(function ($b) use ($now) {
             return Carbon::parse($b->booking_start)->gt($now);
         })->values();
 
-        $past = $bookings->filter(function($b) use ($now) {
+        $past = $bookings->filter(function ($b) use ($now) {
             return Carbon::parse($b->booking_start)->lte($now);
         })->values();
 
@@ -108,11 +169,22 @@ class BookingController extends Controller
     }
 
     // Show booking details (with logs)
-    public function show($id) {
+    public function show(Request $request, $id)
+    {
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
         $booking = Booking::where('id', $id)
-                          ->where('homeowner_id', auth()->id())
-                          ->with(['tradie', 'service', 'logs'])
-                          ->firstOrFail();
+            ->where('homeowner_id', $homeowner->id)
+            ->with(['tradie', 'service', 'logs'])
+            ->firstOrFail();
 
         return response()->json($booking, 200);
     }
@@ -120,7 +192,17 @@ class BookingController extends Controller
     // Update booking
     public function update(Request $request, $id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
+        $booking = Booking::where('id', $id)->where('homeowner_id', $homeowner->id)->firstOrFail();
 
         $request->validate([
             'booking_start' => 'required|date|after:now',
@@ -143,7 +225,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => $homeowner->id,
                 'action' => 'updated',
                 'notes' => 'Booking updated.'
             ]);
@@ -155,7 +237,6 @@ class BookingController extends Controller
                 'message' => 'Booking updated successfully.',
                 'booking' => $booking
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -166,9 +247,19 @@ class BookingController extends Controller
     }
 
     // Cancel booking
-    public function cancel($id)
+    public function cancel(Request $request, $id)
     {
-        $booking = Booking::where('id', $id)->where('homeowner_id', auth()->id())->firstOrFail();
+        // Get authenticated homeowner
+        $homeowner = $request->user();
+
+        if (!$homeowner) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'error' => 'No authenticated user found'
+            ], 401);
+        }
+
+        $booking = Booking::where('id', $id)->where('homeowner_id', $homeowner->id)->firstOrFail();
 
         if ($booking->status == 'canceled') {
             return response()->json([
@@ -184,7 +275,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $booking->id,
-                'user_id' => auth()->id(),
+                'user_id' => $homeowner->id,
                 'action' => 'canceled',
                 'notes' => 'Booking canceled.'
             ]);
@@ -196,7 +287,6 @@ class BookingController extends Controller
                 'message' => 'Booking canceled successfully.',
                 'booking' => $booking
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -204,5 +294,55 @@ class BookingController extends Controller
                 'message' => 'Failed to cancel booking.'
             ], 500);
         }
+    }
+
+    // Accept booking
+    public function accept(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->status = 'accepted';
+        $booking->save();
+
+        // Log action
+        BookingLog::create([
+            'booking_id' => $booking->id,
+            'user_id' => $booking->tradie_id,
+            'action' => 'accepted',
+            'notes' => 'Booking accepted by tradie',
+        ]);
+
+        // Notify homeowner
+        $booking->homeowner->notify(new \App\Notifications\TradieResponseNotification($booking, 'accepted'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking accepted.',
+            'booking' => $booking,
+        ]);
+    }
+
+    // Decline booking
+    public function decline(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->status = 'declined';
+        $booking->save();
+
+        // Log action
+        BookingLog::create([
+            'booking_id' => $booking->id,
+            'user_id' => $booking->tradie_id,
+            'action' => 'declined',
+            'notes' => 'Booking declined by tradie',
+        ]);
+
+        // Notify homeowner
+        $booking->homeowner->notify(new \App\Notifications\TradieResponseNotification($booking, 'declined'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking declined.',
+            'booking' => $booking,
+        ]);
     }
 }
