@@ -6,7 +6,7 @@ use App\Models\ServiceCategory;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-use App\Filament\Resources\ServiceCategoryResource ;
+use App\Filament\Resources\ServiceCategory\ServiceCategoryResource ;
 class ServiceCategoryStatsWidget extends BaseWidget
 {
     protected function getStats(): array

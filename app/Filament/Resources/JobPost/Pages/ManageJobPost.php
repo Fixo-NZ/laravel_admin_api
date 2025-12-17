@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Filament\Resources\ServiceCategory\Pages;
+namespace App\Filament\Resources\JobPost\Pages;
 
-use App\Filament\Resources\ServiceCategory\ServiceCategoryResource;
+use App\Filament\Resources\Service\ServiceResource;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\CreateAction;
-use App\Filament\Admin\Widgets\ServiceCategoryStatsWidget;
+use App\Filament\Admin\Widgets\JobPostStatsWidget;
 
-class ManageServiceCategories extends ManageRecords
+class ManageJobPost extends ManageRecords
 {
-    protected static string $resource = ServiceCategoryResource::class;
+    protected static string $resource = ServiceResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
                 ->modalWidth('4xl')
-                ->label('New category')
+                ->label('New service')
                 ->icon('heroicon-m-plus') 
-                ->modalHeading('Create Category')
+                ->modalHeading('Create Service')
                 ->modalSubmitActionLabel('Create'),
         ];
     }
@@ -29,11 +29,10 @@ class ManageServiceCategories extends ManageRecords
     {
         return [
             EditAction::make()
-                ->modalWidth('10xl')
-                ->slideOver()
-                ->label('New category')
+                ->modalWidth('4xl')
+                ->label('New service')
                 ->icon('heroicon-m-plus') 
-                ->modalHeading('Create Category')
+                ->modalHeading('Create Service')
                 ->modalSubmitActionLabel('Create'),
             DeleteAction::make(),
         ];
@@ -42,7 +41,7 @@ class ManageServiceCategories extends ManageRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            ServiceCategoryStatsWidget::class,
+            JobPostStatsWidget::class,
         ];
     }
 }

@@ -21,6 +21,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\HtmlString;
+use App\Filament\Admin\Widgets\ServiceResourceStatsWidget;
 
 
 class ServiceResource extends Resource

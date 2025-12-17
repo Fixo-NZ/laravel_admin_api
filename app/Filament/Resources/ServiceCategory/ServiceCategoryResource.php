@@ -7,6 +7,7 @@ use App\Models\ServiceCategory;
 use App\Filament\Resources\ServiceCategory\Tables\ServiceCategoriesTable;
 use App\Filament\Resources\ServiceCategory\Schemas\ServiceCategoriesForm;
 use App\Filament\Resources\ServiceCategory\Pages\ManageServiceCategories;
+use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -22,6 +23,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Storage;
+use App\Filament\Admin\Widgets\ServiceCategoryStatsWidget;
 
 class ServiceCategoryResource extends Resource
 {
@@ -49,7 +51,6 @@ class ServiceCategoryResource extends Resource
 
     // Auto-refresh interval (in seconds)
     protected static int $pollingInterval = 1;
-
 
     // ============================================================
     // FORM DEFINITION

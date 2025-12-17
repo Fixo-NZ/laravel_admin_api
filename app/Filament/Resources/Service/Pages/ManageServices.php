@@ -7,6 +7,7 @@ use Filament\Resources\Pages\ManageRecords;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\CreateAction;
+use App\Filament\Admin\Widgets\ServiceResourceStatsWidget;
 
 class ManageServices extends ManageRecords
 {
@@ -34,6 +35,13 @@ class ManageServices extends ManageRecords
                 ->modalHeading('Create Service')
                 ->modalSubmitActionLabel('Create'),
             DeleteAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            ServiceResourceStatsWidget::class,
         ];
     }
 }

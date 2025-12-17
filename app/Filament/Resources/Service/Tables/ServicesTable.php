@@ -17,41 +17,7 @@ use Filament\Tables\Table;
 
 class ServicesTable
 {
-<<<<<<< HEAD:app/Filament/Resources/ServiceResource.php
-    // ============================================================
-    // PAGE CONFIGURATION
-    // ============================================================
-
-    // The Eloquent model this resource manages
-    protected static ?string $model = Service::class;
-
-    // Icon to display in the sidebar (use Heroicons names)
-    protected static ?string $navigationIcon = null;
-    
-    // Label for the navigation item 
-    protected static ?string $navigationLabel = 'Services';
-
-    // Navigation group in the sidebar
-    protected static ?string $navigationGroup = 'Job Oversight';
-    
-    // Model Label
-    protected static ?string $modelLabel = 'Services';
-
-    // Slug for the resource URLs
-    protected static ?string $slug = 'jobs/services';
-
-    // Auto-refresh interval (in seconds)
-    protected static int $pollingInterval = 5;
-
-
-
-    // ============================================================
-    // FORM DEFINITION
-    // ============================================================
-    public static function form(Form $form): Form
-=======
     public static function configure(Table $table): Table
->>>>>>> origin/g2/job_posting:app/Filament/Resources/Service/Tables/ServicesTable.php
     {
          return $table
             ->columns([
@@ -112,11 +78,7 @@ class ServicesTable
                 // Custom modal: View Details
                 Action::make('viewDetails')
                     ->label('')
-<<<<<<< HEAD:app/Filament/Resources/ServiceResource.php
-                    ->icon(null)
-=======
                     ->icon('heroicon-o-eye')
->>>>>>> origin/g2/job_posting:app/Filament/Resources/Service/Tables/ServicesTable.php
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
                     ->modalHeading(fn($record) => 'Service Details: ' . $record->name)
