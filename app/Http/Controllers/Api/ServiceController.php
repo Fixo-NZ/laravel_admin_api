@@ -9,6 +9,10 @@ use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
+    // ============================================================
+    // SERVICE CATEGORIES ENDPOINTS
+    // ============================================================
+
     /**
      * GET /api/jobs/categories
      * 
@@ -107,6 +111,10 @@ class ServiceController extends Controller
             ],
         ]);
     }
+
+    // ============================================================
+    // SERVICES ENDPOINTS
+    // ============================================================
 
     /**
      * GET /api/jobs/services

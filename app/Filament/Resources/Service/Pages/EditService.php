@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\ServiceResource\Pages;
+namespace App\Filament\Resources\Service\Pages;
 
-use App\Filament\Resources\ServiceResource;
+use App\Filament\Resources\Service\ServiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 

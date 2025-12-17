@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\ServiceCategoryResource\Pages;
+namespace App\Filament\Resources\ServiceCategory\Pages;
 
-use App\Filament\Resources\ServiceCategoryResource;
-use Filament\Actions;
+use App\Filament\Resources\ServiceCategory\ServiceCategoryResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditServiceCategory extends EditRecord
@@ -13,7 +13,7 @@ class EditServiceCategory extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

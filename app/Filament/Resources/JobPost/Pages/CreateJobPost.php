@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\JobPostResource\Pages;
+namespace App\Filament\Resources\JobPost\Pages;
 
-use App\Filament\Resources\JobPostResource;
+use App\Filament\Resources\JobPost\JobPostResource;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
