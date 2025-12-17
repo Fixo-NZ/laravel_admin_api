@@ -7,9 +7,10 @@ use App\Filament\Admin\Widgets\HomeownerStatsWidget;
 use App\Filament\Admin\Widgets\TradieStatsWidget;
 use App\Filament\Admin\Widgets\ServiceResourceStatsWidget;
 use App\Filament\Admin\Widgets\PaymentStatsWidget;
+use App\Filament\Admin\Widgets\DashboardUserSummaryStatsWidget;
 use App\Models\Payment;
 
-class Dashboard extends Page
+    class Dashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
 
@@ -23,10 +24,11 @@ class Dashboard extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-           // HomeownerStatsWidget::class,
-            TradieStatsWidget::class,
-            ServiceResourceStatsWidget::class,
-            PaymentStatsWidget::class,
+           //HomeownerStatsWidget::class,
+            //TradieStatsWidget::class,
+            //ServiceResourceStatsWidget::class,
+            //PaymentStatsWidget::class,
+            DashboardUserSummaryStatsWidget::class,
         ];
     }
 }
