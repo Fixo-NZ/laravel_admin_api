@@ -50,9 +50,11 @@ Route::prefix('tradie')->group(function () {
 
 // Public payment route (protected + rate limited)
 Route::middleware(['auth:sanctum','throttle:api'])->group(function() {
+     Route::get('/saved-cards', [PaymentController::class, 'getSavedCards']);  // ← new
     Route::post('/payment/process', [PaymentController::class, 'processPayment']);
-    Route::post('/payment/charge-saved-card', [PaymentController::class, 'chargeSavedCard']);//new
-    Route::get('/payments/save-payment-method', [PaymentController::class, 'savePaymentMethod']);//new
+    Route::post('/payment/charge-saved-card', [PaymentController::class, 'chargeSavedCard']);
+    Route::post('/payments/save-payment-method', [PaymentController::class, 'savePaymentMethod']);
+    Route::get('/payments/history', [PaymentController::class, 'paymentHistory']);  // ← ADD THIS LINE
     Route::get('/payments/{id}/decrypt', [PaymentController::class, 'viewDecryptedPayment']);
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
     Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);

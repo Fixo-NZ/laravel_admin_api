@@ -55,9 +55,7 @@ class PaymentController extends Controller
 
     public function savePaymentMethod(Request $request)
     {
-        $request->validate([
-            'payment_method_id' => 'required|string',
-        ]);
+        
 
         $user = $request->user();
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
@@ -120,47 +118,85 @@ class PaymentController extends Controller
 
 
     public function chargeSavedCard(Request $request)
-    {
-        $request->validate([
-            'payment_method_id' => 'required|string',
-            'amount' => 'required|numeric|min:0.5',
-            'currency' => 'nullable|string|size:3',
-        ]);
+{
+    $request->validate([
+        'payment_method_id' => 'required|string',
+        'amount' => 'required|numeric|min:0.5',
+        'booking_id' => 'required|integer|exists:bookings,id',
+        'currency' => 'nullable|string|size:3',
+    ]);
 
+    try {
+        Stripe::setApiKey(config('services.stripe.secret'));
         $user = $request->user();
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount' => $request->amount * 100,
-            'currency' => $request->currency ?? 'usd',
-            'customer' => 'cus_Tb3aecQvErAbBv',
-            'payment_method' => 'pm_1SdrTCJO8ywAD8tRtKAm1Xqw',
-            'off_session' => true, // charge saved card
+        // Retrieve the payment method from Stripe to get the actual customer it belongs to
+        $paymentMethod = PaymentMethod::retrieve($request->payment_method_id);
+
+        if (!$paymentMethod->customer) {
+            Log::warning('Payment method has no customer attached', [
+                'payment_method_id' => $request->payment_method_id,
+            ]);
+            return response()->json([
+                'message' => 'Payment method is not properly set up. Please save the card again.',
+                'status' => 'failed'
+            ], 422);
+        }
+
+        // Use the actual customer from the payment method, not from SavedCards
+        $customerId = $paymentMethod->customer;
+
+        // Create PaymentIntent with the correct customer
+        $intent = PaymentIntent::create([
+            'amount' => (int) ($request->amount * 100),
+            'currency' => $request->currency ?? 'aud',
+            'customer' => $customerId,  // ← Use the actual Stripe customer
+            'payment_method' => $request->payment_method_id,
+            'off_session' => true,
             'confirm' => true,
         ]);
 
-        $paymentMethod = \Stripe\PaymentMethod::retrieve(
-            $paymentIntent->payment_method
-        );
-
+        // Save transaction with booking reference
         $payment = Payment::create([
             'homeowner_id' => $user->id,
-            'customer_id' => $paymentIntent->customer,
-            'payment_method_id' => $paymentIntent->payment_method,
+            'booking_id' => $request->booking_id,
+            'customer_id' => $customerId,
+            'payment_method_id' => $request->payment_method_id,
             'amount' => $request->amount,
-            'currency' => 'NZD',
+            'currency' => $request->currency ?? 'aud',
             'card_brand' => $paymentMethod->card->brand,
             'card_last4number' => $paymentMethod->card->last4,
-            'status' => $paymentIntent->status,
+            'status' => $intent->status,
+        ]);
+
+        // Update booking status if payment succeeded
+        $booking = \App\Models\Booking::find($request->booking_id);
+        if ($booking && $intent->status === 'succeeded') {
+            $booking->update(['status' => 'completed']);
+        }
+
+        Log::info('Payment processed successfully', [
+            'user_id' => $user->id,
+            'booking_id' => $request->booking_id,
+            'payment_intent' => $intent->id,
+            'status' => $intent->status,
         ]);
 
         return response()->json([
             'message' => 'Payment successful',
-            'payment_intent' => $paymentIntent->id,
-            'status' => $paymentIntent->status,
+            'status' => $intent->status,
+            'payment_intent' => $intent->id,
+            'payment_id' => $payment->id,
         ]);
-    }
 
+    } catch (\Stripe\Exception\CardException $e) {
+        Log::error('Stripe Card Error', ['error' => $e->getMessage()]);
+        return response()->json(['message' => $e->getMessage(), 'status' => 'failed'], 400);
+    } catch (\Exception $e) {
+        Log::error('Payment Error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return response()->json(['message' => $e->getMessage(), 'status' => 'failed'], 500);
+    }
+}
 
     public function deletePayment(Request $request, $id)
     {
@@ -348,6 +384,48 @@ class PaymentController extends Controller
             ]);
 
             return response()->json(['error' => 'Failed to decrypt data'], 500);
+        }
+    }
+
+
+        public function paymentHistory(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            $payments = Payment::where('homeowner_id', $user->id)
+                ->with(['booking' => function($query) {
+                    $query->with(['tradie', 'service']);
+                }])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($payment) {
+                    return [
+                        'id' => $payment->id,
+                        'booking_id' => $payment->booking_id,
+                        'amount' => $payment->amount,
+                        'currency' => $payment->currency,
+                        'status' => $payment->status,
+                        'card_last4number' => $payment->card_last4number,
+                        'card_brand' => $payment->card_brand,
+                        'created_at' => $payment->created_at,
+                        'booking' => $payment->booking ? [
+                            'id' => $payment->booking->id,
+                            'booking_start' => $payment->booking->booking_start,
+                            'booking_end' => $payment->booking->booking_end,
+                            'total_price' => $payment->booking->total_price,
+                            'tradie' => $payment->booking->tradie,
+                            'service' => $payment->booking->service,
+                        ] : null,
+                    ];
+                });
+
+            return response()->json([
+                'payments' => $payments,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching payment history', ['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
