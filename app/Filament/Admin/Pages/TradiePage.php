@@ -17,7 +17,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
     // =========================================================================
     // PAGE CONFIGURATION
     // =========================================================================
-    protected static ?string $navigationGroup = 'User Overview';
+    protected static ?string $navigationGroup = 'Tradie';
     protected static ?string $navigationIcon = null;
     protected static ?string $navigationLabel = 'Tradies';
     protected static ?string $title = 'Registered Tradies';
