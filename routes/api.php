@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use App\Http\Controllers\Api\Auth\UserAuthController;
+use App\Http\Controllers\Api\Homeowner\HomeownerJobOfferController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Http\Request;
@@ -55,19 +56,35 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public Job and Service Routes (POSTMAN)
 Route::prefix('jobs')->group(function () {
+
+    // Categories & Services
     Route::get('/categories', [ServiceController::class, 'index']);
-    Route::get('/categories/{id}', [ServiceController::class, 'indexSpecificCategory']);
-    Route::get('/categories/{id}/services', [ServiceController::class, 'indexSpecificCategoryServices']);
+    Route::get('/categories/{id}', [ServiceController::class, 'indexSpecificCategory'])->whereNumber('id');
+    Route::get('/categories/{id}/services', [ServiceController::class, 'indexSpecificCategoryServices'])->whereNumber('id');
     Route::get('/services', [ServiceController::class, 'indexService']);
-    Route::get('/services/{id}', [ServiceController::class, 'indexSpecificService']);
+    Route::get('/services/{id}', [ServiceController::class, 'indexSpecificService'])->whereNumber('id');
+
+    // Job Offers
+    Route::get('/job-offers/browse', [JobOfferController::class, 'browse']);
+    Route::get('/job-offers', [JobOfferController::class, 'index']);
+    Route::get('/job-offers/{id}', [JobOfferController::class, 'show'])->whereNumber('id');
 });
 
 
 // Homeowner 
-Route::prefix('jobs')->middleware('auth:sanctum')->group(function () {
-    Route::get('/job-offers', [JobOfferController::class, 'index']);
-    Route::post('/job-offers', [JobOfferController::class, 'store']);
-    Route::get('/job-offers/{id}', [JobOfferController::class, 'show']);
-    Route::put('/job-offers/{id}', [JobOfferController::class, 'update']);
-    Route::delete('/job-offers/{id}', [JobOfferController::class, 'destroy']);
+// Route::prefix('jobs')->middleware('auth:sanctum')->group(function () {
+//     Route::get('/job-offers', [JobOfferController::class, 'index']);
+    
+//     Route::get('/job-offers/{id}', [JobOfferController::class, 'show']);
+//     Route::put('/job-offers/{id}', [JobOfferController::class, 'update']);
+//     Route::delete('/job-offers/{id}', [JobOfferController::class, 'destroy']);
+// });
+
+Route::prefix('homeowner')->middleware('auth:sanctum')->group(function () {
+    Route::get('/job-offers', [HomeownerJobOfferController::class, 'myJobOffers']);
+    Route::post('/job-offers', [HomeownerJobOfferController::class, 'store']);
+    Route::post('/job-offers', [HomeownerJobOfferController::class, 'store']);
+    Route::get('/job-offers/{id}', [HomeownerJobOfferController::class, 'show']);
+    Route::put('/job-offers/{id}', [HomeownerJobOfferController::class, 'update']);
+    Route::delete('/job-offers/{id}', [HomeownerJobOfferController::class, 'destroy']);
 });

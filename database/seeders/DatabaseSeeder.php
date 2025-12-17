@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Doe',
             'email' => 'homeowner1@gmail.com',
             'password' => Hash::make("password"),
+            'status' => 'active',
         ]);
 
         User::factory(10)->create();

@@ -4,22 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class HomeownerJobOffer extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'homeowner_id',
         'service_category_id',
+        'number',
+        'title',
+        'description',
         'job_type',
-        'frequency',
+        'job_size',
+        'budget',
+        'final_budget',
         'preferred_date',
+        'frequency',
         'start_date',
         'end_date',
-        'title',
-        'job_size',
-        'description',
         'address',
         'latitude',
         'longitude',
@@ -27,12 +32,30 @@ class HomeownerJobOffer extends Model
     ];
 
     protected $casts = [
+        'budget' => 'decimal:2',
+        'final_budget' => 'decimal:2',
         'preferred_date' => 'date',
         'start_date' => 'date',
         'end_date' => 'date',
         'latitude' => 'float',
         'longitude' => 'float',
     ];
+
+
+    protected static function booted()
+    {
+        static::creating(function ($jobOffer) {
+            if (empty($jobOffer->number)) {
+                $jobOffer->number = 'JOB-' . str_pad(
+                    random_int(1, 999999),
+                    6,
+                    '0',
+                    STR_PAD_LEFT
+                );
+            }
+        });
+    }
+
 
     /*
     |--------------------------------------------------------------------------

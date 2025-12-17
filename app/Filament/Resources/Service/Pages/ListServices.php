@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\JobPostResource\Pages;
+namespace App\Filament\Resources\Service\Pages;
 
-use App\Filament\Resources\JobPostResource;
+use App\Filament\Resources\Service\ServiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListJobPosts extends ListRecords
+class ListServices extends ListRecords
 {
-    protected static string $resource = JobPostResource::class;
+    protected static string $resource = ServiceResource::class;
 
     protected function getHeaderActions(): array
     {

@@ -1,98 +1,25 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Service\Tables;
 
-use App\Filament\Resources\ServiceResource\Pages;
-use App\Models\Service;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\HtmlString;
+use Filament\Tables;
+use Filament\Tables\Columns;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Table;
 
-
-class ServiceResource extends Resource
+class ServicesTable
 {
-    // ============================================================
-    // PAGE CONFIGURATION
-    // ============================================================
-
-    // The Eloquent model this resource manages
-    protected static ?string $model = Service::class;
-
-    // Icon to display in the sidebar (use Heroicons names)
-    protected static ?string $navigationIcon = null;
-    
-    // Label for the navigation item 
-    protected static ?string $navigationLabel = 'Services';
-
-    // Navigation group in the sidebar
-    protected static ?string $navigationGroup = 'Job Oversight';
-    
-    // Model Label
-    protected static ?string $modelLabel = 'Services';
-
-    // Slug for the resource URLs
-    protected static ?string $slug = 'jobs/services';
-
-    // Auto-refresh interval (in seconds)
-    protected static int $pollingInterval = 5;
-
-    // ============================================================
-    // FORM DEFINITION
-    // ============================================================
-    public static function form(Form $form): Form
+    public static function configure(Table $table): Table
     {
-        return $form
-            ->schema([
-                TextInput::make('name')
-                    ->label('Service Name')
-                    ->required()
-                    ->maxLength(255)
-                    ->columnSpanFull(),
-
-                Textarea::make('description')
-                    ->label('Description')
-                    ->rows(7)
-                    ->maxLength(1000)
-                    ->columnSpanFull(),
-
-                Select::make('category_id')
-                    ->label('Category')
-                    ->relationship('category', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->createOptionForm([
-                        TextInput::make('name')
-                            ->label('Category Name')
-                            ->required()
-                            ->maxLength(255),
-                        Textarea::make('description')
-                            ->label('Description')
-                            ->rows(3)
-                            ->maxLength(500),
-                    ])
-                    ->createOptionModalHeading('Add New Category')
-                    ->columnSpanFull(),
-            ]);
-    }
-
-    // ============================================================
-    // TABLE DEFINITION
-    // ============================================================   
-    public static function table(Table $table): Table
-    {
-        return $table
+         return $table
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
@@ -150,7 +77,7 @@ class ServiceResource extends Resource
             ->actions([
                 // Custom modal: View Details
                 Action::make('viewDetails')
-                    ->label('View')
+                    ->label('')
                     ->icon('heroicon-o-eye')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
@@ -177,18 +104,5 @@ class ServiceResource extends Resource
 
             ->bulkActions([]);
     }
-
-    public static function getRelations(): array
-    {
-        return [];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListServices::route('/'),
-            'create' => Pages\CreateService::route('/create'),
-            'edit' => Pages\EditService::route('/{record}/edit'),
-        ];
-    }
+    
 }
