@@ -94,7 +94,25 @@ class JobPostsTable
                     Str::of($state)->replace('_', ' ')->title()
                 )
                 ->sortable(),
+            
+            TextColumn::make('preferred_date')
+                ->label('Preferred Date')
+                ->date()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
 
+            TextColumn::make('start_date')
+                ->label('Start Date')
+                ->date()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            
+            TextColumn::make('end_date')
+                ->label('End Date')
+                ->date()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            
             TextColumn::make('created_at')
                 ->label('Posted')
                 ->date()
