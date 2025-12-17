@@ -57,9 +57,46 @@ class TradieSeeder extends Seeder
                 'service_radius' => 60,
             ],
             // Add more tradies as needed
-        ];
+            ];
+
+        // Ensure we end up with 20 tradies total (including presets)
+        $target = 20;
 
         $created = 0;
+
+        // use Faker to generate additional tradies if needed
+        $faker = \Faker\Factory::create();
+
+        // If homeowners are keyed by city, get list of available cities
+        $availableCities = $homeowners->keys()->all();
+
+        // Fill up $tradiesData with generated entries until target reached
+        $i = 0;
+        while (count($tradiesData) < $target) {
+            $first = $faker->firstName();
+            $last = $faker->lastName();
+            $city = count($availableCities) ? $availableCities[array_rand($availableCities)] : $faker->city();
+            $email = strtolower(preg_replace('/[^a-z0-9._-]/', '', "$first.$last$i")) . '@example.com';
+
+            $tradiesData[] = [
+                'first_name' => $first,
+                'middle_name' => $faker->firstName(),
+                'last_name' => $last,
+                'email' => $email,
+                'phone' => $faker->e164PhoneNumber(),
+                'business_name' => $faker->company(),
+                'city' => $city,
+                'region' => $faker->state(),
+                'availability_status' => 'available',
+                'status' => 'active',
+                'verified_at' => Carbon::now(),
+                'years_experience' => $faker->numberBetween(1, 25),
+                'hourly_rate' => $faker->randomFloat(2, 30, 150),
+                'service_radius' => $faker->numberBetween(10, 100),
+            ];
+
+            $i++;
+        }
 
         foreach ($tradiesData as $data) {
             $data['password'] = Hash::make('password123');
