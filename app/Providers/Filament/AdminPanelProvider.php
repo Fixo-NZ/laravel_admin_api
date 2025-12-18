@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Resources;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -30,23 +31,23 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#4D47C3'), // Custom primary color (orange)
             ])
             ->discoverResources(
-                in: app_path('Filament/Admin/Resources'),
-                for: 'App\\Filament\\Admin\\Resources'
+                in: app_path('Filament/Resources'),
+                for: 'App\\Filament\\Resources'
             )
             ->discoverPages(
                 in: app_path('Filament/Admin/Pages'),
                 for: 'App\\Filament\\Admin\\Pages'
             )
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Admin\Pages\Dashboard::class,
             ])
             ->discoverWidgets(
                 in: app_path('Filament/Admin/Widgets'),
                 for: 'App\\Filament\\Admin\\Widgets'
             )
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                //Widgets\AccountWidget::class,
+                //Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -81,8 +82,17 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user-circle')
                     ->collapsible() // makes it expandable/collapsible
                     ->collapsed(),  // starts collapsed by default
-            ])
 
+                \Filament\Navigation\NavigationGroup::make('Job Oversight')
+                    ->icon('heroicon-o-briefcase')
+                    ->collapsible()
+                    ->collapsed(),
+                    
+                \Filament\Navigation\NavigationGroup::make('Payments Management')
+                    ->icon('heroicon-o-wallet')
+                    ->collapsible() // makes it expandable/collapsible
+                    ->collapsed(),  // starts collapsed by default
+            ])
             ->authMiddleware([
                 Authenticate::class,
             ]);

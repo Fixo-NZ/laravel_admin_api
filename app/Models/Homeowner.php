@@ -9,6 +9,7 @@ use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Booking;
 use App\Notifications\HomeownerVerifyEmail;
 
 class Homeowner extends Authenticatable implements MustVerifyEmail
@@ -122,6 +123,17 @@ class Homeowner extends Authenticatable implements MustVerifyEmail
             ->implode(', ');
     }
 
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    
+    public function jobOffers()
+    {
+        return $this->hasMany(HomeownerJobOffer::class);
+    }
+
     // ─── Relationships (commented out as requested) ───────────────
     // These are kept here for later use but are currently disabled.
 
@@ -130,8 +142,15 @@ class Homeowner extends Authenticatable implements MustVerifyEmail
     //     return $this->hasMany(Booking::class);
     // }
 
+    // Alias for bookings used by the admin UI (keeps template naming `jobs`)
+    public function jobs()
+    {
+        return $this->hasMany(Booking::class, 'homeowner_id');
+    }
+
     // public function favoriteTradies()
     // {
     //     return $this->belongsToMany(Tradie::class, 'user_favorites', 'user_id', 'favorited_user_id');
     // }
+
 }

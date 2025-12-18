@@ -12,26 +12,20 @@ class Service extends Model
     protected $fillable = [
         'name',
         'description',
-        'category',
-        'is_active',
+        'category_id',
+        'status',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+       
     ];
 
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeByCategory($query, $category)
-    {
-        return $query->where('category', $category);
-    }
-
     // Relationships
+    public function category()
+    {
+        return $this->belongsTo(ServiceCategory::class, 'category_id');
+    }
+
     public function tradies()
     {
         return $this->belongsToMany(Tradie::class, 'tradie_services')
@@ -44,13 +38,15 @@ class Service extends Model
     //     return $this->hasMany(Job::class);
     // }
 
-    // Static methods
-    public static function getCategories()
+
+    // Scopes
+    public function scopeActive($query)
     {
-        return self::active()
-            ->distinct()
-            ->pluck('category')
-            ->sort()
-            ->values();
+        return $query->where('status', 'active');
+    }
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
     }
 }

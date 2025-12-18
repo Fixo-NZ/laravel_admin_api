@@ -15,6 +15,12 @@ class Tradie extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, AuthMustVerifyEmail;
 
+    // Relationship: Tradie has many jobs
+    public function jobs()
+    {
+        return $this->hasMany(\App\Models\Job::class, 'tradie_id');
+    }
+
     protected $fillable = [
         'first_name',
         'last_name',

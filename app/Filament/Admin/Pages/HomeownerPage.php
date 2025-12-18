@@ -40,6 +40,16 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
     protected static int $pollingInterval = 5;
 
     // =========================================================================
+    // HEADER WIDGETS
+    // =========================================================================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\HomeownerStatsWidget::class,
+        ];
+    }
+
+    // =========================================================================
     // TABLE DEFINITION
     // =========================================================================
 
@@ -52,6 +62,7 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
             // Retrieves all registered homeowners and allows optional searching
             ->query(
                 Homeowner::query()
+                    ->when(request('status'), fn($query, $status) => $query->where('status', $status))
                     ->when(request('table_search'), function ($query, $search) {
                         $query->where('first_name', 'like', "%{$search}%")
                               ->orWhere('last_name', 'like', "%{$search}%")
@@ -154,26 +165,20 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
                         'suspended' => 'Suspended',
                     ]),
             ])
-
             // -----------------------------
             // Row Click / Double-Click Action
             // -----------------------------
-            ->recordAction('viewProfile')
+            // Navigate to the Filament profile page when a row is clicked (pass id via query).
+            ->recordUrl(fn (Homeowner $record) => url('/homeowner-profile?record=' . $record->id))
 
             // -----------------------------
             // Row Actions
             // -----------------------------
             ->actions([
+                // Action that navigates to the Filament profile page
                 Action::make('viewProfile')
-                    ->label('') // Hidden label (triggered by row click)
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->modalWidth('xl')
-                    ->modalHeading(fn (Homeowner $record) => $record->name . ' Profile')
-                    ->modalContent(fn (Homeowner $record) => view(
-                        'filament.admin.pages.homeowner-profile-modal',
-                        ['homeowner' => $record]
-                    )),
+                    ->label('')
+                    ->url(fn (Homeowner $record) => url('/homeowner-profile?record=' . $record->id)),
             ])
 
             // -----------------------------
@@ -181,6 +186,8 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
             // -----------------------------
             ->bulkActions([]); // No bulk actions enabled
     }
+
+   
 
     // =========================================================================
     // NOTES

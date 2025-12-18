@@ -1024,7 +1024,7 @@ class HomeownerAuthController extends Controller
      */
     public function show(Homeowner $homeowner)
     {
-        // Pass the homeowner data to the Blade view
+        // Pass the homeowner data to the Blade view (renders without Filament page wrapper)
         return view('filament.admin.pages.homeowner-profile-page', compact('homeowner'));
     }
 }

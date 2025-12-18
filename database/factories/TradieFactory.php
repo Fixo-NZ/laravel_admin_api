@@ -40,7 +40,7 @@ class TradieFactory extends Factory
             'availability_status' => fake()->randomElement(['available', 'busy', 'unavailable']),
             'service_radius' => fake()->numberBetween(10, 100),
             'verified_at' => fake()->optional(0.7)->dateTimeBetween('-1 year', 'now'),
-            'status' => fake()->randomElement(['active', 'inactive', 'suspended']),
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended', 'pending']), 
         ];
     }
 }
