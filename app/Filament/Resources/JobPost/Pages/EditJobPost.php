@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\JobPost\Pages;
 
 use App\Filament\Resources\JobPost\JobPostResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Actions;
+
+use App\Filament\Admin\Widgets\JobPostStatsWidget;
 
 class EditJobPost extends EditRecord
 {
@@ -14,6 +16,13 @@ class EditJobPost extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            JobPostStatsWidget::class,
         ];
     }
 }

@@ -6,6 +6,8 @@ use App\Filament\Resources\JobPost\JobPostResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
+use App\Filament\Admin\Widgets\JobPostStatsWidget;
+
 class ListJobPosts extends ListRecords
 {
     protected static string $resource = JobPostResource::class;
@@ -16,4 +18,12 @@ class ListJobPosts extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            JobPostStatsWidget::class,
+        ];
+    }
 }
+    
