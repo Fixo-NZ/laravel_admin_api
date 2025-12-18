@@ -6,12 +6,11 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
+use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -24,22 +23,30 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
             ->path('/')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#4D47C3'), // Custom primary color (orange)
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverResources(
+                in: app_path('Filament/Admin/Resources'),
+                for: 'App\\Filament\\Admin\\Resources'
+            )
+            ->discoverPages(
+                in: app_path('Filament/Admin/Pages'),
+                for: 'App\\Filament\\Admin\\Pages'
+            )
             ->pages([
-                Dashboard::class,
+                Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(
+                in: app_path('Filament/Admin/Widgets'),
+                for: 'App\\Filament\\Admin\\Widgets'
+            )
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -52,8 +59,48 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+
+            // ================================================================
+            // NON-COLLAPSIBLE VERSION (Commented Out)
+            // ================================================================
+            // ->navigationGroups([
+            //     \Filament\Navigation\NavigationGroup::make()
+            //         ->label('User Overview')
+            //         ->icon('heroicon-o-user-circle')
+            //         ->collapsed(false)
+            //         ->items([
+            //             // Add your pages manually here if needed
+            //         ]),
+            // ])
+
+            // ================================================================
+            // COLLAPSIBLE VERSION (Default Active)
+            // ================================================================
+            ->navigationGroups([
+                \Filament\Navigation\NavigationGroup::make('User Overview')
+                    ->icon('heroicon-o-user-circle')
+                    ->collapsible() // makes it expandable/collapsible
+                    ->collapsed(),  // starts collapsed by default
+            ])
+
             ->authMiddleware([
                 Authenticate::class,
             ]);
     }
 }
+
+/* =========================================================================
+   NOTES
+   =========================================================================
+   1. You now have two versions:
+      - The **non-collapsible** sidebar 
+      - The **collapsible** sidebar (active by default)
+
+   2. Filament automatically groups pages using:
+         protected static ?string $navigationGroup = 'User Overview';
+      inside each page class (e.g., AdminPage, HomeownersPage, etc.)
+
+   3. Change ->collapsed() to ->collapsed(false)
+      if you want the collapsible group to start open.
+
+*/

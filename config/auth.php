@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'homeowners' => [
+            'driver' => 'sanctum', // or 'token' if not using Sanctum
+            'provider' => 'homeowners',
+        ],
+        'tradies' => [
+            'driver' => 'sanctum', // or 'token' if not using Sanctum
+            'provider' => 'tradies',
+        ]
     ],
 
     /*
@@ -65,10 +73,16 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'homeowners' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Homeowner::class,
+        ],
+
+        'tradies' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tradie::class,
+        ],
+
     ],
 
     /*
