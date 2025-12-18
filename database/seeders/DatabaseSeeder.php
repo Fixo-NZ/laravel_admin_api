@@ -49,7 +49,16 @@ class DatabaseSeeder extends Seeder
         ]);
         Homeowner::factory(10)->create();
         Tradie::factory(10)->create();
+
         // Seed bookings after homeowners, tradies and services exist
         $this->call(BookingSeeder::class);
+
+        Tradie::factory()->create([
+            'first_name' => 'John',
+            'email' => 'john.example@email.com',
+            'phone' => '09987654321',
+            'password' => Hash::make("tradie123"),
+            'status' => 'active'
+        ]);
     }
 }

@@ -21,9 +21,9 @@ Route::get('/admin/tradie-profile/{record?}', function ($record = null) {
 
 
 // Booking history page (web)
-Route::middleware('auth')->get('/bookings', function() {
+Route::middleware('auth')->get('/bookings', function () {
     return view('bookings.index');
 })->name('bookings.index');
 
-    
+
 

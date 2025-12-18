@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\TradieVerifyEmail;
 
-class Tradie extends Authenticatable
+class Tradie extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, AuthMustVerifyEmail;
 
     // Relationship: Tradie has many jobs
     public function jobs()
@@ -63,6 +66,14 @@ class Tradie extends Authenticatable
     public function routeNotificationForMail(Notification $notification): array|string
     {
         return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new TradieVerifyEmail());
     }
 
     // Scopes

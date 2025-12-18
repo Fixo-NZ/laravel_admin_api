@@ -22,7 +22,7 @@
         "/api/homeowner/request-otp": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Request OTP for Homeowner",
                 "operationId": "ba18215ed768994dea6e3d9dc19d0fc8",
@@ -89,10 +89,6 @@
                                         "message": {
                                             "type": "string",
                                             "example": "OTP sent successfully"
-                                        },
-                                        "otp_code": {
-                                            "type": "string",
-                                            "example": "123456"
                                         }
                                     },
                                     "type": "object"
@@ -135,7 +131,7 @@
         "/api/homeowner/verify-otp": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Verify OTP for Homeowner",
                 "operationId": "ca2258368eba0131aef97203135e7aec",
@@ -145,9 +141,9 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "phone": {
+                                    "email": {
                                         "type": "string",
-                                        "example": "09123456789"
+                                        "example": "example@email.com"
                                     },
                                     "otp_code": {
                                         "type": "string",
@@ -161,7 +157,7 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -173,16 +169,21 @@
                                         "error": {
                                             "properties": {
                                                 "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
                                                     "type": "string",
                                                     "example": "VALIDATION_ERROR"
                                                 },
                                                 "message": {
+                                                    "description": "Error message varies based on error type",
                                                     "type": "string",
                                                     "example": "The given data was invalid."
                                                 },
                                                 "details": {
+                                                    "description": "Present only for validation errors",
                                                     "type": "object",
-                                                    "example": "{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -194,99 +195,40 @@
                         }
                     },
                     "200": {
-                        "description": "OTP verification successful",
+                        "description": "OTP successfully verified",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "oneOf": [
-                                        {
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "example": "new_user"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "OTP verification successful. Please proceed to registration."
-                                                }
-                                            },
-                                            "type": "object"
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
-                                        {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP successfully verified."
+                                        },
+                                        "data": {
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "status": {
+                                                "password_reset_token": {
                                                     "type": "string",
-                                                    "example": "existing_user"
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
                                                 },
-                                                "message": {
+                                                "expires_at": {
                                                     "type": "string",
-                                                    "example": "OTP verification successful."
-                                                },
-                                                "data": {
-                                                    "properties": {
-                                                        "user": {
-                                                            "properties": {
-                                                                "first_name": {
-                                                                    "type": "string",
-                                                                    "example": "John"
-                                                                },
-                                                                "last_name": {
-                                                                    "type": "string",
-                                                                    "example": "Doe"
-                                                                },
-                                                                "email": {
-                                                                    "type": "string",
-                                                                    "example": "john.doe@gmail.com"
-                                                                },
-                                                                "phone": {
-                                                                    "type": "string",
-                                                                    "example": "09123456789"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "example": "active"
-                                                                },
-                                                                "user_type": {
-                                                                    "type": "string",
-                                                                    "example": "homeowner"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "authorisation": {
-                                                            "properties": {
-                                                                "access_token": {
-                                                                    "type": "string",
-                                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "example": "Bearer"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "type": "object"
+                                                    "example": "2024-12-31 23:59:59"
                                                 }
                                             },
                                             "type": "object"
                                         }
-                                    ]
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
-                    "500": {
-                        "description": "OTP Generation Error",
+                    "400": {
+                        "description": "OTP Verification Error",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -299,11 +241,11 @@
                                             "properties": {
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "OTP_ERROR"
+                                                    "example": "OTP_VERIFICATION_ERROR"
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "Failed to generate OTP. Please try again."
+                                                    "example": "Failed to verify OTP. Please try again."
                                                 }
                                             },
                                             "type": "object"
@@ -320,9 +262,10 @@
         "/api/homeowner/register": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register a new homeowner user",
+                "description": "Register a new homeowner account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
                 "operationId": "fddb0b641f10a4948da0fc9b8a91e29e",
                 "requestBody": {
                     "required": true,
@@ -471,6 +414,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -520,12 +467,271 @@
                 }
             }
         },
+        "/api/homeowner/auth/verify-email/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Homeowner Authentication"
+                ],
+                "summary": "Verify homeowner email",
+                "operationId": "bf88f7eec33701c3464f18f0252c60f3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Homeowner ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Email verification hash",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "sha1-hash-of-email"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Homeowner Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "USER_NOT_FOUND"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "This user does not exist."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid Signature or Hash Mismatch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be INVALID_SIGNATURE or INVALID_VERIFICATION",
+                                                    "type": "string",
+                                                    "example": "INVALID_SIGNATURE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Invalid or expired verification link."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Verification Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VERIFICATION_FAILED"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to verify email. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Email Verified Successfully or Already Verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Email verified successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Email verified successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/homeowner/auth/resend-verification": {
+            "post": {
+                "tags": [
+                    "Homeowner Authentication"
+                ],
+                "summary": "Resend email verification for homeowner",
+                "operationId": "8702dda6037cf4917a7af074d252239f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "example@email.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error or User Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Resend Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "RESEND_FAILED"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to send verification email. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Verification Email Resent Successfully or Email Already Verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Verification email resent successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Verification email resent successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/homeowner/login": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Login homeowner",
+                "description": "Authenticate a homeowner user. The user must have verified their email address before they can log in.",
                 "operationId": "bd064dcd4282ba044e690c30b8211b1d",
                 "requestBody": {
                     "required": true,
@@ -611,7 +817,7 @@
                         }
                     },
                     "403": {
-                        "description": "Account Inactive",
+                        "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -623,10 +829,12 @@
                                         "error": {
                                             "properties": {
                                                 "code": {
+                                                    "description": "Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED",
                                                     "type": "string",
                                                     "example": "ACCOUNT_INACTIVE"
                                                 },
                                                 "message": {
+                                                    "description": "Error message varies based on error type",
                                                     "type": "string",
                                                     "example": "Your account is not active. Please contact support."
                                                 }
@@ -696,6 +904,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -719,7 +931,7 @@
         "/api/homeowner/reset-password-request": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Request password reset OTP for homeowner",
                 "description": "Request password reset OTP for homeowner",
@@ -829,7 +1041,7 @@
         "/api/homeowner/reset-password": {
             "put": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Reset homeowner password",
                 "description": "Reset homeowner password",
@@ -948,7 +1160,7 @@
         "/api/homeowner/logout": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Logout homeowner",
                 "operationId": "53ca0f09c6f32b96b5eb1012ff33947a",
@@ -984,7 +1196,7 @@
         "/api/homeowner/me": {
             "get": {
                 "tags": [
-                    "Authentication"
+                    "Homeowner Authentication"
                 ],
                 "summary": "Get authenticated homeowner details",
                 "operationId": "f64057d0c9bcbd32522692ad08d4bf34",
@@ -1046,6 +1258,10 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "user_type": {
+                                                            "type": "string",
+                                                            "example": "homeowner"
                                                         }
                                                     },
                                                     "type": "object"
@@ -1070,7 +1286,7 @@
         "/api/tradie/request-otp": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Request OTP for Tradie",
                 "operationId": "14e87dcec4fc01bc8a4d02b1d1d885e1",
@@ -1137,10 +1353,6 @@
                                         "message": {
                                             "type": "string",
                                             "example": "OTP sent successfully"
-                                        },
-                                        "otp_code": {
-                                            "type": "string",
-                                            "example": "123456"
                                         }
                                     },
                                     "type": "object"
@@ -1183,7 +1395,7 @@
         "/api/tradie/verify-otp": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Verify OTP for Tradie",
                 "operationId": "8a6a8377317470cf64254484c9e071cd",
@@ -1193,9 +1405,9 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "phone": {
+                                    "email": {
                                         "type": "string",
-                                        "example": "09123456789"
+                                        "example": "example@email.com"
                                     },
                                     "otp_code": {
                                         "type": "string",
@@ -1209,7 +1421,7 @@
                 },
                 "responses": {
                     "422": {
-                        "description": "Validation Error",
+                        "description": "Validation Error or User Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1221,16 +1433,21 @@
                                         "error": {
                                             "properties": {
                                                 "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
                                                     "type": "string",
                                                     "example": "VALIDATION_ERROR"
                                                 },
                                                 "message": {
+                                                    "description": "Error message varies based on error type",
                                                     "type": "string",
                                                     "example": "The given data was invalid."
                                                 },
                                                 "details": {
+                                                    "description": "Present only for validation errors",
                                                     "type": "object",
-                                                    "example": "{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -1242,99 +1459,40 @@
                         }
                     },
                     "200": {
-                        "description": "OTP verification successful",
+                        "description": "OTP successfully verified",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "oneOf": [
-                                        {
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "example": "new_user"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "OTP verification successful. Please proceed to registration."
-                                                }
-                                            },
-                                            "type": "object"
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
-                                        {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP successfully verified."
+                                        },
+                                        "data": {
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "status": {
+                                                "password_reset_token": {
                                                     "type": "string",
-                                                    "example": "existing_user"
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
                                                 },
-                                                "message": {
+                                                "expires_at": {
                                                     "type": "string",
-                                                    "example": "OTP verification successful."
-                                                },
-                                                "data": {
-                                                    "properties": {
-                                                        "user": {
-                                                            "properties": {
-                                                                "first_name": {
-                                                                    "type": "string",
-                                                                    "example": "John"
-                                                                },
-                                                                "last_name": {
-                                                                    "type": "string",
-                                                                    "example": "Doe"
-                                                                },
-                                                                "email": {
-                                                                    "type": "string",
-                                                                    "example": "john.doe@gmail.com"
-                                                                },
-                                                                "phone": {
-                                                                    "type": "string",
-                                                                    "example": "09123456789"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "example": "active"
-                                                                },
-                                                                "user_type": {
-                                                                    "type": "string",
-                                                                    "example": "tradie"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "authorisation": {
-                                                            "properties": {
-                                                                "access_token": {
-                                                                    "type": "string",
-                                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "example": "Bearer"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "type": "object"
+                                                    "example": "2024-12-31 23:59:59"
                                                 }
                                             },
                                             "type": "object"
                                         }
-                                    ]
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
-                    "500": {
-                        "description": "OTP Generation Error",
+                    "400": {
+                        "description": "OTP Verification Error",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1347,11 +1505,11 @@
                                             "properties": {
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "OTP_ERROR"
+                                                    "example": "OTP_VERIFICATION_ERROR"
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "Failed to generate OTP. Please try again."
+                                                    "example": "Failed to verify OTP. Please try again."
                                                 }
                                             },
                                             "type": "object"
@@ -1368,9 +1526,10 @@
         "/api/tradie/register": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register a new tradie user",
+                "description": "Register a new tradie account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
                 "operationId": "c73bab9bc18c6d51745e541906739dab",
                 "requestBody": {
                     "required": true,
@@ -1618,12 +1777,271 @@
                 }
             }
         },
+        "/api/tradie/auth/verify-email/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Tradie Authentication"
+                ],
+                "summary": "Verify tradie email",
+                "operationId": "3112cedf36c1541750d2b7e063030e85",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tradie ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Email verification hash",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "sha1-hash-of-email"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Tradie Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "USER_NOT_FOUND"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "This user does not exist."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid Signature or Hash Mismatch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be INVALID_SIGNATURE or INVALID_VERIFICATION",
+                                                    "type": "string",
+                                                    "example": "INVALID_SIGNATURE"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "Invalid or expired verification link."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Verification Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "VERIFICATION_FAILED"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to verify email. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Email Verified Successfully or Already Verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Email verified successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Email verified successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tradie/auth/resend-verification": {
+            "post": {
+                "tags": [
+                    "Tradie Authentication"
+                ],
+                "summary": "Resend email verification for tradie",
+                "operationId": "1453c251f9b78cd3cdc5c88302dc9663",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "example@email.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "422": {
+                        "description": "Validation Error or User Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "description": "Can be VALIDATION_ERROR or USER_NOT_FOUND",
+                                                    "type": "string",
+                                                    "example": "VALIDATION_ERROR"
+                                                },
+                                                "message": {
+                                                    "description": "Error message varies based on error type",
+                                                    "type": "string",
+                                                    "example": "The given data was invalid."
+                                                },
+                                                "details": {
+                                                    "description": "Present only for validation errors",
+                                                    "type": "object",
+                                                    "example": {
+                                                        "email": "The email field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Resend Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "RESEND_FAILED"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Failed to send verification email. Please try again."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Verification Email Resent Successfully or Email Already Verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "description": "Can be 'Verification email resent successfully.' or 'Email already verified.'",
+                                            "type": "string",
+                                            "example": "Verification email resent successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/tradie/login": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Login tradie",
+                "description": "Authenticate a tradie user. The user must have verified their email address before they can log in.",
                 "operationId": "37330f2cabb0decf1322507772c2edfb",
                 "requestBody": {
                     "required": true,
@@ -1709,7 +2127,7 @@
                         }
                     },
                     "403": {
-                        "description": "Account Inactive",
+                        "description": "Account Inactive or Email Not Verified",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1721,10 +2139,12 @@
                                         "error": {
                                             "properties": {
                                                 "code": {
+                                                    "description": "Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED",
                                                     "type": "string",
                                                     "example": "ACCOUNT_INACTIVE"
                                                 },
                                                 "message": {
+                                                    "description": "Error message varies based on error type",
                                                     "type": "string",
                                                     "example": "Your account is not active. Please contact support."
                                                 }
@@ -1846,7 +2266,7 @@
         "/api/tradie/reset-password-request": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Request password reset OTP for tradie",
                 "description": "Request password reset OTP for tradie",
@@ -1956,7 +2376,7 @@
         "/api/tradie/reset-password": {
             "put": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Reset tradie password",
                 "description": "Reset tradie password",
@@ -2075,7 +2495,7 @@
         "/api/tradie/logout": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Logout tradie",
                 "operationId": "b7b66efff8c4d6835f4a7efdccbb3bf5",
@@ -2111,7 +2531,7 @@
         "/api/tradie/me": {
             "get": {
                 "tags": [
-                    "Authentication"
+                    "Tradie Authentication"
                 ],
                 "summary": "Get authenticated tradie details",
                 "operationId": "e1c4e5a86a03910e5e260e392c026898",
@@ -2256,8 +2676,12 @@
     },
     "tags": [
         {
-            "name": "Authentication",
-            "description": "Authentication"
+            "name": "Homeowner Authentication",
+            "description": "Homeowner Authentication"
+        },
+        {
+            "name": "Tradie Authentication",
+            "description": "Tradie Authentication"
         }
     ]
 }
