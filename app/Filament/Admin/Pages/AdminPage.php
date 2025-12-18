@@ -20,21 +20,33 @@ class AdminPage extends Page implements Tables\Contracts\HasTable
     // PAGE CONFIGURATION
     // =========================================================================
 
-    // Sidebar navigation group: groups this page under "User Overview"
-    protected static ?string $navigationGroup = 'User Overview';
+    // Override navigation methods instead of using properties
+    public static function getNavigationGroup(): ?string
+    {
+        return 'User Overview';
+    }
 
-    // Sidebar icon (null = no icon)
-    protected static ?string $navigationIcon = null;
+    public static function getNavigationIcon(): ?string
+    {
+        return null;
+    }
 
-    // Sidebar label: the name displayed for the page in the navigation
-    protected static ?string $navigationLabel = 'Admin';
+    public static function getNavigationLabel(): string
+    {
+        return 'Admin';
+    }
 
-    // Page title: displayed at the top of the page content
-    protected static ?string $title = 'Admin Accounts';
+    public function getTitle(): string
+    {
+        return 'Admin Accounts';
+    }
 
     // Blade view: the view used to render this page
     // IMPORTANT: must include {{ $this->table }} to render the table
-    protected static string $view = 'filament.admin.pages.admin-page';
+    public function getView(): string
+    {
+        return 'filament.admin.pages.admin-page';
+    }
 
     // =========================================================================
     // TABLE DEFINITION

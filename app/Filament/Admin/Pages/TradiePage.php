@@ -17,11 +17,30 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
     // =========================================================================
     // PAGE CONFIGURATION
     // =========================================================================
-    protected static ?string $navigationGroup = 'User Overview';
-    protected static ?string $navigationIcon = null;
-    protected static ?string $navigationLabel = 'Tradies';
-    protected static ?string $title = 'Registered Tradies';
-    protected static string $view = 'filament.admin.pages.tradie-page';
+    public static function getNavigationGroup(): ?string
+    {
+        return 'User Overview';
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        return null;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Tradies';
+    }
+
+    public function getTitle(): string
+    {
+        return 'Registered Tradies';
+    }
+
+    public function getView(): string
+    {
+        return 'filament.admin.pages.tradie-page';
+    }
     protected static int $pollingInterval = 5;
 
     // =========================================================================

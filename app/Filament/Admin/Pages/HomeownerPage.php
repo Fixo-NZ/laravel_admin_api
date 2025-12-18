@@ -20,21 +20,33 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
     // PAGE CONFIGURATION
     // =========================================================================
 
-    // Sidebar navigation group: groups this page under "User Overview"
-    protected static ?string $navigationGroup = 'User Overview';
+    // Override navigation methods instead of using properties
+    public static function getNavigationGroup(): ?string
+    {
+        return 'User Overview';
+    }
 
-    // Sidebar icon (null = no icon)
-    protected static ?string $navigationIcon = null;
+    public static function getNavigationIcon(): ?string
+    {
+        return null;
+    }
 
-    // Sidebar label: the name displayed for the page in the navigation
-    protected static ?string $navigationLabel = 'Homeowners';
+    public static function getNavigationLabel(): string
+    {
+        return 'Homeowners';
+    }
 
-    // Page title: displayed at the top of the page content
-    protected static ?string $title = 'Registered Homeowners';
+    public function getTitle(): string
+    {
+        return 'Registered Homeowners';
+    }
 
     // Blade view: the view used to render this page
     // IMPORTANT: must include {{ $this->table }} to render the table
-    protected static string $view = 'filament.admin.pages.homeowner-page';
+    public function getView(): string
+    {
+        return 'filament.admin.pages.homeowner-page';
+    }
 
     // Auto-refresh interval (in seconds)
     protected static int $pollingInterval = 5;
