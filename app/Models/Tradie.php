@@ -157,6 +157,11 @@ class Tradie extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'tradie_id');
+    }
+
     // public function sentMessages()
     // {
     //     return $this->hasMany(Message::class, 'sender_id');
@@ -165,16 +170,6 @@ class Tradie extends Authenticatable
     // public function receivedMessages()
     // {
     //     return $this->hasMany(Message::class, 'receiver_id');
-    // }
-
-    // public function reviews()
-    // {
-    //     return $this->hasMany(Review::class, 'reviewer_id');
-    // }
-
-    // public function receivedReviews()
-    // {
-    //     return $this->hasMany(Review::class, 'reviewee_id');
     // }
 
     // public function favoriteHomeowners()

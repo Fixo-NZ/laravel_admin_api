@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Review extends Model
 {
@@ -78,29 +79,35 @@ class Review extends Model
         return $query->where('homeowner_id', $homeownerId);
     }
 
-    // ─── Static Methods ──────────────────────────────────
+    // ─── Static Methods (OPTIMIZED WITH CACHING) ────────
     public static function getTradieAverageRating($tradieId)
     {
-        return static::forTradie($tradieId)
-            ->approved()
-            ->avg('rating');
+        return Cache::remember("tradie_avg_rating_{$tradieId}", 3600, function () use ($tradieId) {
+            return static::forTradie($tradieId)
+                ->approved()
+                ->avg('rating');
+        });
     }
 
     public static function getTradieReviewCount($tradieId)
     {
-        return static::forTradie($tradieId)
-            ->approved()
-            ->count();
+        return Cache::remember("tradie_review_count_{$tradieId}", 3600, function () use ($tradieId) {
+            return static::forTradie($tradieId)
+                ->approved()
+                ->count();
+        });
     }
 
     public static function getTradieRatingBreakdown($tradieId)
     {
-        return static::forTradie($tradieId)
-            ->approved()
-            ->selectRaw('rating, COUNT(*) as count')
-            ->groupBy('rating')
-            ->orderByDesc('rating')
-            ->pluck('count', 'rating')
-            ->toArray();
+        return Cache::remember("tradie_rating_breakdown_{$tradieId}", 3600, function () use ($tradieId) {
+            return static::forTradie($tradieId)
+                ->approved()
+                ->selectRaw('rating, COUNT(*) as count')
+                ->groupBy('rating')
+                ->orderByDesc('rating')
+                ->pluck('count', 'rating')
+                ->toArray();
+        });
     }
 }

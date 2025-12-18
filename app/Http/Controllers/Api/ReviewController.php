@@ -6,50 +6,53 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Models\ReviewReport;
 use App\Models\Job;
+use App\Models\Homeowner;
+use App\Models\Tradie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReviewController extends Controller
 {
     /**
-     * Get all reviews for a specific provider
+     * Get all reviews for a specific tradie
      */
-    public function getProviderReviews($tradieId)
+    public function getTradieReviews($tradieId)
     {
-    try {
-        $reviews = Review::with(['homeowner', 'job'])
-            ->where('tradie_id', $tradieId)
-            ->where('status', 'approved')
-            ->latest()
-            ->paginate(20);
+        try {
+            $reviews = Review::with(['homeowner', 'job'])
+                ->where('tradie_id', $tradieId)
+                ->where('status', 'approved')
+                ->latest()
+                ->paginate(20);
 
-        $stats = [
-            'average_rating' => Review::getTradieAverageRating($tradieId),
-            'total_reviews' => Review::getTradieReviewCount($tradieId),
-            'rating_breakdown' => Review::getTradieRatingBreakdown($tradieId),
-        ];
+            $stats = [
+                'average_rating' => Review::getTradieAverageRating($tradieId),
+                'total_reviews' => Review::getTradieReviewCount($tradieId),
+                'rating_breakdown' => Review::getTradieRatingBreakdown($tradieId),
+            ];
 
-        return response()->json([
-            'success' => true,
-            'data' => $reviews,
-            'stats' => $stats,
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $reviews,
+                'stats' => $stats,
+            ]);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
     /**
      * Get reviews for a specific job
      */
     public function getJobReview($jobId)
     {
-        $review = Review::with(['user', 'provider'])
+        $review = Review::with(['homeowner', 'tradie', 'job'])
             ->where('job_id', $jobId)
             ->approved()
             ->first();
@@ -81,7 +84,6 @@ class ReviewController extends Controller
             ], 404);
         }
 
-        // Check if job is completed
         if ($job->status !== 'completed') {
             return response()->json([
                 'success' => false,
@@ -90,9 +92,8 @@ class ReviewController extends Controller
             ]);
         }
 
-        // Check if already reviewed
         $existingReview = Review::where('job_id', $jobId)
-            ->where('user_id', auth()->id())
+            ->where('homeowner_id', auth()->id())
             ->exists();
 
         if ($existingReview) {
@@ -111,7 +112,7 @@ class ReviewController extends Controller
     }
 
     /**
-     * Submit a new review
+     * Submit a new job review
      */
     public function store(Request $request)
     {
@@ -119,7 +120,7 @@ class ReviewController extends Controller
             'job_id' => 'required|exists:jobs,id',
             'tradie_id' => 'required|exists:tradies,id',
             'rating' => 'required|integer|min:1|max:5',
-            'feedback' => 'nullable|string|max:5000',
+            'feedback' => 'nullable|string|min:3|max:5000',
             'service_quality_rating' => 'nullable|integer|min:1|max:5',
             'service_quality_comment' => 'nullable|string|max:1000',
             'performance_rating' => 'nullable|integer|min:1|max:5',
@@ -131,15 +132,44 @@ class ReviewController extends Controller
         ]);
 
         if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Spam prevention checks
+        $feedback = $request->feedback ?? '';
+        
+        // Check for duplicate/similar comments from same user in past 7 days
+        if ($feedback) {
+            $recentSimilarReview = Review::where('homeowner_id', auth()->id())
+                ->where('created_at', '>=', now()->subDays(7))
+                ->whereRaw('LOWER(feedback) = LOWER(?)', [trim($feedback)])
+                ->exists();
+            
+            if ($recentSimilarReview) {
                 return response()->json([
                     'success' => false,
-                    'errors' => $validator->errors(),
+                    'message' => 'You recently submitted a very similar review. Please provide original feedback.',
                 ], 422);
             }
+        }
+        
+        // Check rate limit: max 5 reviews per user per day
+        $reviewsToday = Review::where('homeowner_id', auth()->id())
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+        
+        if ($reviewsToday >= 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have reached the daily review limit (5 reviews per day). Please try again tomorrow.',
+            ], 429);
+        }
 
-        // Verify job belongs to user and is completed
         $job = Job::where('id', $request->job_id)
-            ->where('homeowner_id', auth()->id()) // Assuming auth()->user() is Homeowner
+            ->where('homeowner_id', auth()->id())
             ->where('status', 'completed')
             ->first();
 
@@ -150,7 +180,6 @@ class ReviewController extends Controller
             ], 403);
         }
 
-        // Check if already reviewed
         $existingReview = Review::where('job_id', $request->job_id)
             ->where('homeowner_id', auth()->id())
             ->exists();
@@ -162,11 +191,10 @@ class ReviewController extends Controller
             ], 403);
         }
 
-        // Create review
         $review = Review::create([
             'job_id' => $request->job_id,
             'homeowner_id' => auth()->id(),
-            'provider_id' => $request->provider_id,
+            'tradie_id' => $request->tradie_id,
             'rating' => $request->rating,
             'feedback' => $request->feedback,
             'service_quality_rating' => $request->service_quality_rating,
@@ -177,7 +205,7 @@ class ReviewController extends Controller
             'response_time_rating' => $request->response_time_rating,
             'best_feature' => $request->best_feature,
             'show_username' => $request->show_username ?? true,
-            'status' => 'approved', // Auto-approve or set to 'pending' if you want manual review
+            'status' => 'approved',
         ]);
 
         return response()->json([
@@ -188,144 +216,195 @@ class ReviewController extends Controller
     }
 
     /**
-     * Mark a review as helpful
+     * ⭐ NEW: Store simple feedback from Flutter (NO Dart server)
+     * OPTIMIZED: Minimal logging, efficient database query, streamlined response
      */
-    public function markHelpful($reviewId)
-    {
-        $review = Review::find($reviewId);
+public function storeFeedback(Request $request)
+{
+    // Fast validation with no unnecessary logging
+    $validator = Validator::make($request->all(), [
+        'name' => 'nullable|string|max:255',
+        'rating' => 'required|integer|min:1|max:5',
+        'comment' => 'nullable|string|min:3|max:5000',
+        'mediaPaths' => 'nullable|array',
+        'contractorId' => 'nullable|integer',
+    ]);
 
-        if (!$review) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Review not found',
-            ], 404);
-        }
-
-        $review->increment('helpful_count');
-
+    if ($validator->fails()) {
+        Log::warning('Feedback validation failed', ['errors' => $validator->errors()->all()]);
         return response()->json([
-            'success' => true,
-            'message' => 'Review marked as helpful',
-            'helpful_count' => $review->helpful_count,
-        ]);
+            'success' => false,
+            'errors' => $validator->errors(),
+            'message' => 'Validation failed',
+        ], 422);
     }
 
-    /**
-     * Report a review
-     */
-    public function reportReview(Request $request, $reviewId)
-    {
-        $validator = Validator::make($request->all(), [
-            'reason' => 'required|in:spam,offensive,inappropriate,fake,other',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
+    try {
+        // Extract and prepare data efficiently
+        $validated = $validator->validated();
+        $name = $validated['name'] ?? 'Anonymous';
+        $rating = (int) $validated['rating'];
+        $comment = trim($validated['comment'] ?? '');
+        $mediaPaths = $validated['mediaPaths'] ?? [];
+        $contractorId = $validated['contractorId'] ?? null;
+        
+        // Spam prevention: check for duplicate comments in past 7 days
+        if ($comment) {
+            $recentSimilarFeedback = Review::where('homeowner_id', auth()->id())
+                ->where('created_at', '>=', now()->subDays(7))
+                ->whereRaw('LOWER(feedback) = LOWER(?)', [$comment])
+                ->exists();
+            
+            if ($recentSimilarFeedback) {
+                Log::warning('Duplicate feedback attempt', [
+                    'homeowner_id' => auth()->id(),
+                    'comment_preview' => substr($comment, 0, 50),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Similar feedback already submitted recently. Please provide original feedback.',
+                ], 422);
+            }
+        }
+        
+        // Rate limit: max 10 feedback submissions per user per day
+        $feedbackToday = Review::where('homeowner_id', auth()->id())
+            ->where('created_at', '>=', now()->startOfDay())
+            ->where('job_id', null)
+            ->count();
+        
+        if ($feedbackToday >= 10) {
+            Log::warning('Feedback rate limit exceeded', ['homeowner_id' => auth()->id()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => 'You have reached the daily feedback limit (10 per day). Try again tomorrow.',
+            ], 429);
         }
 
-        $review = Review::find($reviewId);
-
-        if (!$review) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Review not found',
-            ], 404);
-        }
-
-        // Check if user already reported this review
-        $existingReport = ReviewReport::where('review_id', $reviewId)
-            ->where('reported_by', auth()->id())
-            ->exists();
-
-        if ($existingReport) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already reported this review',
-            ], 403);
-        }
-
-        $report = ReviewReport::create([
-            'review_id' => $reviewId,
-            'reported_by' => auth()->id(),
-            'reason' => $request->reason,
-            'description' => $request->description,
-            'status' => 'pending',
+        Log::info('Attempting to store feedback', [
+            'name' => $name,
+            'rating' => $rating,
+            'comment' => $comment,
+            'contractorId' => $contractorId,
+            'homeowner_id' => auth()->id(),
         ]);
 
-        // Update review status to reported
-        $review->update(['status' => 'reported']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Review reported successfully. Our team will review it shortly.',
-            'data' => $report,
-        ], 201);
-    }
-
-    /**
-     * Get reviews given by the authenticated user
-     */
-    public function myReviews()
-    {
-        $reviews = Review::with(['provider', 'job'])
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->paginate(20);
-
-        return response()->json([
-            'success' => true,
-            'data' => $reviews,
+        // Create review directly without intermediate variables
+        $review = Review::create([
+            'job_id' => null,
+            'homeowner_id' => auth()->id(),
+            'tradie_id' => $contractorId,
+            'rating' => $rating,
+            'feedback' => $comment,
+            'images' => $mediaPaths,
+            'helpful_count' => 0,
+            'show_username' => $name !== 'Anonymous',
+            'status' => 'approved',
         ]);
-    }
 
-    /**
-     * Get statistics for a provider
-     */
-    public function getProviderStats($providerId)
-    {
-        $totalReviews = Review::forProvider($providerId)->approved()->count();
-        $averageRating = Review::getProviderAverageRating($providerId);
-        $ratingBreakdown = Review::getProviderRatingBreakdown($providerId);
+        Log::info('Feedback stored successfully', ['review_id' => $review->id]);
 
-        // Calculate percentages
-        $ratingPercentages = [];
-        foreach (range(1, 5) as $star) {
-            $count = $ratingBreakdown[$star] ?? 0;
-            $ratingPercentages[$star] = [
-                'count' => $count,
-                'percentage' => $totalReviews > 0 ? round(($count / $totalReviews) * 100, 1) : 0,
-            ];
+        // Invalidate relevant caches for this contractor
+        if ($contractorId) {
+            \Illuminate\Support\Facades\Cache::forget("tradie_avg_rating_{$contractorId}");
+            \Illuminate\Support\Facades\Cache::forget("tradie_review_count_{$contractorId}");
+            \Illuminate\Support\Facades\Cache::forget("tradie_rating_breakdown_{$contractorId}");
         }
 
-        // Get detailed ratings averages
-        $detailedRatings = Review::forProvider($providerId)
-            ->approved()
-            ->select([
-                DB::raw('AVG(service_quality_rating) as avg_service_quality'),
-                DB::raw('AVG(performance_rating) as avg_performance'),
-                DB::raw('AVG(contractor_service_rating) as avg_contractor_service'),
-                DB::raw('AVG(response_time_rating) as avg_response_time'),
-            ])
-            ->first();
-
+        // Build response from local variables (no reload from DB)
         return response()->json([
-            'success' => true,
             'data' => [
-                'total_reviews' => $totalReviews,
-                'average_rating' => round($averageRating, 1),
-                'rating_breakdown' => $ratingPercentages,
-                'detailed_ratings' => [
-                    'service_quality' => round($detailedRatings->avg_service_quality ?? 0, 1),
-                    'performance' => round($detailedRatings->avg_performance ?? 0, 1),
-                    'contractor_service' => round($detailedRatings->avg_contractor_service ?? 0, 1),
-                    'response_time' => round($detailedRatings->avg_response_time ?? 0, 1),
-                ],
-            ],
+                'id' => (string) $review->id,
+                'name' => $name,
+                'rating' => $rating,
+                'date' => $review->created_at->toIso8601String(),
+                'comment' => $comment,
+                'likes' => 0,
+                'isLiked' => false,
+                'mediaPaths' => $mediaPaths,
+                'contractorId' => $contractorId ? (string) $contractorId : null,
+            ]
+        ], 201);
+    } catch (\Exception $e) {
+        Log::error('Failed to store feedback', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'request' => $request->all(),
         ]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to store feedback',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+    /**
+     * Delete feedback by ID (OPTIMIZED)
+     */
+    public function deleteFeedback($id)
+    {
+        try {
+            $review = Review::find($id);
+
+            if (!$review) {
+                return response()->json(['error' => 'Not found'], 404);
+            }
+
+            $tradieId = $review->tradie_id;
+            $review->delete();
+
+            // Invalidate cache for affected tradie
+            if ($tradieId) {
+                \Illuminate\Support\Facades\Cache::forget("tradie_avg_rating_{$tradieId}");
+                \Illuminate\Support\Facades\Cache::forget("tradie_review_count_{$tradieId}");
+                \Illuminate\Support\Facades\Cache::forget("tradie_rating_breakdown_{$tradieId}");
+            }
+
+            return response('', 204);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to delete review',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle like status (OPTIMIZED)
+     */
+    public function likeFeedback($id)
+    {
+        try {
+            $review = Review::find($id);
+
+            if (!$review) {
+                return response()->json(['error' => 'Not found'], 404);
+            }
+
+            $newLikes = $review->helpful_count > 0 ? 0 : 1;
+            $review->update(['helpful_count' => $newLikes]);
+
+            return response()->json([
+                'data' => [
+                    'id' => (string) $review->id,
+                    'name' => $review->homeowner->first_name ?? 'Anonymous',
+                    'rating' => $review->rating,
+                    'date' => $review->created_at->toIso8601String(),
+                    'comment' => $review->feedback,
+                    'likes' => $review->helpful_count,
+                    'isLiked' => $review->helpful_count > 0,
+                    'mediaPaths' => $review->images ?? [],
+                    'contractorId' => $review->tradie_id ? (string) $review->tradie_id : null,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to update like',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
