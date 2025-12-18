@@ -17,7 +17,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
     // =========================================================================
     // PAGE CONFIGURATION
     // =========================================================================
-    protected static ?string $navigationGroup = 'User Overview';
+    protected static ?string $navigationGroup = 'Tradie';
     protected static ?string $navigationIcon = null;
     protected static ?string $navigationLabel = 'Tradies';
     protected static ?string $title = 'Registered Tradies';
@@ -105,12 +105,12 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
                     'unavailable' => 'Unavailable',
                 ]),
         ])
-        // Open the TradieProfile page within Filament
-        ->recordUrl(fn (Tradie $record) => url('/admin/tradies/profile/' . $record->id))
+        // Open the TradieProfile page within Filament using the named Filament page route
+        ->recordUrl(fn (Tradie $record) => url('/tradie-profile/' . $record->id))
         ->actions([
             Action::make('viewProfile')
                 ->label('')
-                ->url(fn (Tradie $record) => url('/admin/tradies/profile/' . $record->id)),
+                ->url(fn (Tradie $record) => url('/tradie-profile/' . $record->id)),
         ])
         ->bulkActions([]);
 }

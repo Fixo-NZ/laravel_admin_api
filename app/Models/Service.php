@@ -10,47 +10,59 @@ class Service extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
-        'category',
-        'is_active',
+        'homeowner_id',
+        'job_categoryid',
+        'job_description',
+        'location',
+        'status',
+        'rating',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'rating' => 'integer',
     ];
 
     // Scopes
-    public function scopeActive($query)
+    public function scopePending($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'Pending');
     }
 
-    public function scopeByCategory($query, $category)
+    public function scopeInProgress($query)
     {
-        return $query->where('category', $category);
+        return $query->where('status', 'InProgress');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'Completed');
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'Cancelled');
+    }
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('job_categoryid', $categoryId);
     }
 
     // Relationships
+    public function homeowner()
+    {
+        return $this->belongsTo(Homeowner::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'job_categoryid');
+    }
+
     public function tradies()
     {
         return $this->belongsToMany(Tradie::class, 'tradie_services')
             ->withPivot('base_rate')
             ->withTimestamps();
-    }
-
-    // public function jobs()
-    // {
-    //     return $this->hasMany(Job::class);
-    // }
-
-    // Static methods
-    public static function getCategories()
-    {
-        return self::active()
-            ->distinct()
-            ->pluck('category')
-            ->sort()
-            ->values();
     }
 }

@@ -222,7 +222,6 @@ class TradieAuthController extends Controller
                     'type' => 'Bearer',
                 ],
             ], 200);
-
         }
 
         return response()->json([
@@ -529,30 +528,14 @@ class TradieAuthController extends Controller
 
         $token = $tradie->createToken('tradie-token')->plainTextToken;
 
+        // Return success response with token
         return response()->json([
             'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $tradie->id,
-                    'name' => $tradie->name,
-                    'email' => $tradie->email,
-                    'phone' => $tradie->phone,
-                    'business_name' => $tradie->business_name,
-                    'license_number' => $tradie->license_number,
-                    'years_experience' => $tradie->years_experience,
-                    'hourly_rate' => $tradie->hourly_rate,
-                    'address' => $tradie->address,
-                    'city' => $tradie->city,
-                    'region' => $tradie->region,
-                    'postal_code' => $tradie->postal_code,
-                    'service_radius' => $tradie->service_radius,
-                    'availability_status' => $tradie->availability_status,
-                    'status' => $tradie->status,
-                    'user_type' => 'tradie',
-                ],
+            'data'    => [
+                'user'  => $tradie,
                 'token' => $token,
-            ]
-        ]);
+            ],
+        ], 200);
     }
 
     /**
@@ -618,7 +601,7 @@ class TradieAuthController extends Controller
         }
 
         $tradie = Tradie::where('email', $request->email)->first();
-        
+
         $otp = $this->otpService->generateOtp($tradie->phone);
 
         $tradie->notify(new SendOtp($otp));
@@ -628,8 +611,7 @@ class TradieAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             return response()->json([
                 'success' => false,
                 'error' => [
@@ -802,10 +784,10 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'first_name' => $tradie->first_name,
-                    'last_name' => $tradie->last_name,
+                    'first_name' => $tradie->first_name ?? '',
                     'middle_name' => $tradie->middle_name,
-                    'email' => $tradie->email,
+                    'last_name' => $tradie->last_name ?? '',
+                    'email' => $tradie->email ?? '',
                     'phone' => $tradie->phone,
                     'avatar' => $tradie->avatar,
                     'bio' => $tradie->bio,
@@ -820,8 +802,8 @@ class TradieAuthController extends Controller
                     'postal_code' => $tradie->postal_code,
                     'latitude' => $tradie->latitude,
                     'longitude' => $tradie->longitude,
-                    'service_radius' => $tradie->service_radius,
-                    'availability_status' => $tradie->availability_status,
+                    'service_radius' => $tradie->service_radius ?? 50,
+                    'availability_status' => $tradie->availability_status ?? 'available',
                     'status' => $tradie->status,
                     'user_type' => 'tradie',
                 ]

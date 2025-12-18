@@ -20,8 +20,8 @@ class HomeownerPage extends Page implements Tables\Contracts\HasTable
     // PAGE CONFIGURATION
     // =========================================================================
 
-    // Sidebar navigation group: groups this page under "User Overview"
-    protected static ?string $navigationGroup = 'User Overview';
+    // Sidebar navigation group: place this under its own top-level group
+    protected static ?string $navigationGroup = 'Homeowner';
 
     // Sidebar icon (null = no icon)
     protected static ?string $navigationIcon = null;

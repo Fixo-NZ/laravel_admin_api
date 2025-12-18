@@ -77,10 +77,20 @@ class AdminPanelProvider extends PanelProvider
             // COLLAPSIBLE VERSION (Default Active)
             // ================================================================
             ->navigationGroups([
-                \Filament\Navigation\NavigationGroup::make('User Overview')
-                    ->icon('heroicon-o-user-circle')
-                    ->collapsible() // makes it expandable/collapsible
-                    ->collapsed(),  // starts collapsed by default
+                \Filament\Navigation\NavigationGroup::make('Admin')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsible()
+                    ->collapsed(false),
+
+                \Filament\Navigation\NavigationGroup::make('Homeowner')
+                    ->icon('heroicon-o-user-group')
+                    ->collapsible()
+                    ->collapsed(),
+
+                \Filament\Navigation\NavigationGroup::make('Tradie')
+                    ->icon('heroicon-o-briefcase')
+                    ->collapsible()
+                    ->collapsed(),
             ])
 
             ->authMiddleware([
