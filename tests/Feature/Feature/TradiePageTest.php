@@ -27,7 +27,6 @@ class TradiePageTest extends TestCase
         Tradie::factory()->count(3)->create();
     }
 
-    /** @test */
     public function admin_can_view_tradie_page_and_see_tradies()
     {
         $response = $this->actingAs($this->admin)
@@ -55,7 +54,6 @@ class TradiePageTest extends TestCase
         $response->assertSee('Status');
     }
 
-        /** @test */
     public function admin_can_search_tradies_without_livewire()
     {
         // Create some tradies

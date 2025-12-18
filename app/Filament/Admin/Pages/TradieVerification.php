@@ -14,7 +14,7 @@ class TradieVerification extends Page implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-check-badge';
+    protected static \BackedEnum|string|null $navigationIcon = null;
     protected static ?string $navigationLabel = 'Verifications';
     protected static ?string $title = 'Tradie Verifications';
 

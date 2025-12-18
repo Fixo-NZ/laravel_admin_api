@@ -7,9 +7,11 @@ use App\Models\Tradie;
 use App\Services\OtpService;
 use App\Notifications\SendOtp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Auth\Events\Registered;
 
 class TradieAuthController extends Controller
 {
@@ -24,7 +26,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/request-otp",
      *     summary="Request OTP for Tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -47,9 +49,8 @@ class TradieAuthController extends Controller
      *         response=201,
      *         description="OTP sent successfully",
      *         @OA\JsonContent(
-     *              @OA\Property(property="success", type="boolean", example=true),
-     *              @OA\Property(property="message", type="string", example="OTP sent successfully"),
-     *              @OA\Property(property="otp_code", type="string", example="123456"),
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully"),
      *        )
      *     ),
      *     @OA\Response(
@@ -67,7 +68,6 @@ class TradieAuthController extends Controller
      */
     public function requestOtp(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'phone' => 'required|digits_between:8,15',
         ]);
@@ -89,7 +89,6 @@ class TradieAuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'OTP sent successfully',
-                'otp_code' => $otp->otp_code
             ], 201);
         }
 
@@ -106,75 +105,55 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/verify-otp",
      *     summary="Verify OTP for Tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="phone", type="string", example="09123456789"),
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
      *             @OA\Property(property="otp_code", type="string", example="123456"),
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation Error",
+     *         description="Validation Error or User Not Found",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *                 @OA\Property(property="details", type="object", example="{ phone: ['The phone field is required.'], otp_code: ['The otp code field is required.'] }"),
+     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
+     *                 @OA\Property(property="details", type="object", example={"email": "The email field is required."}, description="Present only for validation errors")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="OTP verification successful",
+     *         description="OTP successfully verified",
      *         @OA\JsonContent(
-     *         oneOf={
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="new_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful. Please proceed to registration."),
-     *             ),
-     *             @OA\Schema(
-     *                 @OA\Property(property="success", type="boolean", example=true),
-     *                 @OA\Property(property="status", type="string", example="existing_user"),
-     *                 @OA\Property(property="message", type="string", example="OTP verification successful."),
-     *                 @OA\Property(property="data", type="object",
-     *                     @OA\Property(property="user", type="object",
-     *                         @OA\Property(property="first_name", type="string", example="John"),
-     *                         @OA\Property(property="last_name", type="string", example="Doe"),
-     *                         @OA\Property(property="email", type="string", example="john.doe@gmail.com"),
-     *                         @OA\Property(property="phone", type="string", example="09123456789"),
-     *                         @OA\Property(property="status", type="string", example="active"),
-     *                         @OA\Property(property="user_type", type="string", example="tradie"),
-     *                     ),
-     *                     @OA\Property(property="authorisation", type="object",
-     *                         @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                         @OA\Property(property="type", type="string", example="Bearer"),
-     *                     )
-     *                 )
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP successfully verified."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="password_reset_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="expires_at", type="string", example="2024-12-31 23:59:59"),
      *             )
-     *         }
      *         )
      *     ),
      *     @OA\Response(
-     *         response=500,
-     *         description="OTP Generation Error",
+     *         response=400,
+     *         description="OTP Verification Error",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="OTP_ERROR"),
-     *                 @OA\Property(property="message", type="string", example="Failed to generate OTP. Please try again."),
+     *                 @OA\Property(property="code", type="string", example="OTP_VERIFICATION_ERROR"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify OTP. Please try again."),
      *             )
      *         )
-     *     )
+     *    )
      * )
      */
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'phone' => 'required|digits_between:8,15',
+            'email' => 'required|email',
             'otp_code' => 'required|digits:6',
         ]);
 
@@ -189,41 +168,36 @@ class TradieAuthController extends Controller
             ], 422);
         }
 
-        if ($this->otpService->verifyOtp($request->phone, $request->otp_code)) {
+        $tradie = Tradie::where('email', $request->email)->first();
 
-            $tradie = Tradie::where('phone', $request->phone)->first();
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
 
-            if (! $tradie) {
-                return response()->json([
-                    'success' => true,
-                    'status' => 'new_user',
-                    'message' => 'OTP verification successful. Please proceed to registration.',
-                ], 200);
-            }
+        if ($this->otpService->verifyOtp($tradie->phone, $request->otp_code)) {
 
-            $tradie->tokens()->delete();
-            $token = $tradie->createToken('tradie-token')->plainTextToken;
+            $tradie->tokens()->where('name', 'password-reset-token')->delete();
+
+            $token = $tradie->createToken(
+                'password-reset-token',
+                ['reset-password'],
+                now()->addMinutes(60)
+            );
 
             return response()->json([
                 'success' => true,
-                'status' => 'existing_user',
-                'message' => 'OTP verification successful.',
+                'message' => 'OTP successfully verified.',
                 'data' => [
-                    'user' => [
-                        'first_name' => $tradie->first_name,
-                        'last_name' => $tradie->last_name,
-                        'email' => $tradie->email,
-                        'phone' => $tradie->phone,
-                        'status' => $tradie->status,
-                        'user_type' => 'tradie',
-                    ],
-                ],
-                'authorisation' => [
-                    'access_token' => $token,
-                    'type' => 'Bearer',
-                ],
+                    'password_reset_token' => $token->plainTextToken,
+                    'expires_at' => now()->addMinutes(60)->toDateTimeString(),
+                ]
             ], 200);
-
         }
 
         return response()->json([
@@ -238,8 +212,9 @@ class TradieAuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/tradie/register",
-     *     summary="Register a new user",
-     *     tags={"Authentication"},
+     *     summary="Register a new tradie user",
+     *     description="Register a new tradie account. A verification email will be sent to the provided email address. The user must verify their email before they can log in.",
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -368,6 +343,8 @@ class TradieAuthController extends Controller
                 'status' => 'active',
             ]);
 
+            event(new Registered($tradie));
+
             $token = $tradie->createToken('tradie-token')->plainTextToken;
 
             return response()->json([
@@ -408,10 +385,228 @@ class TradieAuthController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/tradie/auth/verify-email/{id}/{hash}",
+     *     summary="Verify tradie email",
+     *     tags={"Tradie Authentication"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Tradie ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         in="path",
+     *         description="Email verification hash",
+     *         required=true,
+     *         @OA\Schema(type="string", example="sha1-hash-of-email")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tradie Not Found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="This user does not exist."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid Signature or Hash Mismatch",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="INVALID_SIGNATURE", description="Can be INVALID_SIGNATURE or INVALID_VERIFICATION"),
+     *                 @OA\Property(property="message", type="string", example="Invalid or expired verification link.", description="Error message varies based on error type")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Verification Failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VERIFICATION_FAILED"),
+     *                 @OA\Property(property="message", type="string", example="Failed to verify email. Please try again."),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email Verified Successfully or Already Verified",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Email verified successfully.", description="Can be 'Email verified successfully.' or 'Email already verified.'")
+     *         )
+     *     ),
+     * )
+     */
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $tradie = Tradie::find($id);
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
+                ]
+            ], 404);
+        }
+
+        if (!URL::hasValidSignature($request)) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SIGNATURE',
+                    'message' => 'Invalid or expired verification link.',
+                ]
+            ], 403);
+        }
+
+        if (!hash_equals((string) $hash, sha1($tradie->getEmailForVerification()))) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_VERIFICATION',
+                    'message' => 'Verification details do not match.',
+                ]
+            ], 403);
+        }
+
+        if ($tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        if (!$tradie->markEmailAsVerified()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VERIFICATION_FAILED',
+                    'message' => 'Failed to verify email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully.',
+        ], 200);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/tradie/auth/resend-verification",
+     *     summary="Resend email verification for tradie",
+     *     tags={"Tradie Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="example@email.com"),
+     *        )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation Error or User Not Found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="VALIDATION_ERROR", description="Can be VALIDATION_ERROR or USER_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="The given data was invalid.", description="Error message varies based on error type"),
+     *                 @OA\Property(property="details", type="object", example={"email": "The email field is required."}, description="Present only for validation errors")
+     *             )
+     *         )
+     *    ),
+     *    @OA\Response(
+     *        response=500,
+     *        description="Resend Failed",
+     *        @OA\JsonContent(
+     *            @OA\Property(property="success", type="boolean", example=false),
+     *            @OA\Property(property="error", type="object",
+     *                @OA\Property(property="code", type="string", example="RESEND_FAILED"),
+     *                @OA\Property(property="message", type="string", example="Failed to send verification email. Please try again."),
+     *            )
+     *        )
+     *    ),
+     *    @OA\Response(
+     *        response=200,
+     *        description="Verification Email Resent Successfully or Email Already Verified",
+     *        @OA\JsonContent(
+     *            @OA\Property(property="success", type="boolean", example=true),
+     *            @OA\Property(property="message", type="string", example="Verification email resent successfully.", description="Can be 'Verification email resent successfully.' or 'Email already verified.'")
+     *        )
+     *    )
+     * )
+     */
+    public function resendEmailVerification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'The given data was invalid.',
+                    'details' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $tradie = Tradie::where('email', $request->email)->first();
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'This user does not exist.',
+                ]
+            ], 422);
+        }
+
+        if ($tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+            ], 200);
+        }
+
+        try {
+            $tradie->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESEND_FAILED',
+                    'message' => 'Failed to send verification email. Please try again.',
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email resent successfully.',
+        ], 200);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/tradie/login",
      *     summary="Login tradie",
-     *     tags={"Authentication"},
+     *     description="Authenticate a tradie user. The user must have verified their email address before they can log in.",
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -444,12 +639,12 @@ class TradieAuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Account Inactive",
+     *         description="Account Inactive or Email Not Verified",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="error", type="object",
-     *                 @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE"),
-     *                 @OA\Property(property="message", type="string", example="Your account is not active. Please contact support."),
+     *                 @OA\Property(property="code", type="string", example="ACCOUNT_INACTIVE", description="Can be ACCOUNT_INACTIVE or EMAIL_NOT_VERIFIED"),
+     *                 @OA\Property(property="message", type="string", example="Your account is not active. Please contact support.", description="Error message varies based on error type")
      *             )
      *         )
      *     ),
@@ -525,6 +720,17 @@ class TradieAuthController extends Controller
             ], 403);
         }
 
+        // Check if email is verified
+        if (!$tradie->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'message' => 'Please verify your email before logging in.',
+                ]
+            ], 403);
+        }
+
         // Revoke existing tokens
         $tradie->tokens()->delete();
 
@@ -535,7 +741,9 @@ class TradieAuthController extends Controller
             'data' => [
                 'user' => [
                     'id' => $tradie->id,
-                    'name' => $tradie->name,
+                    'first_name' => $tradie->first_name,
+                    'last_name' => $tradie->last_name,
+                    'middle_name' => $tradie->middle_name,
                     'email' => $tradie->email,
                     'phone' => $tradie->phone,
                     'business_name' => $tradie->business_name,
@@ -561,7 +769,7 @@ class TradieAuthController extends Controller
      *     path="/api/tradie/reset-password-request",
      *     summary="Request password reset OTP for tradie",
      *     description="Request password reset OTP for tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -604,7 +812,7 @@ class TradieAuthController extends Controller
     public function resetPasswordRequest(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:tradies,email',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
@@ -612,14 +820,24 @@ class TradieAuthController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
-                    'message' => 'The given email does not exist as a user.',
+                    'message' => 'The given email is invalid.',
                     'details' => $validator->errors()
                 ]
             ], 422);
         }
 
         $tradie = Tradie::where('email', $request->email)->first();
-        
+
+        if (!$tradie) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'USER_NOT_FOUND',
+                    'message' => 'The given email does not exist as a user.',
+                ]
+            ], 422);
+        }
+
         $otp = $this->otpService->generateOtp($tradie->phone);
 
         $tradie->notify(new SendOtp($otp));
@@ -629,8 +847,7 @@ class TradieAuthController extends Controller
                 'status' => true,
                 'message' => 'OTP sent successfully'
             ], 201);
-        }
-        else {
+        } else {
             return response()->json([
                 'success' => false,
                 'error' => [
@@ -646,7 +863,7 @@ class TradieAuthController extends Controller
      *     path="/api/tradie/reset-password",
      *     summary="Reset tradie password",
      *     description="Reset tradie password",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -711,6 +928,11 @@ class TradieAuthController extends Controller
             $tradie->password = Hash::make($request->new_password);
             $tradie->save();
 
+            // Revoke token used for resetting password
+            $tradie->currentAccessToken()->delete();
+            // Revoke all other tokens forcing re-login on all devices
+            $tradie->tokens()->where('name', '!=', 'password-reset-token')->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Password reset successfully.'
@@ -730,7 +952,7 @@ class TradieAuthController extends Controller
      * @OA\Post(
      *     path="/api/tradie/logout",
      *     summary="Logout tradie",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
@@ -752,7 +974,6 @@ class TradieAuthController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
     public function uploadAvatar(Request $request)
     {
         $request->validate([
@@ -779,12 +1000,11 @@ class TradieAuthController extends Controller
         ]);
     }
 
-=======
     /**
      * @OA\Get(
      *     path="/api/tradie/me",
      *     summary="Get authenticated tradie details",
-     *     tags={"Authentication"},
+     *     tags={"Tradie Authentication"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
@@ -822,7 +1042,6 @@ class TradieAuthController extends Controller
      *     )
      * )
      */
->>>>>>> origin/main
     public function me(Request $request)
     {
         $tradie = $request->user();

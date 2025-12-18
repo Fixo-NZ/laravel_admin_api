@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationGroup;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -65,10 +66,20 @@ class AdminPanelProvider extends PanelProvider
             // COLLAPSIBLE VERSION (Default Active)
             // ================================================================
             ->navigationGroups([
-                \Filament\Navigation\NavigationGroup::make('User Overview')
+                NavigationGroup::make('User Overview')
                     ->icon('heroicon-o-user-circle')
-                    ->collapsible() // makes it expandable/collapsible
-                    ->collapsed(),  // starts collapsed by default
+                    ->collapsible()
+                    ->collapsed(),
+
+                NavigationGroup::make('Complaints')
+                    ->icon('heroicon-o-exclamation-circle')
+                    ->collapsible()
+                    ->collapsed(),
+
+                NavigationGroup::make('Moderation')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsible()
+                    ->collapsed(),
             ])
 
             ->authMiddleware([
