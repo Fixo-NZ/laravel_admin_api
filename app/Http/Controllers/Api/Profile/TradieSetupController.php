@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Tradie;
+use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Facades\Storage;
 
 class TradieSetupController extends Controller
@@ -69,6 +70,41 @@ class TradieSetupController extends Controller
                 ]
             ], 500);
         }
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // MAX 5MB
+        ]);
+
+        $tradie = $request->user();
+
+        // If no file uploaded, return success (optional step)
+        if (!$request->hasFile('avatar')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'No avatar uploaded (optional step)',
+            ], 200);
+        }
+
+        // Delete old avatar if exists
+        if ($tradie->avatar) {
+            Storage::disk('public')->delete($tradie->avatar);
+        }
+
+        // Store new avatar in "storage/app/public/avatars"
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // Save path to database
+        $tradie->avatar = $path;
+        $tradie->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture uploaded successfully!',
+            'avatar_url' => asset('storage/' . $path),
+        ]);
     }
 
     //Upload license or ID files

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\HomeownerAuthController;
 use App\Http\Controllers\Api\Auth\TradieAuthController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Api\Profile\TradieSetupController; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
@@ -63,18 +64,17 @@ Route::prefix('tradie')->group(function () {
         Route::put('/reset-password', [TradieAuthController::class, 'resetPassword']);
         Route::post('logout', [TradieAuthController::class, 'logout']);
         Route::get('me', [TradieAuthController::class, 'me']);
-        Route::post('upload-avatar', [TradieAuthController::class, 'uploadAvatar']); //Upload Avatar Route (Profile Setup)
-
         // Profile Setup Routes
         Route::prefix('profile-setup')->group(function () {
-            Route::post('basic-info', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateBasicInfo']);
-            Route::post('skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateSkillsAndService']);
-            Route::post('availability', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updateAvailability']);
-            Route::post('portfolio', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'updatePortfolio']);
-            Route::post('complete', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'completeSetup']);
-            Route::get('get-profile', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getProfile']);
-            Route::get('get-skills', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'getSkills']);
-            Route::post('licenses', [App\Http\Controllers\Api\Profile\TradieSetupController::class, 'uploadLicenseFiles']);
+            Route::post('avatar', [TradieSetupController::class, 'uploadAvatar']);
+            Route::post('basic-info', [TradieSetupController::class, 'updateBasicInfo']);
+            Route::post('skills', [TradieSetupController::class, 'updateSkillsAndService']);
+            Route::post('availability', [TradieSetupController::class, 'updateAvailability']);
+            Route::post('portfolio', [TradieSetupController::class, 'updatePortfolio']);
+            Route::post('complete', [TradieSetupController::class, 'completeSetup']);
+            Route::get('get-profile', [TradieSetupController::class, 'getProfile']);
+            Route::get('get-skills', [TradieSetupController::class, 'getSkills']);
+            Route::post('licenses', [TradieSetupController::class, 'uploadLicenseFiles']);
         });
     });
 });
@@ -86,6 +86,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::delete('/payments/{id}/delete', [PaymentController::class, 'deletePayment']);
     Route::put('/payments/{id}/update', [PaymentController::class, 'updatePayment']);
 });
+
+
 
 // Protected routes (for authenticated users)
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
