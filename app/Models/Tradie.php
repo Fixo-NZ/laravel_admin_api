@@ -159,6 +159,11 @@ class Tradie extends Authenticatable implements MustVerifyEmail
         return round($rate, 2);
     }
 
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
+
     public function routeNotificationForMail(Notification $notification): array|string
     {
         return [$this->email => $this->first_name . ' ' . $this->last_name];

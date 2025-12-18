@@ -26,11 +26,6 @@ class TradieComplaintResource extends Resource
     protected static ?string $navigationLabel = 'Tradies';
     protected static ?string $title = 'F Tradies';
 
-    public static function form(Schema $schema): Schema
-    {
-        return TradieComplaintForm::configure($schema);
-    }
-
     public static function infolist(Schema $schema): Schema
     {
         return TradieComplaintInfolist::configure($schema);

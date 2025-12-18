@@ -80,6 +80,11 @@ class Homeowner extends Authenticatable implements MustVerifyEmail
         });
     }
 
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
+
     // ─── Scopes ────────────────────────────────────────────────
     // Allow cleaner queries such as Homeowner::active()->get();
     public function scopeActive($query)

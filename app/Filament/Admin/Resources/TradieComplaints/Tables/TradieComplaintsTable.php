@@ -15,12 +15,6 @@ class TradieComplaintsTable
     {
         return $table
             ->columns([
-                TextColumn::make('tradie_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('homeowner_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('title')
                     ->searchable(),
                 TextColumn::make('status'),
@@ -38,10 +32,6 @@ class TradieComplaintsTable
             ])
             ->filters([
                 //
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

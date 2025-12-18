@@ -18,10 +18,8 @@ class TradieVerification extends Page implements Tables\Contracts\HasTable
     protected static ?string $navigationLabel = 'Verifications';
     protected static ?string $title = 'Tradie Verifications';
 
-    // ✅ Puts it in the sidebar group with Complaints
     protected static \UnitEnum|string|null $navigationGroup = 'Moderation';
 
-    // ✅ Sidebar order
     protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.admin.pages.tradie-verification';
