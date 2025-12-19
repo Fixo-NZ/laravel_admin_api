@@ -15,6 +15,13 @@ return new class extends Migration
             $table->text('suspension_reason')->nullable();
             $table->timestamp('suspension_start')->nullable();
             $table->timestamp('suspension_end')->nullable();
+            $table->timestamp('rejected_at')->nullable()->after('verified_at');
+            $table->text('rejection_reason')->nullable()->after('rejected_at');
+            $table->foreignId('rejected_by')
+                ->nullable()
+                ->after('rejection_reason')
+                ->constrained('users')
+                ->nullOnDelete();
         });
     }
 

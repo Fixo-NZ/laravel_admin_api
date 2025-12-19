@@ -41,7 +41,10 @@ class Tradie extends Authenticatable implements MustVerifyEmail
         'status',
         'suspension_reason',
         'suspension_start',
-        'suspension_end'
+        'suspension_end',
+        'rejected_at',
+        'rejection_reason',
+        'rejected_by'
     ];
 
     protected $hidden = [

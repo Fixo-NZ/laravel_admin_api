@@ -36,6 +36,7 @@ class TradiePage extends Page implements Tables\Contracts\HasTable
         return $table
             ->query(
                 Tradie::query()
+                    ->where('status', '!=', 'pending')
                     ->when(request('table_search'), function ($query, $search) {
                         $query->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%")
