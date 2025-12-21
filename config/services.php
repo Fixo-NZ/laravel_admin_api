@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+<<<<<<< HEAD
+=======
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 ];

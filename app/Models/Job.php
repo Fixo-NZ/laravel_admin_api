@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -58,4 +59,11 @@ class Job extends Model
     {
         return $query->where('status', 'completed');
     }
+=======
+use Illuminate\Database\Eloquent\Model;
+
+class Job extends Model
+{
+    //
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 }

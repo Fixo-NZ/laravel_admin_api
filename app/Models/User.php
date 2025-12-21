@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Relations\HasMany;
+=======
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -24,12 +29,21 @@ class User extends Authenticatable implements FilamentUser
         'last_name',
         'middle_name',
         'email',
+<<<<<<< HEAD
+=======
+        'role',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
         'password',
         'role',
         'status',
         'phone',
         'location',
     ];
+<<<<<<< HEAD
+=======
+    protected $guard_name = 'web';
+
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 
     /**
      * The attributes that should be hidden for serialization.
@@ -39,6 +53,11 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+<<<<<<< HEAD
+=======
+        'created_at',
+        'updated_at',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     ];
 
     /**
@@ -94,6 +113,7 @@ class User extends Authenticatable implements FilamentUser
 
     // --- Relationships for Homeowner modal ---
     // (Keep your relationships here if they were part of the original model)
+<<<<<<< HEAD
 
     // Reviews given by this user (as customer)
     public function reviewsGiven(): HasMany
@@ -129,3 +149,6 @@ class User extends Authenticatable implements FilamentUser
             ->count();
     }
 }
+=======
+}
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e

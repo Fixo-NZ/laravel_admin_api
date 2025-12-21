@@ -36,7 +36,11 @@ return new class extends Migration
             $table->enum('availability_status', ['available', 'busy', 'unavailable'])->default('available');
             $table->integer('service_radius')->default(50);
             $table->timestamp('verified_at')->nullable();
+<<<<<<< HEAD
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+=======
+            $table->enum('status', ['active', 'inactive', 'suspended', 'pending'])->default('active');
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             $table->rememberToken();
             $table->timestamps();
             

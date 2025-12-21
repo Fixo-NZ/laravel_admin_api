@@ -17,9 +17,15 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('middle_name');
             $table->string('email')->unique();
+<<<<<<< HEAD
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+=======
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->string('phone')->nullable();
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             $table->string('avatar')->nullable();
             $table->text('bio')->nullable();
             $table->text('address')->nullable();
@@ -31,7 +37,10 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->rememberToken();    
             $table->timestamps();
+<<<<<<< HEAD
             
+=======
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             $table->index(['latitude', 'longitude']);
             $table->index(['city', 'region']);
         });

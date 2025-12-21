@@ -44,6 +44,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+<<<<<<< HEAD
             'first_name' => fake()->firstName(),       // generates random first name
             'last_name' => fake()->lastName(),        // generates random last name
             'middle_name' => fake()->firstName(),     // generates random middle name
@@ -53,6 +54,17 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role' => 'admin', // default role, change if needed
             'status' => fake()->randomElement(['active', 'inactive', 'suspended']), 
+=======
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'middle_name' => fake()->lastName(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => fake()->dateTimeBetween('-30 days', 'now'),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+            'role' => 'admin', // default role, change if needed
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended'])
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
         ];
     }
 

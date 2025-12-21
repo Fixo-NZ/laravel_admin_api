@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+<<<<<<< HEAD
+=======
+composer.json
+composer.lock
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e

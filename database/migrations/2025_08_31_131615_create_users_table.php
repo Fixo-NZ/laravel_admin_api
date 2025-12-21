@@ -4,8 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+<<<<<<< HEAD
 return new class extends Migration
 {
+=======
+return new class extends Migration {
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     /**
      * Run the migrations.
      */
@@ -21,10 +25,17 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+<<<<<<< HEAD
             $table->rememberToken();
             $table->timestamps();
             $table->string('phone')->nullable();
             $table->string('location')->nullable();
+=======
+            $table->string('phone')->nullable();
+            $table->string('location')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 
         });
     }

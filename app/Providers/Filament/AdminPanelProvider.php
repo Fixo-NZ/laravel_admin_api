@@ -6,6 +6,10 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+<<<<<<< HEAD
+=======
+use Filament\Resources;
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -24,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->id('admin')
+<<<<<<< HEAD
             ->path('admin')
             ->login()
             ->colors([
@@ -38,6 +43,31 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+=======
+            ->path('/')
+            ->login()
+            ->colors([
+                'primary' => Color::hex('#4D47C3'), // Custom primary color (orange)
+            ])
+            ->discoverResources(
+                in: app_path('Filament/Resources'),
+                for: 'App\\Filament\\Resources'
+            )
+            ->discoverPages(
+                in: app_path('Filament/Admin/Pages'),
+                for: 'App\\Filament\\Admin\\Pages'
+            )
+            ->pages([
+                \App\Filament\Admin\Pages\Dashboard::class,
+            ])
+            ->discoverWidgets(
+                in: app_path('Filament/Admin/Widgets'),
+                for: 'App\\Filament\\Admin\\Widgets'
+            )
+            ->widgets([
+                //Widgets\AccountWidget::class,
+                //Widgets\FilamentInfoWidget::class,
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -50,8 +80,63 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+<<<<<<< HEAD
+=======
+
+            // ================================================================
+            // NON-COLLAPSIBLE VERSION (Commented Out)
+            // ================================================================
+            // ->navigationGroups([
+            //     \Filament\Navigation\NavigationGroup::make()
+            //         ->label('User Overview')
+            //         ->icon('heroicon-o-user-circle')
+            //         ->collapsed(false)
+            //         ->items([
+            //             // Add your pages manually here if needed
+            //         ]),
+            // ])
+
+            // ================================================================
+            // COLLAPSIBLE VERSION (Default Active)
+            // ================================================================
+            ->navigationGroups([
+                \Filament\Navigation\NavigationGroup::make('User Overview')
+                    ->icon('heroicon-o-user-circle')
+                    ->collapsible() // makes it expandable/collapsible
+                    ->collapsed(),  // starts collapsed by default
+
+                \Filament\Navigation\NavigationGroup::make('Job Oversight')
+                    ->icon('heroicon-o-briefcase')
+                    ->collapsible()
+                    ->collapsed(),
+                    
+                \Filament\Navigation\NavigationGroup::make('Payments Management')
+                    ->icon('heroicon-o-wallet')
+                    ->collapsible() // makes it expandable/collapsible
+                    ->collapsed(),  // starts collapsed by default
+            ])
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             ->authMiddleware([
                 Authenticate::class,
             ]);
     }
 }
+<<<<<<< HEAD
+=======
+
+/* =========================================================================
+   NOTES
+   =========================================================================
+   1. You now have two versions:
+      - The **non-collapsible** sidebar 
+      - The **collapsible** sidebar (active by default)
+
+   2. Filament automatically groups pages using:
+         protected static ?string $navigationGroup = 'User Overview';
+      inside each page class (e.g., AdminPage, HomeownersPage, etc.)
+
+   3. Change ->collapsed() to ->collapsed(false)
+      if you want the collapsible group to start open.
+
+*/
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e

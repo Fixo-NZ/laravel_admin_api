@@ -15,5 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+<<<<<<< HEAD
         //
+=======
+        
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     })->create();

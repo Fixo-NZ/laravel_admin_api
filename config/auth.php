@@ -40,6 +40,7 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+<<<<<<< HEAD
 
         'sanctum' => [
             'driver' => 'sanctum',
@@ -55,6 +56,16 @@ return [
             'driver' => 'sanctum',
             'provider' => 'tradies',
         ],
+=======
+        'homeowners' => [
+            'driver' => 'sanctum', // or 'token' if not using Sanctum
+            'provider' => 'homeowners',
+        ],
+        'tradies' => [
+            'driver' => 'sanctum', // or 'token' if not using Sanctum
+            'provider' => 'tradies',
+        ]
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     ],
 
     /*
@@ -77,7 +88,11 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
+<<<<<<< HEAD
             'model' => App\Models\User::class,
+=======
+            'model' => env('AUTH_MODEL', App\Models\User::class),
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
         ],
 
         'homeowners' => [
@@ -90,10 +105,13 @@ return [
             'model' => App\Models\Tradie::class,
         ],
 
+<<<<<<< HEAD
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+=======
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     ],
 
     /*

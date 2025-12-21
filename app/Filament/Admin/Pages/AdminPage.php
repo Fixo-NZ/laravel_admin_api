@@ -37,6 +37,19 @@ class AdminPage extends Page implements Tables\Contracts\HasTable
     protected static string $view = 'filament.admin.pages.admin-page';
 
     // =========================================================================
+<<<<<<< HEAD
+=======
+    // HEADER WIDGETS
+    // =========================================================================
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\AdminStatsWidget::class,
+        ];
+    }
+
+    // =========================================================================
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     // TABLE DEFINITION
     // =========================================================================
 
@@ -48,7 +61,16 @@ class AdminPage extends Page implements Tables\Contracts\HasTable
             // -----------------------------
             // Retrieve only users with role = 'admin'
             // Ensures we don’t expose non-admin users on this page
+<<<<<<< HEAD
             ->query(User::query()->where('role', 'admin'))
+=======
+            // ->query(User::query()->where('role', 'admin')) (only use this if there are diff roles)
+            ->query(
+            User::query()
+                     ->when(request('status'), fn($query, $status) => $query->where('status', $status))
+            )
+
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 
             // -----------------------------
             // Columns

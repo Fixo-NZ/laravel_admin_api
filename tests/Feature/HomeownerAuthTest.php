@@ -14,7 +14,13 @@ class HomeownerAuthTest extends TestCase
     public function test_homeowner_can_register()
     {
         $response = $this->postJson('/api/homeowner/register', [
+<<<<<<< HEAD
             'name' => 'John Doe',
+=======
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'middle_name' => 'M',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -29,11 +35,23 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
+<<<<<<< HEAD
                         'name',
                         'email',
                         'phone',
                         'city',
                         'region',
+=======
+                        'first_name',
+                        'last_name',
+                        'middle_name',
+                        'email',
+                        'phone',
+                        'address',
+                        'city',
+                        'region',
+                        'postal_code',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
                         'status',
                         'user_type',
                     ],
@@ -43,7 +61,12 @@ class HomeownerAuthTest extends TestCase
 
         $this->assertDatabaseHas('homeowners', [
             'email' => 'john@example.com',
+<<<<<<< HEAD
             'name' => 'John Doe',
+=======
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
         ]);
     }
 
@@ -65,8 +88,21 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
+<<<<<<< HEAD
                         'name',
                         'email',
+=======
+                        'first_name',
+                        'last_name',
+                        'middle_name',
+                        'email',
+                        'phone',
+                        'address',
+                        'city',
+                        'region',
+                        'postal_code',
+                        'status',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
                         'user_type',
                     ],
                     'token'
@@ -107,7 +143,11 @@ class HomeownerAuthTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
+<<<<<<< HEAD
                 'message' => 'Successfully logged out'
+=======
+                'message' => 'Logged out successfully',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
             ]);
     }
 
@@ -126,8 +166,25 @@ class HomeownerAuthTest extends TestCase
                 'data' => [
                     'user' => [
                         'id',
+<<<<<<< HEAD
                         'name',
                         'email',
+=======
+                        'first_name',
+                        'last_name',
+                        'middle_name',
+                        'email',
+                        'phone',
+                        'avatar',
+                        'bio',
+                        'address',
+                        'city',
+                        'region',
+                        'postal_code',
+                        'latitude',
+                        'longitude',
+                        'status',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
                         'user_type',
                     ]
                 ]

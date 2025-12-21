@@ -4,12 +4,31 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+<<<<<<< HEAD
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class Tradie extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+=======
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
+use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\TradieVerifyEmail;
+
+class Tradie extends Authenticatable implements MustVerifyEmail
+{
+    use HasApiTokens, HasFactory, Notifiable, AuthMustVerifyEmail;
+
+    // Relationship: Tradie has many jobs
+    public function jobs()
+    {
+        return $this->hasMany(\App\Models\Job::class, 'tradie_id');
+    }
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 
     protected $fillable = [
         'first_name',
@@ -34,12 +53,22 @@ class Tradie extends Authenticatable
         'availability_status',
         'service_radius',
         'status',
+<<<<<<< HEAD
         'verified_at',  // even if nullable, good to include
+=======
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     ];
 
     protected $hidden = [
         'password',
+<<<<<<< HEAD
         'remember_token',
+=======
+        'email_verified_at',
+        'remember_token',
+        'created_at',
+        'updated_at',
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     ];
 
     protected $casts = [
@@ -48,9 +77,28 @@ class Tradie extends Authenticatable
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'hourly_rate' => 'decimal:2',
+<<<<<<< HEAD
         'verified_at' => 'boolean',
     ];
 
+=======
+        'verified_at' => 'datetime',
+    ];
+
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        return [$this->email => $this->first_name . ' ' . $this->last_name];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new TradieVerifyEmail());
+    }
+
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
     // Scopes
     public function scopeActive($query)
     {

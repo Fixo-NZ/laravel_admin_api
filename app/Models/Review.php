@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -110,4 +111,11 @@ class Review extends Model
             ->pluck('count', 'rating')
             ->toArray();
     }
+=======
+use Illuminate\Database\Eloquent\Model;
+
+class Review extends Model
+{
+    //
+>>>>>>> 71a2c8679310540abde2d94046e1d0cb72124e9e
 }
